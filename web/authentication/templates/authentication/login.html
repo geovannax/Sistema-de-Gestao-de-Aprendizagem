@@ -1,0 +1,116 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educatrix - Login</title>
+    <link href="{% static 'global/icons/favicon.ico' %}" rel="icon" type="image/x-icon">   
+    <!--Custom CSS-->
+    <link rel="stylesheet" href="{% static 'global/css/colors.css' %}">
+    <link href="{% static 'global/css/authentication.css' %}" rel="stylesheet">
+    <!--Bootstrap-->
+    <link href="{% static 'global/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'global/bootstrap/icons/bootstrap-icons.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card p-5 shadow-sm" style="max-width: 400px; width: 100%;">
+            
+            <!-- Logo -->
+            <div class="text-center mb-5">
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                    <div class="me-3" style="width: 50px; height: 50px;">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center h-100">
+                            <span class="text-white fw-bold fs-4">E</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="fw-bold fs-3" style="color: #4f46e5;">
+                            <span style="color: #059669;">EDUCA</span>TRIX
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário -->
+            <form method="post" id="login-form">
+                {% csrf_token %}
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-500">
+                        Email
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0">
+                            <i class="bi bi-envelope text-muted"></i>
+                        </span>
+                        {{ form.email }}
+                    </div>
+                    {% if form.email.errors %}
+                        <small class="text-danger d-block mt-2">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.email.errors.0 }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Senha -->
+                <div class="mb-4">
+                    <label for="{{ form.password.id_for_label }}" class="form-label fw-500">
+                        Senha
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0">
+                            <i class="bi bi-lock text-muted"></i>
+                        </span>
+                        {{ form.password }}
+                        <button 
+                            class="btn btn-outline-secondary btn-show-text border-start-0" 
+                            type="button" 
+                            id="toggle-password"
+                            tabindex="-1"
+                        >
+                            <i class="bi bi-eye" id="toggle-icon"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <small class="text-danger d-block mt-2">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.password.errors.0 }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Botão -->
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mb-4">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    Entrar
+                </button>
+            </form>
+
+            <!-- Erros gerais -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Dados de Teste -->
+            <div class="bg-light rounded p-3">
+                <small class="text-muted">
+                    <strong>📧 Dados de teste:</strong><br>
+                    Email: <code>prof@educatrix.dev</code><br>
+                    Senha: <code>123Abc!</code>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'global/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'global/js/authentication.js' %}"></script>
+</body>
+</html>

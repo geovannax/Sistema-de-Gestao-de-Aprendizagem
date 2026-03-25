@@ -1,0 +1,91 @@
+
+body {
+    background-color: var(--gray-light) !important;
+}
+
+button, a {
+    border-radius: var(--bs-border-radius-pill) !important;
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
+}
+
+
+.page-link {
+    padding-top: 0;
+    padding-right: 0.75rem;
+    padding-bottom: 0;
+    padding-left: 0.75rem;
+}
+
+.page-link:hover {
+    background-color: var(--info) !important;
+    color: var(--gray-light) !important;
+}
+
+.active>.page-link, .page-link.active {
+    z-index: 3;
+    color: var(--text-muted) !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+
+
+
+/* popup de notificações  */
+
+#notification-popup {
+    position: absolute;
+    top: 4.3rem;
+    right: 0.2rem;
+    width: auto;
+    height: auto;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.9s ease-in-out;
+    display: none;
+    background-color: transparent;
+}  
+
+.notification {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    font-size: 0.9rem;
+    margin-bottom: 0.7rem;
+}
+    
+.content-notification {
+    background-color: var(--bg-gray-light);
+    padding: 0.7rem;
+}
+
+.title-notification {
+    color: var(--popup-title-color) !important;
+    font-weight: 500;
+    padding: 0.2rem 0.7rem;
+}
+
+.title-notification.Success {
+    background-color: var(--success);
+}
+
+.title-notification.Info {
+    background-color: var(--info);
+}
+
+.title-notification.Error {
+    background-color: var(--danger);
+}
+  
+.title-notification.Warning {
+    background-color: var(--warning);
+    color: #000 !important;
+}
+
+.notification-close-button {
+    background-color: transparent;
+    padding-right: 0 !important;
+}
+
+.notification-close-button > i {
+    color: var(--popup-title-color);
+}

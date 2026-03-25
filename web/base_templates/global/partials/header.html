@@ -1,0 +1,130 @@
+<header class="fixed-top">
+
+    <!-- Navbar -->
+    <nav class="shadow-sm navbar navbar-expand-lg navbar-light bg-white">
+        <div class="container">
+            <!-- Brand/Logo -->
+            <a class="navbar-brand d-flex align-items-center">
+                <div class="me-2">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center h-100">
+                        <span class="text-white fw-bold">E</span>
+                    </div>
+                </div>
+                <span class="fw-bold text-educatrix-blue">
+                    <span class="text-educatrix-green">EDUCA</span>TRIX
+                </span>
+            </a>
+
+            <!-- Toggle para mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menu -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Menu Principal -->
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark me-4" href="{% url 'authentication:home' %}">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-dark me-4" href="#" onclick="inDevelopment(event)">
+                            Professores
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-dark me-4" href="#" onclick="inDevelopment(event)">
+                            Alunos
+                        </a>
+                    </li>
+
+                    <!-- Dropdown Turmas (apenas se autenticado e professor) -->
+                    {% if user.is_authenticated and user.profile.is_teacher %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-dark me-4" href="#" id="turmasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Turmas
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="turmasDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="inDevelopment(event)">Turma A</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="inDevelopment(event)">Turma B</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'classes:create' %}">
+                                    <i class="bi bi-plus-circle me-2"></i>Nova Turma
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    <!-- Menu Atividades (apenas se autenticado) -->
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link text-dark me-4" href="">
+                            Atividades
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Perfil ou Botão Login -->
+                {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button
+                        class="btn btn-success rounded-pill px-3 py-2 d-flex align-items-center border-0 dropdown-toggle"
+                        type="button"
+                        id="profileDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        <div class="rounded-circle bg-white d-flex align-items-center justify-content-center me-2">
+                            <i class="bi bi-person-fill text-success"></i>
+                        </div>
+                        <div class="me-2 d-none d-lg-inline">
+                            GEOVANNA
+                        </div>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                                <i class="bi bi-person me-3"></i>Perfil
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2" href="{% url 'classes:list' %}">
+                                <i class="bi bi-people me-3"></i>Minhas Turmas
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2" href="">
+                                <i class="bi bi-list-task me-3"></i>Minhas Atividades
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2" href="{% url 'authentication:logout' %}">
+                                <i class="bi bi-box-arrow-right me-3"></i>Sair
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <a class="btn btn-success fw-semibold d-flex align-items-center buttons" href="{% url 'authentication:login' %}">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+</header>

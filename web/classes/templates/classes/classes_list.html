@@ -1,0 +1,149 @@
+{% extends "global/partials/base.html" %}
+
+{% block main %}
+    <div class="row d-flex justify-content-center align-items-center vh-100 p-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 mt-5">
+                <div class="card-body pt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="fw-bold mb-0 text-dark-custom">Minhas Turmas</h2>
+                        <a href="{% url 'classes:create' %}" class="btn btn-success buttons"> 
+                            <i class="bi bi-plus-circle me-2"></i>Nova Turma
+                        </a>
+                    </div>
+
+                    {% if classes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Descrição</th>
+                                        <th>Criado em</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for class in classes %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ class.name }}</td>
+                                        <td class="text-muted" style="max-width: 200px;">
+                                            {% if class.description|length > 50 %}
+                                                {{ class.description|truncatewords:8 }}...
+                                            {% else %}
+                                                {{ class.description }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted">{{ class.created_at|date:"d/m/Y" }}</td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-2 flex-nowrap">
+                                                <a href="" class="btn btn-outline-primary btn-sm buttons"> 
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm buttons" 
+                                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ class.id }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Modal de confirmação -->
+                                    <div class="modal fade" id="deleteModal{{ class.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Confirma a exclusão de "<strong>{{ class.name }}</strong>"?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <form method="POST" action="" style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">Sim, deletar</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginação -->
+                        {% if is_paginated %}
+                            <nav aria-label="Paginação" class="mt-4">
+                                <ul class="pagination justify-content-end gap-1">
+                                    {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">
+                                            <i class="bi bi-chevron-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link"><i class="bi bi-chevron-double-left"></i></a>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link"><i class="bi bi-chevron-left"></i></a>
+                                    </li>
+                                    {% endif %}
+
+                                    <!-- Números de página -->
+                                    {% for num in paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ paginator.num_pages }}">
+                                            <i class="bi bi-chevron-double-right"></i>
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link"><i class="bi bi-chevron-right"></i></a>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link"><i class="bi bi-chevron-double-right"></i></a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            <p class="d-flex justify-content-end text-center text-muted small mb-0">
+                                Página {{ page_obj.number }} de {{ paginator.num_pages }} 
+                                (Total: {{ paginator.count }} turmas)
+                            </p>
+                        {% endif %}
+                        <!-- Fim Paginação -->
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-list-task display-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhuma Turma encontrada</h5>
+                            <p class="text-muted">Clique em "Nova Turma" para começar</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

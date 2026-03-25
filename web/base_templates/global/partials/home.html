@@ -1,0 +1,23 @@
+{% extends "global/partials/base.html" %}
+
+{% block main %}
+    <div class="row vh-100">
+        <div class="col-lg-6 d-flex justify-content-center align-items-center">
+            <div class="pe-lg-5">
+                <h1 class="display-4 fw-bold mb-4 text-dark-custom">
+                    Avaliando a<br>
+                    Aprendizagem de<br>
+                    Forma
+                    <span class="text-educatrix-green">Inteligente</span>
+                </h1>
+                <p class="lead text-muted mb-5" style="font-size: 1.1rem;">
+                    Relatórios e análises que mostram, passo a passo,<br>
+                    como o conhecimento foi construído.
+                </p>
+                <a href="{% url 'classes:list' %}" class="btn btn-success btn-lg py-3 fw-semibold shadow buttons">
+                    Criar turma
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
