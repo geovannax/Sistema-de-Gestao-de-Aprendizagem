@@ -1,11 +1,10 @@
 from django import forms
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, ListView
 from classes.models import Classes
 
 
-class ClassesListView(LoginRequiredMixin, ListView):
+class ClassesListView(ListView):
     model = Classes
     template_name = 'classes/list.html'
     context_object_name = 'classes'
@@ -13,7 +12,7 @@ class ClassesListView(LoginRequiredMixin, ListView):
     ordering = ['-id']
 
 
-class ClassesCreateView(LoginRequiredMixin, CreateView):
+class ClassesCreateView(CreateView):
     model = Classes
     template_name = 'global/partials/form.html'
     fields = ['name', 'description']

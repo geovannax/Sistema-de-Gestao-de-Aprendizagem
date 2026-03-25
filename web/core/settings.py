@@ -89,7 +89,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB', 'lms'),
         'USER': os.getenv('POSTGRES_USER', 'lms_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'lms_password'),
-        'HOST': os.getenv('POSTGRES_DOMAIN_NAME', 'localhost'),
+        'HOST': os.getenv('POSTGRES_CONTAINER_NAME', 'localhost'),
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
