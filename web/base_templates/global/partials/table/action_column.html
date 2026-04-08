@@ -1,0 +1,27 @@
+<td class="text-center">
+    <div class="d-flex justify-content-center gap-2 flex-nowrap">
+
+        {% for action in table.actions %}    
+            <a
+                href="{% url action.url object.pk %}"
+                class="
+                    btn btn-sm buttons button_custom
+                    {% if action.class %}
+                        {{ action.class }}
+                    {% else %}
+                        btn-outline-primary
+                    {% endif %}
+                "
+            >
+                {% if action.icon %}
+                    <i class="bi {{ action.icon }}"></i>
+                {% endif %}
+
+                {% if action.text %}
+                    {{ action.text }}
+                {% endif %}
+            </a>
+        {% endfor %}
+
+    </div>
+</td>

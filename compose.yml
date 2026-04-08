@@ -1,14 +1,19 @@
-x-postgres-env: 
-  environment:
-    &postgres-common-env
+x-postgres-env:
+  environment: &postgres-common-env
     POSTGRES_DB: ${POSTGRES_DB:-lms}
     POSTGRES_USER: ${POSTGRES_USER:-lms_user}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lms_password}
     POSTGRES_PORT: ${POSTGRES_PORT:-5432}
     POSTGRES_CONTAINER_NAME: ${POSTGRES_CONTAINER_NAME}
 
-services:
+x-web-env:
+  environment: &web-common-env
+    <<: *postgres-common-env
+    REDIS_PORT: ${REDIS_PORT:-6379}
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+    REDIS_CONTAINER_NAME: ${REDIS_CONTAINER_NAME}
 
+services:
   postgres:
     image: postgres:18-alpine
     container_name: ${POSTGRES_CONTAINER_NAME}
@@ -20,13 +25,35 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lms_user} -d ${POSTGRES_DB:-lms}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-lms_user} -d ${POSTGRES_DB:-lms}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       lms-network:
         ipv4_address: ${POSTGRES_IPV4_ADDRESS:-172.20.0.2}
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER_NAME}
+    restart: ${REDIS_RESTART_POLICY:-no}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      lms-network:
+        ipv4_address: ${REDIS_IPV4_ADDRESS:-172.20.0.5}
 
   web:
     image: python:3.14
@@ -35,7 +62,7 @@ services:
     working_dir: /app
     entrypoint: /bin/bash
     environment:
-      PYTHONUNBUFFERED: 1    
+      PYTHONUNBUFFERED: 1
       TZ: America/Sao_Paulo
       DJANGO_SETTINGS_MODULE: core.settings
       WEB_PORT: ${WEB_PORT:-8000}
@@ -43,16 +70,16 @@ services:
       WEB_DEBUG: ${WEB_DEBUG:-false}
       WEB_ALLOWED_HOSTS: ${WEB_ALLOWED_HOSTS:-localhost,127.0.0.1}
       WEB_CSRF_TRUSTED_ORIGINS: ${WEB_CSRF_TRUSTED_ORIGINS:-https://localhost}
-      
-      # Variáveis de ambiente para o PostgreSQL
-      <<: *postgres-common-env
+
+      # Variáveis de ambiente para o PostgreSQL e Redis
+      <<: *web-common-env
 
     command:
       - -c
       - |
         apt update -y
         apt install -y netcat-openbsd
-     
+
         python -m venv /venv
         source /venv/bin/activate
         python -m pip install --upgrade pip
@@ -81,6 +108,7 @@ services:
       - "${WEB_PORT:-8000}:${WEB_PORT:-8000}"
     depends_on:
       - postgres
+      - redis
 
     networks:
       lms-network:
@@ -101,12 +129,12 @@ services:
       WEB_PUBLIC_PRIVATE_KEY: ${WEB_PUBLIC_PRIVATE_KEY:-/etc/ssl/private/automatos_web_public_private_key.key}
       WEB_PUBLIC_CERT_CSR: ${WEB_PUBLIC_CERT_CSR:-/etc/ssl/certs/automatos_web_public_certificate.csr}
       WEB_PUBLIC_CERT_CRT: ${WEB_PUBLIC_CERT_CRT:-/etc/ssl/certs/automatos_web_public_certificate.crt}
-    
+
     command:
       - -c
       - |
         envsubst '$${WEB_PUBLIC_DOMAIN_NAME} $${WEB_CONTAINER_NAME} $${WEB_PUBLIC_PRIVATE_KEY} $${WEB_PUBLIC_CERT_CRT}' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf
-        
+
         if [ ! -f $${WEB_PUBLIC_PRIVATE_KEY} ]; then
           openssl genrsa -out $${WEB_PUBLIC_PRIVATE_KEY} 2048
         fi
@@ -131,6 +159,7 @@ services:
         ipv4_address: ${NGINX_IPV4_ADDRESS:-172.20.0.4}
 
 volumes:
+  redis_data:
   postgres_data:
 
 networks:

@@ -1,33 +1,36 @@
-{% extends "global/partials/base.html" %}
+{% extends "global/partials/single_card.html" %}
 
-{% block main %}
-
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-xs-10 col-lg-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-4">
-                            <button type="button" class="text-decoration-none p-0 me-3 buttons btn btn-link">
-                                <i class="bi bi-arrow-left fs-5"></i>
-                            </button>
-                            <h2 class="fw-bold mb-0 text-dark-custom">{{ form_title }}</h2>
-                        </div>
-
-                        <form method="POST">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="py-3 fw-semibold buttons btn btn-success btn-lg">
-                                    <i class="bi bi-plus-circle me-2"></i>
-                                    {{ submit_title }}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block card_header %}
+    <div class="d-flex align-items-center">
+        <button type="button" class="text-decoration-none p-0 me-3 buttons btn btn-link" onclick="history.back()">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </button>
+        <h2 class="fw-bold mb-0 text-dark-custom">{{ form_title }}</h2>
     </div>
+{% endblock card_header %}
 
-{% endblock %}
+{% block card_body %}
+    <form method="POST">
+        {% csrf_token %}                            
+        {% for field in form %}
+            {% if not field.is_hidden %}
+                <div class="mb-3">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        {{ field.errors }}
+                    {% endif %}
+                </div>
+            {% else %}
+                {{ field }}
+            {% endif %}
+        {% endfor %}
+        <hr>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success buttons button_custom">
+                <i class="bi bi-plus-circle me-2"></i>
+                {{ submit_title }}
+            </button>
+        </div>
+    </form>
+{% endblock card_body %}

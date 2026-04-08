@@ -44,10 +44,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third party
+    'django_select2',
+
     # Local apps
-    'authentication',
     'activity',
-    'classes',
+    'common',
+    'group',
 ]
 
 MIDDLEWARE = [
@@ -85,15 +88,46 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'lms'),
-        'USER': os.getenv('POSTGRES_USER', 'lms_user'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'lms_password'),
-        'HOST': os.getenv('POSTGRES_CONTAINER_NAME', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': os.getenv('POSTGRES_DB', 'lms'),
+    #     'USER': os.getenv('POSTGRES_USER', 'lms_user'),
+    #     'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'lms_password'),
+    #     'HOST': os.getenv('POSTGRES_CONTAINER_NAME', 'localhost'),
+    #     'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    # }
 }
 
+# Cache Configuration
+# https://docs.djangoproject.com/en/6.0/topics/cache/#redis
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#             'SOCKET_CONNECT_TIMEOUT': 5,
+#             'SOCKET_TIMEOUT': 5,
+#             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+#             'IGNORE_EXCEPTIONS': True,
+#         }
+#     }
+# }
+
+# CACHES.update({
+#     'select2': CACHES['default']
+# })
+
+# # Tell select2 which cache configuration to use:
+# SELECT2_CACHE_BACKEND = "select2"
+
+# Session Configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -134,3 +168,6 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [ BASE_DIR / 'base_static',]
 
 STATIC_ROOT = BASE_DIR / 'static'
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'

@@ -25,7 +25,7 @@
                 <!-- Menu Principal -->
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-dark me-4" href="{% url 'authentication:home' %}">
+                        <a class="nav-link text-dark me-4" href="{% url 'home' %}">
                             <i class="bi bi-house-door me-1"></i>Home
                         </a>
                     </li>
@@ -42,24 +42,11 @@
                         </a>
                     </li>
 
-                    <!-- Dropdown Turmas (apenas se autenticado e professor) -->
-                    {% if user.is_authenticated and user.profile.is_teacher %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-dark me-4" href="#" id="turmasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark me-4" href="{% url 'group:active' %}">
                             Turmas
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="turmasDropdown">
-                            <li><a class="dropdown-item" href="#" onclick="inDevelopment(event)">Turma A</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="inDevelopment(event)">Turma B</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'classes:create' %}">
-                                    <i class="bi bi-plus-circle me-2"></i>Nova Turma
-                                </a>
-                            </li>
-                        </ul>
                     </li>
-                    {% endif %}
 
                     <!-- Menu Atividades (apenas se autenticado) -->
                     {% if user.is_authenticated %}
@@ -98,12 +85,6 @@
                         </li>
 
                         <li>
-                            <a class="dropdown-item d-flex align-items-center py-2" href="{% url 'classes:list' %}">
-                                <i class="bi bi-people me-3"></i>Minhas Turmas
-                            </a>
-                        </li>
-
-                        <li>
                             <a class="dropdown-item d-flex align-items-center py-2" href="">
                                 <i class="bi bi-list-task me-3"></i>Minhas Atividades
                             </a>
@@ -112,14 +93,18 @@
                         <li><hr class="dropdown-divider"></li>
 
                         <li>
-                            <a class="dropdown-item d-flex align-items-center py-2" href="{% url 'authentication:logout' %}">
-                                <i class="bi bi-box-arrow-right me-3"></i>Sair
-                            </a>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button class="dropdown-item d-flex align-items-center py-2" type="submit">
+                                    <i class="bi bi-box-arrow-right me-3"></i>
+                                    Sair
+                                </button>
+                            </form>
                         </li>
                     </ul>
                 </div>
                 {% else %}
-                <a class="btn btn-success fw-semibold d-flex align-items-center buttons" href="{% url 'authentication:login' %}">
+                <a class="btn btn-success fw-semibold d-flex align-items-center buttons" href="{% url 'login' %}">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
                 </a>
                 {% endif %}
