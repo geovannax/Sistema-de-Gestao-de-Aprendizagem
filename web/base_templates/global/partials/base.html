@@ -1,43 +1,8 @@
-{% load static %}
+{% extends "global/partials/base_template.html" %}
 
-<!DOCTYPE html>
-<html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Educatrix | {% block title %} {% endblock title %} </title>
-        <link href="{% static 'global/icons/favicon.ico' %}" rel="icon" type="image/x-icon">
-        <link href="{% static 'global/css/reset.css' %}" rel="stylesheet">
-        <link href="{% static 'global/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-        <link href="{% static 'global/bootstrap/icons/bootstrap-icons.css' %}" rel="stylesheet">
-        <link href="{% static 'global/css/colors.css' %}" rel="stylesheet">
-        <link href="{% static 'global/css/style.css' %}" rel="stylesheet">
-        <link href="{% static 'global/css/header.css' %}" rel="stylesheet">
-
-        {% block head %} {% endblock head %}
-    </head>
-    <body>
-        {% include 'global/partials/header.html' %}
-
-        <main class='container-fluid vh-100'>
-            {% block main %} {% endblock main %}
-        </main>  
-        
-        <div id="notification-popup"></div>
-
-        <script src="{% static 'global/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-        {% block script %} {% endblock script %}
-        <script src="{% static 'global/js/notification.popup.js' %}"></script>
-        <script type="text/javascript">
-            document.addEventListener('DOMContentLoaded', function() {
-                {% if messages %}
-                    {% for message in messages %}
-                        // Exibe a mensagem um pop-up
-                        showNotificationPopup('{{ message.tags.capitalize }}','{{ message }}');
-                    {% endfor %}
-                {% endif %}
-            });
-        </script>
-    </body>
-</html>
+{% block main %}
+    <!-- Main Content -->
+    <main class="main-container px-4">
+        {% block main_content %} {% endblock main_content %}
+    </main>
+{% endblock main %}

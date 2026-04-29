@@ -1,0 +1,20 @@
+<ul class="nav nav-tabs mb-0 pt-2 d-flex justify-content-between align-items-center">
+    <div class="d-flex col-lg-8">
+        {% for tab in nav_tabs %}
+            <li class="nav-item">
+                <a 
+                    class="nav-link {% if tab.active %}active{% endif %}"
+                    {% if tab.active %}aria-current="page"{% endif %}
+                    {% if tab.pk %}
+                        href="{% url tab.url tab.pk %}"
+                    {% else %}
+                        href="{% url tab.url %}"
+                    {% endif %}
+                >
+                    <i class="bi {% if tab.icon %}{{ tab.icon }}{% endif %}"></i>
+                    <span>{{ tab.title }}</span>
+                </a>
+            </li>
+        {% endfor %}
+    </div>
+</ul>

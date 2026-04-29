@@ -1,0 +1,22 @@
+{% load common_filters %}
+
+<div class="card-wrapper pt-4">
+    {% for object in object_list %}
+        <div class="card-content pt-3">
+            <a href="{% url detail_url object.id %}" class="text-decoration-none">
+                {% for field_name, value in object_list.0|get_model_only_fields:table.fields %}
+                    <div class="card-field px-4 gap-2">
+                        <span class="card-label">{{ field_name }}</span>
+                        <span class="card-value">{{ object|get_attr:value.name }}</span>
+                    </div>
+                {% endfor %}
+            </a>
+            
+            {% if object.ui_actions %}
+                <div class="card-actions py-2 pe-2 ">
+                    {% include "global/partials/generic/list/_btn_actions.html" %}
+                </div>
+            {% endif %}
+        </div>                                  
+    {% endfor %} 
+</div>

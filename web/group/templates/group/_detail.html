@@ -1,0 +1,83 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %} Detalhes • {{ object.name }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'group/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/nav_tabs.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- PAGE HEADER -->
+    {% with page_title=object.name page_description=object.created_by.get_full_name date_subtitle=object.updated_at %}
+        {% include "global/partials/_page_header.html" %}
+    {% endwith %}
+
+    <hr class="mt-0">
+
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-lg-4">
+
+            <!-- SEÇÃO 1: DESCRIÇÃO -->
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+                <div class="detail-left-title">
+                    <i class="bi bi-file-earmark-text" style="color: var(--blue-500);"></i>
+                    Descrição
+                </div>
+                <hr class="mb-1 mt-1">
+                <div class="detail-left-text">{{ object.description|linebreaksbr}}</div>
+            </div>
+
+            <!-- SEÇÃO 2: INFORMAÇÕES GERAIS -->
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+                <aside>
+                    <div class="detail-left-title">
+                        <i class="bi bi-info-circle" style="color: var(--blue-500);"></i>
+                        Informações Gerais
+                    </div>
+                    <hr class="mb-1 mt-1">
+
+                    <div class="detail-left-item">
+                        <span class="detail-left-label">Turno</span>
+                        <span class="detail-left-value">{{ object.shift }}</span>
+                    </div>
+
+                    <div class="detail-left-item">
+                        <span class="detail-left-label">Criado</span>
+                        <span class="detail-left-value">{{ object.created_at|date:"d M Y" }}</span>
+                    </div>
+
+                    <div class="detail-left-item">
+                        <span class="detail-left-label">Atualizado</span>
+                        <span class="detail-left-value">{{ object.updated_at|date:"d M Y" }}</span>
+                    </div>
+
+                    <div class="detail-left-item">
+                        <span class="detail-left-label">Compartilhados</span>
+                        <span class="detail-left-value highlight">{{ object.active_sharings_count }} usuários</span>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- SEÇÃO 3: ATIVIDADES RECENTES -->
+            {% include "group/mock/_recent_activities.html" %}
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-lg-8">
+            <div class="detail-left-card pt-3 px-3 mb-3 rounded-3">
+                <!-- Navigation Tabs -->
+                {% include "global/partials/_nav_tabs.html" %}
+
+                {% block info_right %} {% endblock info_right %}
+            </div>
+        </div>
+
+    </div>
+    
+{% endblock %}

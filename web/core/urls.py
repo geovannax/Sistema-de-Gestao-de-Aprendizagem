@@ -17,10 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
-from django.views.generic import TemplateView
+from common.views import page_not_found, permission_denied, LandingPage, HomeView
+
+
+handler403 = permission_denied
+handler404 = page_not_found
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='global/partials/home.html'), name='home'),
+    path('', LandingPage.as_view(), name='landing'),
+    path('home/', HomeView.as_view(), name='home'),
 
     path('accounts/login/', LoginView.as_view(), name='login'),
     path('accounts/logout/', LogoutView.as_view(), name='logout'),

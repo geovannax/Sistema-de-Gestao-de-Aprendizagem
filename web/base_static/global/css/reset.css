@@ -5,3 +5,7 @@
     vertical-align: baseline;
     list-style: none;
 }
+
+#reset_radius .form-control {
+    border-radius: 0.375rem !important;
+}

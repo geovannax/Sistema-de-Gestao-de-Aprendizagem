@@ -1,12 +1,96 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
 
-{% block content %}
-<div class="container mt-4">
-    <h1>Criar Atividade</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Salvar</button>
-        <a href="{% url 'activity:activity_list' %}" class="btn btn-secondary">Cancelar</a>
-    </form>
-</div>
-{% endblock %}
+{% block title %} {{ page_title }} {% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}"> 
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+{% endblock extra_head %}
+
+
+{% block main_content %}
+
+    <!-- PAGE HEADER -->
+    <div id="page-header">
+        {% include "global/partials/_page_header.html" %}
+    </div>
+    
+    <!-- FORM GRID -->
+    <div class="container-fluid mt-2">
+        <div class="row">            
+
+            <!-- RIGHT: SIDE PANEL -->
+            <div class="col-lg-4">
+
+                <!-- ASIDE -->
+                <div class="col-12 progress-section p-3 mb-3 rounded-3">
+                    <div class="progress-label">Exercícios</div>
+                    <ul id="page-aside"></ul>  
+                </div>
+
+            </div>
+
+            <!-- LEFT: FORM -->
+            <div class="form-card col-lg-8 p-3 rounded-3 mb-3">
+
+                <!-- Header -->
+                <div class="form-card-header d-flex mb-0" id="form-header">
+                    <div>
+                        <div class="form-card-title mb-0"> {{ form_title }} </div>
+                        <div class="form-card-subtitle"> {{ form_subtitle }} </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- BODY -->
+                <div class="container-fluid px-0" id="main-content">
+                    <form 
+                        hx-post="{{ request.path }}"
+                        hx-target="#main-content"
+                        hx-swap="innerHTML">
+                        {% csrf_token %}
+                
+                        {% include "global/partials/generic/create_or_update/_form.html" %}
+
+                        <hr class="mt-0">
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+
+                            <label class="terms-card d-flex gap-2 align-items-center px-3 py-2 rounded-2">
+                                <input type="checkbox" name="invalidCheck" id="invalidCheck" required />
+                                <div class="text">
+                                    <strong>Termo de aceite</strong>
+                                    <p>Confirmo que estou ciente de que todas as informações serão visíveis para os alunos vinculados.</p>
+                                </div>
+                            </label>
+
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary rounded-5" onclick="history.back()">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-outline-primary rounded-5" id="btnSubmit">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ submit_title|default:"Salvar" }}
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock main_content %}
+
+{% block extra_script %}    
+    <script src="{% static 'activity/js/multiple_choice_form.js' %}"></script>
+{% endblock extra_script %}

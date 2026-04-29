@@ -1,0 +1,199 @@
+/* Progress Bar */
+.progress-section, .tip-card-container{
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+}
+
+.progress-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.4px;
+}
+
+.progress, .progress-stacked {
+    height: 0.5rem !important;
+}
+
+.progress-text {
+    font-size: 0.7rem;
+    color: var(--gray-600);
+    margin-top: 0.4rem;
+    text-align: right;
+}
+
+/* Tips Cards */
+
+.tip-card-icon {
+    font-size: 1.3rem;
+    width: 32px;
+    height: 32px;
+}
+
+.tip-card-icon.tip-card-1 {
+    background: var(--blue-100);
+    color: var(--blue-500);
+}
+
+.tip-card-icon.tip-card-2 {
+    background: var(--amber-100);
+    color: var(--amber-600);
+}
+
+.tip-card-icon.tip-card-3 {
+    background: var(--green-100);
+    color: var(--green-600);
+}
+
+.tip-card-content {
+    flex: 1;
+}
+
+.tip-card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.tip-card-text {
+    font-size: 0.9rem;
+    color: var(--gray-500);
+    line-height: 1.4;
+}
+
+/* FORM LAYOUT */
+
+.form-card {
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+}
+
+.form-card-title {
+    font-size: 1.3rem;
+    color: var(--gray-500);
+    font-weight: 700;
+}
+
+.form-card-subtitle {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-550);
+    margin-bottom: 0.4rem;
+}
+
+.field-hint {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-top: 0.4rem;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--gray-450);
+}
+    
+.radio-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* cada opção */
+.radio-group label {
+    padding: 8px 16px;
+    border: 1px solid var(--gray-300);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: 0.2s;
+    background: var(--white);
+}
+
+/* esconde input */
+.radio-group input[type="radio"] {
+    display: none;
+}
+
+/* selecionado */
+.radio-group label:has(input:checked) {
+    background: var(--blue-500);
+    color: var(--white);
+    border-color: var(--blue-500);
+}
+
+/* hover */
+.radio-group label:hover {
+    border-color: var(--blue-500);
+    color: var(--blue-500);
+}
+
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.field-error {
+    font-size: 0.85rem;
+    color: #dc3545;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: absolute;
+    top: 1.1rem;
+    left: 0.5rem;
+    z-index: 10;
+    background: transparent;
+    padding: 0 4px;
+}
+
+.field-error p {
+    margin: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    animation: errorFadeIn 0.2s ease forwards;
+    background: var(--white);
+}
+
+@keyframes errorFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* Termo de aceite */
+
+.terms-card {
+    border: 1px solid var(--white);
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.terms-card:hover {
+    border: 1px solid var(--gray-300);
+    background: var(--gray-200);
+}
+
+.text strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.text p {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    line-height: 1.4;
+    margin: 0;
+}

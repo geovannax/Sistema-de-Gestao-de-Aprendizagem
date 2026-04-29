@@ -1,0 +1,99 @@
+/* Formulario modal */
+.form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-650);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.form-section-title i {
+    color: var(--blue-500);
+}
+
+.form-text {
+    font-size: 0.8rem !important;
+}
+
+/* Ocultar a seção se .shared-users-list não tiver filhos */
+.form-card-section-new-sharing:not(:has(.shared-users-list > *)) {
+    display: none;
+}
+
+/* Mostrar quando tiver filhos */
+.form-card-section-new-sharing:has(.shared-users-list > *) {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* SHARED USERS LIST */
+.shared-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.shared-user-item {
+    background: var(--gray-200);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.shared-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #E0E7FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border: 2px solid white;
+}
+
+.shared-user-avatar[data-color="1"] { background: #E0E7FF; color: #4338CA; }
+.shared-user-avatar[data-color="2"] { background: #FEF3C7; color: #92400E; }
+.shared-user-avatar[data-color="3"] { background: #DBEAFE; color: #0369A1; }
+.shared-user-avatar[data-color="4"] { background: #F3E8FF; color: #7E22CE; }
+.shared-user-avatar[data-color="5"] { background: #DCFCE7; color: #15803D; }
+.shared-user-avatar[data-color="6"] { background: #FFE4E6; color: #BE185D; }
+.shared-user-avatar[data-color="7"] { background: #EDD5F1; color: #7C3AED; }
+.shared-user-avatar[data-color="8"] { background: #CFFAFE; color: #0891B2; }
+.shared-user-avatar[data-color="9"] { background: #FEE2E2; color: #DC2626; }
+.shared-user-avatar[data-color="10"] { background: #F0FDF4; color: #16A34A; }
+
+.shared-user-info {
+    flex: 1;
+}
+
+.shared-user-name {
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 0.95rem;
+}
+
+.shared-user-email {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+/* DIVIDER */
+.form-divider {
+    color: var(--gray-450) !important;
+}
+

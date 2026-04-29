@@ -1,0 +1,21 @@
+<!-- Seletor de tipos -->
+<div class="row g-3 mb-3">
+    {% for type_key, type_info in exercise_types.items %}
+        <div class="col-md-3">
+            <button
+                type="button" 
+                class="card-content p-3 w-100 h-100" 
+                hx-get="{% url type_info.create_url pk=activity_list_id %}"
+                hx-target="#main-content"
+                hx-swap="innerHTML">                
+                <div class="d-flex justify-content-center gap-3">
+                    <i class="bi {{ type_info.icon }} fs-2 {{ type_info.color }}"></i>
+                    <div class="card-field">
+                        <div class="card-label text-start"><strong>{{ type_info.label }}</strong></div>
+                        <small class="card-value text-start d-block">{{ type_info.description }}</small>
+                    </div>
+                </div>
+            </button>
+        </div>
+    {% endfor %}
+</div>

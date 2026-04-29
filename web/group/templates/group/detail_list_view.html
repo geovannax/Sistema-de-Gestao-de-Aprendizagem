@@ -1,0 +1,272 @@
+{% extends "group/_detail.html" %}
+{% load static %}
+
+{% block info_right %}
+
+<style>
+    .analytics-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+
+    .analytics-title {
+        font-weight: 600;
+        color: var(--gray-650);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
+    }
+
+    .analytics-title i {
+        color: var(--blue-500);
+    }
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+        background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+        padding: 1.25rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid var(--blue-500);
+        transition: all 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+    }
+
+    .metric-label {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--blue-700);
+        margin-bottom: 0.25rem;
+    }
+
+    .metric-change {
+        font-size: 0.75rem;
+        color: var(--success);
+    }
+
+    .progress-bar-one-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .progress-bar-one-label {
+        min-width: 120px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    .progress-bar-one {
+        flex: 1;
+        height: 8px;
+        background: var(--gray-300);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar-one-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg, var(--blue-500), var(--blue-700));
+        transition: width 0.3s ease;
+    }
+
+    .progress-bar-one-value {
+        min-width: 40px;
+        text-align: right;
+        font-weight: 600;
+        color: var(--blue-700);
+        font-size: 0.85rem;
+    }
+
+    .avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: #6366f1;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .user-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .progress {
+        height: 6px;
+    }
+</style>
+
+
+<!-- SEÇÃO 1: KPIs PRINCIPAIS -->
+<div class="analytics-section">
+    <div class="analytics-title">
+        <i class="bi bi-graph-up"></i>
+        KPIs Principais
+    </div>
+    
+    <div class="metric-grid">
+        <div class="metric-card">
+            <div class="metric-label">Taxa de Conclusão</div>
+            <div class="metric-value">68%</div>
+            <div class="metric-change">
+                <i class="bi bi-arrow-up"></i> +5% vs última semana
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Alunos Ativos</div>
+            <div class="metric-value">28/32</div>
+            <div class="metric-change">
+                87.5% de engajamento
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Atividades Entregues</div>
+            <div class="metric-value">42/62</div>
+            <div class="metric-change">
+                67.7% do total
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Média de Nota</div>
+            <div class="metric-value">7.8</div>
+            <div class="metric-change">
+                Dentro do esperado
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEÇÃO 3: PERFORMANCE POR ATIVIDADE -->
+<div class="analytics-section">
+    <div class="analytics-title">
+        <i class="bi bi-list-check"></i>
+        Performance por Atividade
+    </div>
+    
+    <div>
+        <!-- Atividade 1 -->
+        <div class="progress-bar-one-container">
+            <div class="progress-bar-one-label">Atividade 1</div>
+            <div class="progress-bar-one">
+                <div class="progress-bar-one-fill" style="width: 85%;"></div>
+            </div>
+            <div class="progress-bar-one-value">85%</div>
+        </div>
+        
+        <!-- Atividade 2 -->
+        <div class="progress-bar-one-container">
+            <div class="progress-bar-one-label">Atividade 2</div>
+            <div class="progress-bar-one">
+                <div class="progress-bar-one-fill" style="width: 72%;"></div>
+            </div>
+            <div class="progress-bar-one-value">72%</div>
+        </div>
+        
+        <!-- Atividade 3 -->
+        <div class="progress-bar-one-container">
+            <div class="progress-bar-one-label">Atividade 3</div>
+            <div class="progress-bar-one">
+                <div class="progress-bar-one-fill" style="width: 58%;"></div>
+            </div>
+            <div class="progress-bar-one-value">58%</div>
+        </div>
+        
+        <!-- Atividade 4 -->
+        <div class="progress-bar-one-container">
+            <div class="progress-bar-one-label">Atividade 4</div>
+            <div class="progress-bar-one">
+                <div class="progress-bar-one-fill" style="width: 92%;"></div>
+            </div>
+            <div class="progress-bar-one-value">92%</div>
+        </div>
+        
+        <!-- Atividade 5 -->
+        <div class="progress-bar-one-container">
+            <div class="progress-bar-one-label">Atividade 5</div>
+            <div class="progress-bar-one">
+                <div class="progress-bar-one-fill" style="width: 68%;"></div>
+            </div>
+            <div class="progress-bar-one-value">68%</div>
+        </div>
+        
+        <!-- Atividade 6 -->
+        <div class="progress-bar-one-container">
+            <div class="progress-bar-one-label">Atividade 6</div>
+            <div class="progress-bar-one">
+                <div class="progress-bar-one-fill" style="width: 45%;"></div>
+            </div>
+            <div class="progress-bar-one-value">45%</div>
+        </div>
+    </div>
+</div>
+
+<!-- ALUNOS -->
+<div class="analytics-section">
+    <div class="analytics-title">
+        <i class="bi bi-people"></i>
+        Alunos com maior risco de evasão
+    </div>
+
+    <div class="user-row">
+        <div class="d-flex gap-2 align-items-center">
+            <div class="avatar">JS</div>
+            João Silva
+        </div>
+        <div style="width:150px">
+            <div class="progress">
+                <div class="progress-bar bg-danger" style="width:80%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="user-row">
+        <div class="d-flex gap-2 align-items-center">
+            <div class="avatar">MC</div>
+            Maria Costa
+        </div>
+        <div style="width:150px">
+            <div class="progress">
+                <div class="progress-bar bg-warning" style="width:50%"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock info_right %}

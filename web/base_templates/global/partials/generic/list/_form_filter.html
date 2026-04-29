@@ -1,0 +1,47 @@
+{% load common_filters %}
+<div id="formBox" class="collapse nav-tabs-two-content mt-2 rounded-5 col-lg-6 offset-lg-6">
+    <form
+        method="GET"
+        action="{{ request.path }}"
+        class="d-flex justify-content-between align-items-center gap-2 p-2"
+    >
+        {% csrf_token %}
+
+        <!-- Campo de Busca -->
+        <input 
+            type="text"
+            class="form-control form-control-sm"
+            id="searchInput"
+            name="q"
+            placeholder="Digite o termo que deseja buscar..."
+            style="border-top-left-radius: 50rem; border-bottom-left-radius: 50rem;"
+        >
+
+        <!-- Select de Coluna -->
+        <select class="form-select form-select-sm w-50" id="columnSelect" name="search_field">
+            <option disabled selected hidden>Selecione...</option>
+            {% for field_name, value in object_list.0|get_model_only_fields:table.fields %}
+                <option value="{{ value.name }}">{{ field_name }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Botões de Ação -->
+        <div class="d-flex flex-shrink-0 gap-2">
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary rounded-5 d-flex"
+                data-bs-toggle="collapse"
+                data-bs-target="#formBox"
+            >
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+            </button>
+            <button
+                type="submit"
+                class="btn btn-sm btn-outline-primary rounded-5 d-flex"
+            >
+                <i class="bi bi-check-circle me-1"></i> Aplicar
+            </button>
+        </div>
+
+    </form>
+</div>

@@ -1,0 +1,51 @@
+.empty-state-card {
+  background: linear-gradient(
+    135deg,
+    rgba(9, 105, 218, 0.05) 0%,
+    rgba(9, 105, 218, 0.02) 100%
+  );
+  border: 2px dashed var(--blue-500);
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  grid-column: 1 / -1;
+  transition: all 0.3s ease;
+}
+
+.empty-state-card:hover {
+  border-color: var(--blue-500);
+  background: linear-gradient(
+    135deg,
+    rgba(9, 105, 218, 0.08) 0%,
+    rgba(9, 105, 218, 0.04) 100%
+  );
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: var(--blue-500);
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-650);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-text {
+  color: var(--gray-500);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state-action {
+  display: flex;
+  gap: 0.75rem;
+}

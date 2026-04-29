@@ -1,0 +1,55 @@
+/* CSS for navigation list view table */
+.nav-tabs {
+    border-bottom: 1px solid var(--gray-600) !important;
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+}
+
+.nav-tabs .nav-link {
+    display: flex;
+    gap: 0.75rem;
+    position: relative;
+    padding: 0.6rem !important;
+
+    color: var(--gray-500) !important;
+    font-weight: 600;
+
+    border-top: 0px !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    border-radius: 0 !important;
+
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--gray-800) !important;  
+}
+
+.nav-tabs .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gray-800);
+    transition: width 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover::after {
+    width: 100%;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--gray-800) !important;
+    border-bottom: 2px solid var(--gray-800) !important;
+    background: var(--white) !important;
+    font-weight: 700;
+}
+
+.nav-tabs .nav-link.active::after {
+    width: 100%;
+    background: var(--gray-800);
+}

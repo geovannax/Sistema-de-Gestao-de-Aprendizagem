@@ -1,0 +1,348 @@
+:root {
+    --bs-primary: #0969da;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(45deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+}
+
+.navbar-light {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+.login-wrapper {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+}
+
+.login-benefits {
+    color: white;
+    margin-bottom: 3rem;
+}
+
+.benefits-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+}
+
+.benefits-subtitle {
+    font-size: 1.15rem;
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+}
+
+.benefit-item {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: slideInLeft 0.6s ease-out forwards;
+}
+
+.benefit-item:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.benefit-item:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.benefit-item:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.benefit-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.benefit-content h4 {
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    font-size: 1rem;
+}
+
+.benefit-content p {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.login-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.5s ease-out;
+    height: fit-content;
+}
+
+.login-card h2 {
+    color: var(--gray-600) !important;
+}
+
+.login-card p {
+    font-size: 0.8rem !important;
+    margin-top: .25rem !important;
+    color: var(--gray-500) !important;
+}
+
+/* Garante que o input tenha espaço para o ícone do olho no modo floating */
+.form-floating > .form-control {
+    padding-right: 3rem; 
+}
+
+/* Ajuste fino para o label não bater no ícone ao subir */
+.form-floating > label {
+    padding-left: 1.1rem;
+}
+
+/* Ajuste o botão do olho para ficar centralizado verticalmente no form-floating */
+.password-wrapper .password-toggle {
+    z-index: 5;
+    right: 15px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1.5px solid #e5e7eb;
+}
+
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(9, 105, 218, 0.25);
+}
+
+
+
+.form-check-label {
+    font-size: 0.9rem;
+    margin-left: 0.35rem;
+}
+
+.btn-link {
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-primary,
+.btn-outline-primary {
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1.5px;
+    background: #e5e7eb;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 1.1rem;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+.login-btn {
+    width: 100%;
+    padding: clamp(0.75rem, 2vw, 0.95rem);
+    font-weight: 700;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+}
+
+.form-text {
+    margin-top: .25rem;
+    font-size: .875em;
+    color: var(--bs-secondary-color);
+}
+
+
+/* Ajustes para telas com altura reduzida (como 1366x768) */
+@media (max-height: 800px) and (min-width: 992px) {
+    .login-wrapper {
+        padding: 1rem 0 !important;
+        min-height: calc(100vh - 60px);
+    }
+
+    .benefits-title {
+        font-size: 2.2rem; /* Reduzido de 2.8rem */
+        margin-bottom: 1rem;
+    }
+
+    .benefits-subtitle {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .benefit-item {
+        margin-bottom: 1rem; /* Reduzido de 2rem */
+        gap: 0.8rem;
+    }
+
+    .benefit-icon {
+        width: 40px; /* Reduzido de 50px */
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .login-card {
+        padding: 2rem 2.5rem !important; /* Redução de padding interno */
+    }
+
+    .h3.fw-bold {
+        font-size: 1.5rem; /* "Bem-vindo" menor */
+        margin-bottom: 0.25rem !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 1rem !important; /* Compacta margens gerais */
+    }
+
+    .form-control {
+        padding: 0.6rem 1rem; /* Inputs menos altos */
+    }
+
+    .divider {
+        margin: 1rem 0; /* Espaço do "Ou continue com" */
+    }
+    
+
+}
+
+
+/* RESPONSIVE TABLET */
+@media (max-width: 768px) {
+    .login-benefits {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .benefits-title {
+        font-size: 2rem;
+    }
+
+    .benefit-item {
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* RESPONSIVE MOBILE */
+@media (max-width: 576px) {
+    .login-wrapper {
+        padding: 1.5rem 1rem;
+        min-height: auto;
+    }
+
+    .benefits-title {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .benefits-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .benefit-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 1.25rem;
+    }
+
+    .benefit-icon {
+        margin: 0 auto;
+    }
+
+    .login-benefits {
+        margin-bottom: 2rem;
+    }
+
+    .login-card {
+        border-radius: 15px;
+    }
+
+    .btn-primary,
+    .btn-outline-primary {
+        padding: 0.55rem 1rem;
+        font-size: 0.95rem;
+    }
+}
+

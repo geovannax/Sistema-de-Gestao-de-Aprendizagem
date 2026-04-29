@@ -1,23 +1,114 @@
-{% extends "global/partials/base.html" %}
+{% extends "global/partials/base_not_padding.html" %}
+{% load static %}
 
-{% block main %}
-    <div class="row vh-100">
-        <div class="col-lg-6 d-flex justify-content-center align-items-center">
-            <div class="pe-lg-5">
-                <h1 class="display-4 fw-bold mb-4 text-dark-custom">
-                    Avaliando a<br>
-                    Aprendizagem de<br>
-                    Forma
-                    <span class="text-educatrix-green">Inteligente</span>
-                </h1>
-                <p class="lead text-muted mb-5" style="font-size: 1.1rem;">
-                    Relatórios e análises que mostram, passo a passo,<br>
-                    como o conhecimento foi construído.
-                </p>
-                <a href="{% url 'group:active' %}" class="btn btn-success btn-lg py-3 fw-semibold shadow buttons">
-                    Criar turma
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/home.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Gestão de Aprendizagem</h1>
+                <p>Uma plataforma completa para gerenciar turmas, atividades e acompanhar o progresso dos alunos com
+                    facilidade.</p>
+                <div>
+                    <a href="/group/active" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-play-fill"></i> Começar
+                    </a>
+                    <a href="#features" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-arrow-down"></i> Saiba mais
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Scroll Indicator -->
+        <a href="#features" class="scroll-indicator">
+            <span class="scroll-arrow">
+            </span>
+        </a>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="text-center mb-5 mt-5 fw-bold" style="font-size: 2.5rem; color: #1f2937;">
+                Funcionalidades Principais
+            </h2>
+
+            <div class="row g-4">
+                <!-- Feature 1 -->
+                <a href="{% url 'group:active' %}" class="col-md-6 col-lg-4 text-decoration-none">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-collection"></i>
+                        </div>
+                        <h5>Gerenciar Turmas</h5>
+                        <p>Crie e organize suas turmas de forma simples. Defina turnos, descrições e compartilhe com
+                            outros educadores.</p>
+                    </div>
+                </a>
+
+                <!-- Feature 2 -->
+                <a href="{% url 'activity:list' %}" class="col-md-6 col-lg-4 text-decoration-none">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-list-task"></i>
+                        </div>
+                        <h5>Atividades</h5>
+                        <p>Cadastre e acompanhe atividades de cada turma. Defina prazos e monitore a entrega dos alunos.
+                        </p>
+                    </div>
+                </a>
+
+                <!-- Feature 3 -->
+                <a href="{% url 'group:active' %}" class="col-md-6 col-lg-4 text-decoration-none">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-share"></i>
+                        </div>
+                        <h5>Compartilhamento</h5>
+                        <p>Compartilhe turmas e atividades com colegas educadores. Colabore e organize juntos.</p>
+                    </div>
+                </a>
+
+                <!-- Feature 4 -->
+                <a class="col-md-6 col-lg-4 text-decoration-none" onclick="showAlert()">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h5>Relatórios</h5>
+                        <p>Visualize métricas e relatórios do progresso. Acompanhe dados de forma visual e clara.</p>
+                    </div>
+                </a>
+
+                <!-- Feature 5 -->
+                <a class="col-md-6 col-lg-4 text-decoration-none" onclick="showAlert()">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h5>Segurança</h5>
+                        <p>Dados protegidos com autenticação segura. Seus dados estão sempre protegidos.</p>
+                    </div>
+                </a>
+
+                <!-- Feature 6 -->
+                <a class="col-md-6 col-lg-4 text-decoration-none" onclick="showAlert()">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-phone"></i>
+                        </div>
+                        <h5>Responsivo</h5>
+                        <p>Acesse de qualquer dispositivo. Funciona perfeitamente em computadores, tablets e celulares.
+                        </p>
+                    </div>
                 </a>
             </div>
         </div>
-    </div>
+    </section>
+   
 {% endblock %}

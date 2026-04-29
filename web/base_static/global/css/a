@@ -1,0 +1,280 @@
+<style>
+    body {        
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .page-header h2 {
+        color: var(--gray-medium);
+    }
+
+    .page-header .subtitle {
+        color: #57606a;
+    }
+
+    .page-header .subtitle i {
+        color: var(--info);
+    }
+
+    .nav-tabs {
+        border-bottom: 1px solid var(--gray-medium) !important;
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .nav-tabs .nav-link {
+        display: flex;
+        gap: 0.75rem;
+        position: relative;
+        padding: 0.6rem !important;
+        
+        color: #6b7280;
+        font-weight: 600;
+
+        border-top: 0px !important;
+        border-left: 1px solid #e5e7eb !important;
+        border-right: 1px solid #e5e7eb !important;
+        border-radius: 0 !important;
+
+        transition: all 0.3s ease;
+    }
+
+    /* Hover State - Neutro e sutil */
+    .nav-tabs .nav-link:hover {
+        color: #1f2937;
+    }
+
+    /* Efeito de underline animado ao hover */
+    .nav-tabs .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--gray-medium);
+        transition: width 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Active State */
+    .nav-tabs .nav-link.active {
+        color: var(--gray-medium);
+        border-bottom: 2px solid var(--gray-medium) !important;
+        background: var(--primary-white) !important;
+        font-weight: 700;
+    }
+
+    .nav-tabs .nav-link.active::after {
+        width: 100%;
+        background: #1f2937;
+    }
+
+    .data-table th {
+        background: #f6f8fa !important;
+        padding: 0.75rem 1rem;
+        color: #57606a;
+    }
+
+
+    .data-table td {
+      font-size: 0.95rem;
+    }
+
+    
+
+    .table-4-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .table-4-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .table-4-card:hover {
+      border-color: #0969da;
+      box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .table-4-card .card-header {
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .table-4-card .card-field {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.9rem;
+    }
+
+    .table-4-card .card-field:last-child {
+      border-bottom: none;
+    }
+
+    .table-4-card .card-label {
+      font-weight: 500;
+      color: #1f2937;
+    }
+
+    .table-4-card .card-value {
+      color: #6b7280;
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;      /* 👈 limita a 2 linhas */
+      overflow: hidden;
+    }
+
+    .table-container {
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .nav_tabs {
+        // background: linear-gradient(135deg, #c3cfe2 100%, #f5f7fa 0%);
+
+        background: white;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+    }
+
+    .btn_nav_tabs {
+        border: none;
+    }
+
+    .btn_nav_tabs:hover:not(.active) {
+        background: var(--gray) !important;
+    }
+
+    .btn_nav_tabs.active {
+        background: var(--gray);
+        color: var(--gray-dark);
+        font-weight: 600;
+    }
+
+
+/* Empty State */
+
+    .empty-state-card {
+        background: linear-gradient(135deg, rgba(9, 105, 218, 0.05) 0%, rgba(9, 105, 218, 0.02) 100%);
+        border: 2px dashed #0969da;
+        border-radius: 1rem;
+        padding: 3rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        grid-column: 1 / -1;
+        transition: all 0.3s ease;
+    }
+
+    .empty-state-card:hover {
+        border-color: #0969da;
+        background: linear-gradient(135deg, rgba(9, 105, 218, 0.08) 0%, rgba(9, 105, 218, 0.04) 100%);
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #0969da;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state-action {
+        display: flex;
+        gap: 0.75rem;
+    }
+        
+
+    /* modall */
+
+
+    
+        .modal-header {
+            background: linear-gradient(135deg, #0969da 0%, #0749c8 100%);
+            color: white;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .form-group-modal {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group-modal label {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group-modal .form-control,
+        .form-group-modal .form-select {
+            font-size: 0.95rem;
+            border-color: #e5e7eb;
+        }
+
+        .form-group-modal .form-control:focus,
+        .form-group-modal .form-select:focus {
+            border-color: #0969da;
+            box-shadow: 0 0 0 0.2rem rgba(9, 105, 218, 0.25);
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid #0969da;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #0369a1;
+            font-size: 0.9rem;
+        }
+</style>

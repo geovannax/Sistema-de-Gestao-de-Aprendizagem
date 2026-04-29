@@ -1,0 +1,60 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="fw-semibold small text-uppercase text-muted">Exercícios ({{ exercises.count }})</span>
+</div>
+
+<div id="exercise-list" class="list-group list-group-flush">
+    {% for exercise in exercises %}
+        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-start border-0 border-bottom">
+            <!-- Número + tipo + título -->
+            <div class="flex-grow-1 d-flex gap-2 align-items-start">
+                <span class="badge bg-light text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width:24px; height:24px; font-size:0.8rem;">
+                    {{ forloop.counter }}
+                </span>
+                <div class="flex-grow-1 min-width-0">
+                    <div class="d-flex gap-2 align-items-center">
+                        {% if exercise.type == 'code' %}
+                            <span class="badge bg-primary">Código</span>
+                        {% elif exercise.type == 'complete_code' %}
+                            <span class="badge bg-warning">Completar</span>
+                        {% else %}
+                            <span class="badge bg-success">Múltipla</span>
+                        {% endif %}
+                        <small class="fw-semibold text-dark" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ exercise.title }}
+                        </small>
+                    </div>
+                    <small class="text-muted d-block" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size:0.75rem;">
+                        {{ exercise.statement|truncatechars:50 }}
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Ações: editar + deletar -->
+            <div class="d-flex gap-1 ms-2" style="flex-shrink: 0;">
+                <button type="button" class="btn btn-sm btn-link text-muted p-0"
+                        title="Editar"
+                        hx-get="{% url 'activity:exercise_edit' activity_list.pk exercise.pk %}"
+                        hx-target="#main-content"
+                        hx-swap="innerHTML">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                        title="Deletar"
+                        hx-delete="{% url 'activity:exercise_delete' activity_list.pk exercise.pk %}"
+                        hx-confirm="Tem certeza que deseja deletar este exercício?"
+                        hx-target="#main-content"
+                        hx-swap="innerHTML">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-muted fst-italic small mb-0" id="empty-state">Nenhum exercício ainda.</p>
+    {% endfor %}
+</div>
+
+<!-- Botão para adicionar novo exercício -->
+<button type="button" class="btn btn-sm btn-outline-primary w-100 mt-3"
+        onclick="document.getElementById('type-selector').scrollIntoView({behavior: 'smooth'})">
+    <i class="bi bi-plus-circle me-1"></i>Adicionar exercício
+</button>

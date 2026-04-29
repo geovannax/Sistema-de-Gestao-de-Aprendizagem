@@ -1,0 +1,11 @@
+.page-header h2 {
+  color: var(--gray-600);
+}
+
+.page-header .subtitle {
+  color: var(--gray-650);
+}
+
+.page-header .subtitle i {
+  color: var(--info);
+}

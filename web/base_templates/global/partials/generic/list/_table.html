@@ -1,0 +1,54 @@
+{% load common_filters %}
+
+    <div class="table-responsive 
+        {% if table_type_card %}
+            mt-4 rounded-4 table-type-table
+        {% endif %}
+    ">
+        <table class="data-table table table-sm table-hover mb-0">
+            <thead id="tableHead">
+                <tr>
+                    {% for field_name, value in object_list.0|get_model_only_fields:table.fields %}
+                        <th>
+                            <a href="?sort={{ value.name }}{% if has_ordering_session.sort == value.name and has_ordering_session.order != 'desc' %}&order=desc{% else %}&order=asc{% endif %}"
+                                style="text-decoration: none; color: inherit;">
+                                {{ field_name }}
+                                {% if has_ordering_session.sort == value.name %}
+                                    {% if has_ordering_session.order == 'desc' %}
+                                        <i class="bi bi-sort-down text-danger"></i>
+                                    {% else %}
+                                        <i class="bi bi-sort-up text-danger"></i>
+                                    {% endif %}
+                                {% else %}
+                                    <i class="bi bi-arrow-down-up"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                    {% endfor %}
+                    {% if object_list.0.ui_actions %}
+                        <th class="text-center">Ações</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody id="tableBody">            
+                {% for object in object_list %}
+
+                    {% if detail_url %}
+                        <tr class="clickable-row" data-href="{% url detail_url object.id %}">
+                    {% else %}
+                        <tr>
+                    {% endif %}
+
+                        {% for field in table.fields %}
+                            <td class="td-truncate-1">{{ object|get_attr_with_truncate:field }}</td>
+                        {% endfor %}
+                        
+                        {% if object.ui_actions %}
+                            {% include "global/partials/generic/list/_table_additional_columns.html" %}
+                        {% endif %}
+
+                    </tr>                                    
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>

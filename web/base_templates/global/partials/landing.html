@@ -1,0 +1,199 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Educatrix | Landing Page </title>
+        <link href="{% static 'global/icons/favicon.ico' %}" rel="icon" type="image/x-icon">
+        <link href="{% static 'global/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'global/bootstrap/icons/bootstrap-icons.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/colors.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/style.css' %}" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'global/css/home.css' %}">
+    </head>
+    <body >
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top  ">
+        
+        <a class="navbar-brand text-primary fw-bolder ps-4 fs-4"  href="{% url 'home' %}">
+            <i class="bi bi-book"></i> Educatrix
+        </a>
+        
+        <div class="collapse navbar-collapse pe-5" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#roles">Para Você</a></li>
+                <li class="nav-item"><a class="nav-link" href="#features">Funcionalidades</a></li>
+            </ul>
+        </div>
+    </nav>
+
+   <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>A Plataforma Ideal Para Educadores e Alunos</h1>
+                <p>Organize turmas, gerencie atividades e acompanhe o progresso de forma simples e eficiente. Colabore
+                    em tempo real.</p>
+                <div>
+                    <a href="/accounts/login?tipo=professor" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-person-badge"></i> Sou Professor
+                    </a>
+                    <a href="/accounts/login?tipo=aluno" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-person-check"></i> Sou Aluno
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Scroll Indicator -->
+        <a href="#roles" class="scroll-indicator">
+            <span class="scroll-arrow">
+            </span>
+        </a>
+    </section>
+
+    <!-- ROLES SECTION -->
+    <section id="roles" class="roles">
+        <div class="container">
+            <h2 class="text-center mb-5 mt-5 fw-bold" style="font-size: 2.5rem; color: #1f2937;">
+                Para Cada Perfil
+            </h2>
+
+            <div class="row g-4">
+                <!-- PROFESSOR -->
+                <div class="col-lg-6">
+                    <div class="role-card professor">
+                        <div class="role-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <h3>Professores</h3>
+                        <p>Crie, organize e gerencie suas turmas e atividades com total controle</p>
+
+                        <ul class="role-benefits list-unstyled">
+                            <li><i class="bi bi-check-circle"></i> Gerenciar turmas e alunos</li>
+                            <li><i class="bi bi-check-circle"></i> Criar e acompanhar atividades</li>
+                            <li><i class="bi bi-check-circle"></i> Compartilhar com colegas</li>
+                            <li><i class="bi bi-check-circle"></i> Visualizar relatórios</li>
+                        </ul>
+
+                        <a href="/accounts/login?tipo=professor" class="btn btn-primary mt-3 rounded-5">
+                            Começar como Professor
+                        </a>
+                    </div>
+                </div>
+
+                <!-- ALUNO -->
+                <div class="col-lg-6">
+                    <div class="role-card aluno">
+                        <div class="role-icon">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <h3>Alunos</h3>
+                        <p>Acompanhe suas turmas, entregue atividades e veja seu progresso</p>
+
+                        <ul class="role-benefits list-unstyled">
+                            <li><i class="bi bi-check-circle"></i> Acompanhar atividades</li>
+                            <li><i class="bi bi-check-circle"></i> Ver prazos e avisos</li>
+                            <li><i class="bi bi-check-circle"></i> Receber notificações</li>
+                            <li><i class="bi bi-check-circle"></i> Acompanhar progresso</li>
+                        </ul>
+
+                        <a href="/accounts/login?tipo=aluno" class="btn btn-info mt-3 rounded-5">
+                            Começar como Aluno
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="text-center mb-5 mt-5 fw-bold" style="font-size: 2.5rem; color: #1f2937;">
+                Funcionalidades Para Todos
+            </h2>
+
+            <div class="row g-4">
+                <!-- Feature 1 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-folder2-open"></i>
+                        </div>
+                        <h5>Gestão de Conteúdo</h5>
+                        <p>Organize materiais, arquivos e recursos em um só lugar de forma estruturada.</p>
+                    </div>
+                </div>
+
+
+                <!-- Feature 2 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-list-task"></i>
+                        </div>
+                        <h5>Atividades e Prazos</h5>
+                        <p>Gerencie prazos e acompanhe entregas. Mantenha tudo organizado e no prazo.</p>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <h5>Notificações</h5>
+                        <p>Receba avisos importantes em tempo real. Nunca perca informações relevantes.</p>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-grid-1x2"></i>
+                        </div>
+                        <h5>Acesso Centralizado</h5>
+                        <p>Encontre turmas, atividades e conteúdos em um único ambiente.</p>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-check2-square"></i>
+                        </div>
+                        <h5>Avaliações</h5>
+                        <p>Criação e acompanhamento de avaliações e resultados.</p>
+                    </div>
+                </div>
+
+
+                <!-- Feature 6 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-laptop"></i>
+                        </div>
+                        <h5>Acesso Multiplataforma</h5>
+                        <p>Utilize o sistema em diferentes dispositivos com consistência.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="footer" class="footer footer-bottom bg-white">  
+        <p class="mb-0">&copy; 2026 Sistema de Gestão de Aprendizagem. Todos os direitos reservados.</p>
+    </footer>
+</body>
+
+</html>

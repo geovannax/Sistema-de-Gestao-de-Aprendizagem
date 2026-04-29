@@ -1,0 +1,116 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %} {{ page_title }} {% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}"> 
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+{% endblock extra_head %}
+
+
+{% block main_content %}
+
+    <!-- PAGE HEADER -->
+    {% include "global/partials/_page_header.html" %}
+
+    <!-- FORM GRID -->
+    <div class="container-fluid mt-2">
+        <div class="row">            
+
+            <!-- RIGHT: SIDE PANEL -->
+            <div class="col-lg-4">
+
+                <!-- PROGRESS -->
+                <div class="col-12 progress-section p-3 mb-3 rounded-3">
+                    <div class="progress-label">Progresso do Formulário</div>
+                    <div class="progress" role="progressbar" aria-label="Formulario Grupos" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+
+                <!-- TIPS -->
+                {% if tip_card_content %}
+                    <div class="col-12">                    
+                        {% for tip in tip_card_content %}
+                            <div class="col-12 tip-card-container p-3 mb-3 rounded-3 d-flex justify-content-between align-items-center gap-2">
+                                <div class="tip-card-icon tip-card-{{ forloop.counter }} d-flex justify-content-center align-items-center rounded-2">
+                                    <i class="bi {{ tip.icon }}"></i>
+                                </div>
+                                <div class="tip-card-content">
+                                    <div class="tip-card-title">{{ tip.title }}</div>
+                                    <div class="tip-card-text">{{ tip.text }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <!-- LEFT: FORM -->
+            <div class="form-card col-lg-8 p-3 rounded-3 mb-3">
+
+                <!-- Header -->
+                <div class="form-card-header d-flex mb-0">
+                    <button type="button" class="btn text-secondary text-decoration-none align-self-start p-0 me-2 fs-5" onclick="history.back()">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <div>
+                        <div class="form-card-title mb-0"> {{ form_title }} </div>
+                        <div class="form-card-subtitle"> {{ form_subtitle }} </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Form -->
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {% include "global/partials/generic/create_or_update/_form.html" %}
+
+                    <hr class="mt-0">
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        
+                        {% if form_submit_confirm_text %}
+                            <label class="terms-card d-flex gap-2 align-items-center px-3 py-2 rounded-2">
+                                <input type="checkbox" name="invalidCheck" id="invalidCheck" required />
+                                <div class="text">
+                                    <strong>Termo de aceite</strong>
+                                    <p>{{ form_submit_confirm_text }}</p>
+                                </div>
+                            </label>
+                        {% else %}
+                            <div></div>
+                        {% endif %}
+
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary rounded-5" onclick="history.back()">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-outline-primary rounded-5" id="btnSubmit">
+                                <i class="bi bi-check-circle me-1"></i>
+                                {{ submit_title|default:"Salvar" }}
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock main_content %}
+
+{% block extra_script %}
+    <script src="{% static 'global/js/form.js' %}"></script>
+{% endblock extra_script %}

@@ -1,0 +1,26 @@
+.ordering-custom-dropdown {
+    min-width: 220px;
+    backdrop-filter: blur(10px);
+    margin-top: 0.2rem !important;
+}
+
+.ordering-custom-dropdown .dropdown-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--gray-500);
+    padding: 0.25rem 0.75rem;
+    display: block;
+}
+
+.ordering-custom-dropdown .dropdown-item {
+    border-radius: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.ordering-custom-dropdown .dropdown-item i {
+    font-size: 0.75rem;
+}
+

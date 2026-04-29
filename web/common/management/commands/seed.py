@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from group.models import Group, GroupSharing
 from django.db.utils import IntegrityError
+import random
+from django.contrib.auth.hashers import make_password
 
 
 class Command(BaseCommand):
@@ -12,77 +14,87 @@ class Command(BaseCommand):
         self.create_groups()
         self.clear_groups_sharing()
 
-    def create_users(self):
-        
-        for i in range(1, 15):
-            users_data = {
-                'email': f'prof{i}@educatrix.dev',
-                'username': f'prof{i}',
-                'password': '123Abc!',
-                'first_name': f'Professor {i}',
-                'last_name': 'Test',
-                'is_staff': True,
-                'is_superuser': True,
-            }
-                    
-            email = users_data.pop('email')
-            password = users_data.pop('password')
-            
-            # Verificar se usuário já existe
-            if User.objects.filter(email=email).exists():
-                self.stdout.write(
-                    self.style.WARNING(f'Usuário {email} já existe!')
-                )
-                continue
 
+    def create_users(self):
+        password = make_password('123Abc!')
+
+        first_names = [
+            'Ana', 'Bruno', 'Carlos', 'Diana', 'Eduardo', 'Fernanda',
+            'Gabriel', 'Helena', 'Igor', 'Joana', 'Kevin', 'Lúcia',
+            'Marcos', 'Natália', 'Otávio', 'Patricia', 'Quintino', 'Rafael'
+        ]
+        
+        last_names = [
+            'Silva', 'Santos', 'Oliveira', 'Souza', 'Costa', 'Ferreira',
+            'Gomes', 'Martins', 'Pereira', 'Carvalho', 'Barbosa', 'Ribeiro',
+            'Alves', 'Rocha', 'Mendes', 'Campos', 'Neves', 'Monteiro'
+        ]
+
+        for i in range(1, 15):
             # Criar usuário
-            user = User.objects.create_user(
-                email=email,
-                password=password,
-                **users_data
+            user, created = User.objects.update_or_create(
+                email=f'prof{i}@educatrix.dev',
+                defaults={
+                    'username': f'prof{i}',
+                    'first_name': random.choice(first_names),
+                    'last_name': random.choice(last_names),
+                    'password': password,
+                }
             )
+            if created:
+                msg = self.style.SUCCESS(f'✓ Usuário criado: prof{i}')
+            else:
+                msg = self.style.WARNING(f'✓ Usuário atualizado: prof{i}')
             
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'✓ Usuário criado: {email}'
-                )
-            )
+            self.stdout.write(msg)
+
 
     def create_groups(self):
 
-        for i in range(1, 15):
-            name = f'IF ADS 2026.3.{i}'
-            description = f'Analise e Desenvolvimento de Sistemas.\n Turma: 3.{i} \n Ano: 2026'
-            
-            # Verificar se grupo já existe
-            if Group.objects.filter(name=name).exists():
-                self.stdout.write(
-                    self.style.WARNING(f'Grupo {name} já existe!')
-                )
-                continue
+        created_by=User.objects.last()
 
-            # Criar grupo
-            group = Group.objects.create(
-                name=name,
-                description=description,
-                created_by=User.objects.first()
+        COURSES = [
+            ('ADS', 'Análise e Desenvolvimento de Sistemas'),
+            ('ES', 'Engenharia de Software'),
+            ('DSI', 'Desenvolvimento de Sistemas para Internet'),
+            ('CC', 'Ciência da Computação'),
+            ('IR', 'Infraestrutura de Redes'),
+        ]
+        
+        for i in range(1, 15):
+            abbr, course = random.choice(COURSES)
+
+            # Criar Grupos
+            group, created = Group.objects.update_or_create(
+                name=f'{abbr} 2026.3.{i}',
+                created_by=created_by,
+                defaults={
+                    'description': f'{course}.\n Turma: 3.{i} \n Ano: 2026',
+                    'shift': random.choice(
+                        ['Manhã', 'Tarde', 'Noite', 'Integral'] 
+                    ) 
+                }
             )
+            if created:
+                msg = self.style.SUCCESS(f'✓ Grupo criado: {abbr} 2026.3.{i}')
+            else:
+                msg = self.style.WARNING(f'✓ Grupo atualizado: {abbr} 2026.3.{i}')
             
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'✓ Grupo criado: {name}'
-                )
-            )
+            self.stdout.write(msg)
+
 
     def clear_groups_sharing(self):
 
-        for i in range(2, 15):
+        group = Group.objects.last()
+        shared_by = User.objects.last()
+
+        for i in range(1, 14):
             try:
                 # Criar grupo
                 groupsharing = GroupSharing.objects.create(
-                    group = Group.objects.last(),
+                    group = group,
                     shared_with = User.objects.filter(pk=i).first(),
-                    shared_by = User.objects.first()
+                    shared_by = shared_by
                 )
             
                 self.stdout.write(

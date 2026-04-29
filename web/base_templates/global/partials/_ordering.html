@@ -1,0 +1,65 @@
+
+
+
+{% load common_filters %}
+{% load static %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/ordering.css' %}">
+{% endblock extra_head %}
+
+
+<div class="dropdown">
+    <button 
+        class="btn btn-sm rounded-pill d-flex align-items-center gap-2
+            {% if has_ordering_session %}
+                btn-outline-primary
+            {% else %}
+                btn-outline-secondary
+            {% endif %}"
+        type="button" 
+        data-bs-toggle="dropdown"
+    >
+        <i class="bi bi-arrow-down-up"></i>
+        <span class="d-none d-sm-inline">Ordenar</span>
+    </button>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm ordering-custom-dropdown">
+        
+        <span class="dropdown-title">Ordenar por</span>
+        {% if object_list.all %}
+
+            {% for field_name, value in object_list.0|get_model_only_fields:table.fields %}
+
+                <li>
+                    <a href="?sort={{ value.name }}{% if has_ordering_session.sort == value.name and has_ordering_session.order != 'desc' %}&order=desc{% else %}&order=asc{% endif %}"
+                        class="dropdown-item">
+                        {% if not has_ordering_session %}
+                            <i class="bi bi-arrow-down-up me-2"></i>
+                        {% elif has_ordering_session.sort == value.name %}
+                            {% if has_ordering_session.order == 'desc' %}
+                                <i class="bi bi-arrow-down me-2 text-primary"></i>
+                            {% else %}
+                                <i class="bi bi-arrow-up me-2 text-primary"></i>
+                            {% endif %}
+                        {% else %}
+                            <i class="bi bi-arrow-down-up me-2"></i>
+                        {% endif %}
+                        {{field_name}}
+                    </a>
+                </li>
+
+            {% endfor %}
+
+        {% endif %}
+        <hr class="dropdown-divider">
+        
+        <li>
+            <a href="{{ request.path }}?clear_order=1" class="dropdown-item d-flex justify-content-start align-items-center">
+                <i class="bi bi-trash me-2"></i>
+                Limpar
+            </a>
+        </li>
+    </ul>
+
+</div>

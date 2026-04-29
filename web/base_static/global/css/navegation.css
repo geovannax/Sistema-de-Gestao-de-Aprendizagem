@@ -1,0 +1,44 @@
+/* CSS for navigation list view cards */
+.nav-tabs-two-content {
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+}
+
+.nav-link-two {
+  border: none;
+}
+
+.nav-link-two.active {
+  background: var(--gray-200);
+  color: var(--gray-600) !important;
+  font-weight: 600;
+}
+
+.nav-link-two:hover:not(.active) {
+  background: var(--gray-200) !important;
+}
+
+/* Ajuste para o collapse não empurrar os botões de ação para baixo no desktop */
+@media (min-width: 992px) {
+    .navbar-collapse {
+        display: flex !important;
+        flex-basis: auto;
+    }
+}
+
+/* Estilo para as abas dentro do menu aberto no mobile */
+@media (max-width: 991px) {
+    .navbar-collapse {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        background: white;
+        width: 100%;
+        padding: 1rem;
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        margin-top: 0.5rem;
+    }
+}

@@ -1,0 +1,59 @@
+/* popup de notificações  */
+.toast {
+  background-color: #fff;
+}
+
+#notification-popup {
+  position: absolute;
+  top: 4.3rem;
+  right: 0.2rem;
+  width: auto;
+  height: auto;
+  z-index: 9999;
+  opacity: 0;
+  transition: all 0.9s ease-in-out;
+  display: none;
+}
+
+.notification {
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  font-size: 0.9rem;
+  margin-bottom: 0.7rem;
+}
+
+.content-notification {
+  background-color: var(--gray-100);
+  padding: 0.7rem;
+}
+
+.title-notification {
+  color: var(--popup-title-color) !important;
+  font-weight: 500;
+  padding: 0.2rem 0.7rem;
+}
+
+.title-notification.Success {
+  background-color: var(--success);
+}
+
+.title-notification.Info {
+  background-color: var(--info);
+}
+
+.title-notification.Error {
+  background-color: var(--danger);
+}
+
+.title-notification.Warning {
+  background-color: var(--warning);
+  color: #000 !important;
+}
+
+.notification-close-button {
+  background-color: transparent;
+  padding-right: 0 !important;
+}
+
+.notification-close-button > i {
+  color: var(--popup-title-color);
+}

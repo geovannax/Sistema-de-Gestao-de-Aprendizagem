@@ -1,0 +1,45 @@
+<div class="option-form row align-items-end">
+    <div class="form-group col">
+        <label for="{{ option_form.text.id_for_label }}">Alternativa</label>
+        
+        <div style="display: none;">
+            {% if option_form.id %}
+                {{ option_form.id }}
+            {% endif %}
+
+            {% if option_form.DELETE %}
+                {{ option_form.DELETE }}
+            {% endif %}
+        </div>
+
+        {% if option_form.errors %}
+            <div class="field-error">
+                <p class="ms-3">{{ option_form.text.errors.0 }}</p>
+            </div>
+        {% endif %}
+
+        {{ option_form.text }}
+        
+        {% if option_form.text.help_text %}
+            <div class="field-hint mb-3">
+                {{ option_form.text.help_text }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-auto">
+        <div class="form-check">
+            {{ option_form.is_correct }}
+            <label
+                class="form-check-label small"
+                for="{{ option_form.is_correct.id_for_label }}"
+                onchange="ensureOnlyOneCorrect(this.previousElementSibling)">
+                Correta
+            </label>
+        </div>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-sm btn-outline-danger rounded-5 px-3" onclick="removeOptionForm(this)">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+</div>

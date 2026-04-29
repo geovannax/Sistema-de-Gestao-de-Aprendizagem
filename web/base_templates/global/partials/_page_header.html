@@ -1,0 +1,23 @@
+<!-- Title Page -->
+<div class="page-header pt-5">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold">{{ page_title }}</h2>
+            <p class="subtitle">
+                {% if date_subtitle %}
+                    <span class="subtitle-text">{{ page_description }} • atualizado há {{ date_subtitle|timesince }} atrás</span>
+                {% else %}
+                    <i class="bi bi-info-circle"></i>
+                    <span class="subtitle-text">{{ page_description }}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        {% if create_url %}
+            <a href="{% url create_url %}" class="btn btn-outline-primary rounded-pill">
+                <i class="bi bi-plus-circle me-2"></i> Cadastrar
+            </a>
+        {% endif %}
+
+    </div>
+</div>

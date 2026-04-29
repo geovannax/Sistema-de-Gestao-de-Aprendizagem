@@ -1,0 +1,48 @@
+<nav class="navbar navbar-expand-lg w-100 p-0">
+    <div class="container-fluid p-1 rounded-5 nav-tabs-two-content d-flex justify-content-between align-items-center">
+        
+        <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="collapse" data-bs-target="#navTabsContent" aria-controls="navTabsContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list fs-4"></i>
+            <span class="fs-6 ms-1">Menu</span>
+        </button>
+
+        <div class="collapse navbar-collapse flex-grow-0" id="navTabsContent">
+            <div class="d-flex flex-column flex-lg-row gap-2 mt-2 mt-lg-0">
+
+                {% for tab in nav_tabs %}
+                    <a class="btn nav-link-two rounded-5 px-3 
+                        {% if tab.active %}active aria-current='page' {% endif %}"                           
+                        href="{% url tab.url %}"
+                    >
+                        <i class="bi pe-2 {% if tab.icon %}{{ tab.icon }}{% endif %}"></i>
+                        {{ tab.title }}
+                    </a>
+                {% endfor %}
+
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <!-- Order Filter Button -->
+            {% include "global/partials/_ordering.html" %}
+
+            <!-- Filter Button -->
+            {% include "global/partials/_search_filter.html" %}
+
+            <a 
+                href="?view_type={% if view_type  == 'cards' %}table{% else %}cards{% endif %}"
+                class="btn btn-sm btn-outline-secondary rounded-5"
+            >
+                {% if view_type  == 'cards' %}
+                    <i class="bi bi-table"></i> 
+                    <span class="d-none d-sm-inline">Tabela</span>
+                {% else %}
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    <span class="d-none d-sm-inline">Cards</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+</nav>
+

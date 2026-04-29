@@ -1,0 +1,38 @@
+
+{% if view_type == 'table' %}
+    <div class="text-center py-5 bg-white mt-4 rounded-4 table-type-table">
+        <i class="display-1 text-muted mb-3 bi 
+            {% if create_url %}
+                bi-list-task
+            {% elif not_has_permission %}
+                bi-exclamation-octagon
+            {% else %}
+                bi-database-x
+            {% endif %}
+        "></i>
+        {% if has_filtering_session %}
+            <h5 class="text-muted mt-2"> Nenhum resultado encontrado para o filtro aplicado </h5>            
+        {% elif not_has_permission %}
+            <h5 class="text-muted"> Você não tem permissão para visualizar esses dados. </h5> 
+        {% else %}        
+            <h5 class="text-muted">Nenhum dado encontrado</h5>
+            {% if create_url %}
+                <p class="text-muted">Clique em "Cadastrar" para começar</p>
+            {% endif %}
+        {% endif %}
+
+    </div>
+{% else %}
+    {% if has_filtering_session %}
+        <div class="empty-state-card mt-4 col-lg-4 offset-lg-4">
+            <i class="bi bi-database-x empty-state-icon"></i>
+            <h5 class="text-muted">Nenhum resultado encontrado para o filtro aplicado</h5>
+        </div>
+    {% else %}  
+        <div class="empty-state-card mt-4 col-lg-4 offset-lg-4">
+            <i class="bi bi-inbox empty-state-icon"></i>
+            <h5 class="empty-state-title">Nenhuma dado encontrado</h5>
+            <p class="empty-state-text">Parece que você não tem nada para mostrar ainda</p>
+        </div>
+    {% endif %}
+{% endif %}

@@ -1,52 +1,36 @@
+from activity.models import ActivityList, Exercise, ExerciseOption, CompleteCodeExercise, MultipleChoiceExercise
 from django import forms
 
 
-class ActivityForm(forms.Form):
-    nome = forms.CharField(
-        max_length=100,
-        label='Nome da Atividade',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Digite o nome da atividade'
-        })
-    )
-    descricao = forms.CharField(
-        label='Descrição da Atividade',
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 4,
-            'placeholder': 'Digite a descrição'
-        })
-    )
+class ActivityListForm(forms.ModelForm):
+    class Meta:
+        model = ActivityList
+        fields = ['title', 'description']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Lista 01 — Lógica de Programação'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva o objetivo desta lista...'}),
+        }
 
 
 
-class ActivityDissertativaForm(forms.Form):
-    enunciado = forms.CharField(
-        label='Enunciado',
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 5,
-            'placeholder': 'Digite o enunciado da atividade'
-        })
-    )
-    pontuacao = forms.DecimalField(
-        label='Pontuação',
-        max_digits=5,
-        decimal_places=2,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Ex: 10.00',
-            'step': '0.01'
-        })
-    )
-    criterios_avaliacao = forms.CharField(
-        label='Critérios de Avaliação',
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 6,
-            'placeholder': 'Liste os critérios de avaliação'
-        })
-    )
+
+# class CodeExerciseForm(forms.ModelForm):
+#     class Meta:
+#         model = CodeExercise
+#         fields = ['language', 'starter_code', 'expected_output']
+#         widgets = {
+#             'language': forms.Select(attrs={'class': 'form-select'}),
+#             'starter_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 4, 'placeholder': 'Código inicial para o aluno (opcional)'}),
+#             'expected_output': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 3, 'placeholder': 'Saída esperada para correção...'}),
+#         }
 
 
+# class CompleteCodeExerciseForm(forms.ModelForm):
+#     class Meta:
+#         model = CompleteCodeExercise
+#         fields = ['language', 'starter_code', 'complete_code']
+#         widgets = {
+#             'language': forms.Select(attrs={'class': 'form-select'}),
+#             'starter_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 4, 'placeholder': 'Código com lacunas para o aluno completar...'}),
+#             'complete_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 4, 'placeholder': 'Código completo (gabarito)...'}),
+#         }

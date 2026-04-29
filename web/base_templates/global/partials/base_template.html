@@ -1,0 +1,61 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Educatrix | {% block title %} {% endblock title %} </title>
+        <link href="{% static 'global/icons/favicon.ico' %}" rel="icon" type="image/x-icon">
+        <link href="{% static 'global/css/reset.css' %}" rel="stylesheet">
+        <link href="{% static 'global/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'global/bootstrap/icons/bootstrap-icons.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/colors.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/style.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/header.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/dropdown.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/modal.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/notification-popup.css' %}" rel="stylesheet">
+
+        {% block extra_head %} {% endblock extra_head %}
+    </head>
+    <body >
+        <!-- Header -->
+        {% include 'global/partials/header.html' %}
+
+
+        {% block main %} {% endblock main %}
+
+        
+        <div id="toast-container" class="toast-container position-fixed top-0 end-0 pt-3 pe-2 mt-5"></div>
+        
+
+        <!-- FOOTER -->
+        <footer id="footer" class="footer footer-bottom bg-white">  
+            <p class="mb-0">&copy; 2026 Sistema de Gestão de Aprendizagem. Todos os direitos reservados.</p>
+        </footer>
+        
+        <!-- Modal -->
+        {% block modal %} {% endblock modal %}
+
+        <script src="{% static 'global/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+        {% block extra_script %} {% endblock extra_script %}
+        <script src="{% static 'global/js/notification.popup.js' %}"></script>
+        <script type="text/javascript">
+            function showAlert() {
+                showNotificationPopup('Warning','Em desenvolvimento');
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                {% if messages %}
+                    {% for message in messages %}
+                        // Exibe a mensagem um pop-up
+                        showNotificationPopup('{{ message.tags.capitalize }}','{{ message }}');
+                    {% endfor %}
+                {% endif %}
+            });
+
+        </script>
+    </body>
+</html>

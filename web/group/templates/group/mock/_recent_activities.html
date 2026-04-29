@@ -1,0 +1,75 @@
+<style>
+
+    .activity-item {
+        background: var(--gray-100);
+        border-left: 3px solid var(--blue-500);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .activity-item:hover {
+        background: var(--gray-200);
+        transform: translateX(2px);
+    }
+
+    .activity-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--blue-500);
+        margin-top: 0.4rem;
+        flex-shrink: 0;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .activity-date {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+    }
+
+</style>
+
+<div class="detail-left-card p-3 mb-4 rounded-3">
+    <div class="detail-left-title">
+        <i class="bi bi-clock-history ms-1 me-1" style="color: var(--blue-500);"></i>
+        Atividades Recentes
+    </div>
+
+    <hr class="mb-3 mt-1">
+
+    <div class="activities-list">
+        <!-- Activity 2 -->
+        <div class="activity-item p-3 mb-2 rounded-2">
+            <div class="d-flex gap-2">
+                <div class="activity-dot"></div>
+                <div class="flex-grow-1">
+                    <div class="activity-title">Atividade 1: Estrutura de Dados</div>
+                    <div class="activity-date">
+                        <i class="bi bi-calendar-event me-1" style="font-size: 0.8rem;"></i>
+                        Há 5 dias
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity 3 -->
+        <div class="activity-item p-3 mb-2 rounded-2">
+            <div class="d-flex gap-2">
+                <div class="activity-dot"></div>
+                <div class="flex-grow-1">
+                    <div class="activity-title">Atividade 2: Algoritmos e Otimização</div>
+                    <div class="activity-date">
+                        <i class="bi bi-calendar-event me-1" style="font-size: 0.8rem;"></i>
+                        Há 1 semana
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

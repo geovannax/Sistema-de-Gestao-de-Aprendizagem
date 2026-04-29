@@ -1,0 +1,24 @@
+{% block form %}
+
+    {% for field in form %}
+        {% if not field.is_hidden %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {% if field.errors %}
+                    <div class="field-error">
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {{ field }}
+                {% if field.help_text %}
+                    <div class="field-hint mb-3">{{ field.help_text }}</div>
+                {% endif %}
+            </div>
+        {% else %}
+            {{ field }}
+        {% endif %}
+    {% endfor %}
+
+{% endblock form %}

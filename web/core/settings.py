@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django_select2',
 
     # Local apps
+    'accounts',
     'activity',
     'common',
     'group',
@@ -61,6 +62,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Local apps
+    'accounts.middleware.CookieMiddleware', 
+
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -87,43 +92,43 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'lms'),
-        'USER': os.getenv('POSTGRES_USER', 'lms_user'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'lms_password'),
-        'HOST': os.getenv('POSTGRES_CONTAINER_NAME', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': os.getenv('POSTGRES_DB', 'lms'),
+    #     'USER': os.getenv('POSTGRES_USER', 'lms_user'),
+    #     'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'lms_password'),
+    #     'HOST': os.getenv('POSTGRES_CONTAINER_NAME', 'localhost'),
+    #     'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    # }
 }
 
 # Cache Configuration
 # https://docs.djangoproject.com/en/6.0/topics/cache/#redis
 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#             'SOCKET_CONNECT_TIMEOUT': 5,
-#             'SOCKET_TIMEOUT': 5,
-#             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-#             'IGNORE_EXCEPTIONS': True,
-#         }
-#     }
-# }
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+            'IGNORE_EXCEPTIONS': True,
+        }
+    }
+}
 
-# CACHES.update({
-#     'select2': CACHES['default']
-# })
+CACHES.update({
+    'select2': CACHES['default']
+})
 
-# # Tell select2 which cache configuration to use:
-# SELECT2_CACHE_BACKEND = "select2"
+# Tell select2 which cache configuration to use:
+SELECT2_CACHE_BACKEND = "select2"
 
 # Session Configuration
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
@@ -169,5 +174,5 @@ STATICFILES_DIRS = [ BASE_DIR / 'base_static',]
 
 STATIC_ROOT = BASE_DIR / 'static'
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/home/'
+LOGOUT_REDIRECT_URL = '/'

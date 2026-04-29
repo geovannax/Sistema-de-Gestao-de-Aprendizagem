@@ -1,0 +1,318 @@
+/* HERO SECTION */
+.hero {
+    min-height: 95vh;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    color: var(--gray-600);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Elementos decorativos mais suaves */
+.hero::before {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: 50%;
+    top: -120px;
+    right: -120px;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(37, 99, 235, 0.05);
+    border-radius: 50%;
+    bottom: -80px;
+    left: 10%;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Título */
+.hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    color: var(--text-dark);
+}
+
+/* Subtítulo */
+.hero p {
+    font-size: 1.15rem;
+    margin-bottom: 2rem;
+    color: var(--gray-525);
+    max-width: 500px;
+}
+
+/* Botões */
+.hero .btn {
+    padding: 12px 32px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 50px;
+}
+
+/* FEATURES SECTION */
+.features {
+    padding: 3rem 0;
+    background: var(--gray-100);
+}
+.roles  .container  h2,
+.features  .container  h2 {
+    color: var(--gray-600) !important;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--blue-500);
+    box-shadow: 0 10px 40px rgba(9, 105, 218, 0.15);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--blue-500);
+    margin-bottom: 1rem;
+}
+
+.feature-card h5 {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--gray-600);
+}
+
+.feature-card p {
+    color: var(--gray-525);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+
+/* LANDING PAGE */
+/* ROLES SECTION */
+.roles {
+    padding: 3rem 0;
+    background: var(--gray-100);
+}
+
+.role-card {
+    text-align: center;
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    background: white;
+    border: 2px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.role-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 60px rgba(9, 105, 218, 0.2);
+}
+
+.role-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+.role-card.professor .role-icon {
+    color: var(--info);
+}
+
+.role-card.aluno .role-icon {
+    color: var(--cyan-600);
+}
+
+.role-card h3 {
+    font-weight: 800;
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    color: var(--gray-500);
+}
+
+.role-card p {
+    color: var(--secondary);
+    line-height: 1.8;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.role-benefits {
+    text-align: left;
+    margin: 1.5rem 0;
+}
+
+.role-benefits li {
+    color: var(--secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.role-benefits i {
+    color: var(--green-500);
+    margin-right: 0.5rem;
+}
+
+.role-card .btn {
+    width: 100%;
+    padding: 10px 0;
+    font-weight: 600;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    .feature-card {
+        padding: 1.5rem 1rem;
+    }
+}
+
+
+/* Scroll Indicator Animation - Chamativo e Limpo */
+.scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.scroll-indicator:hover {
+    transform: translateX(-50%) scale(1.15);
+}
+
+.scroll-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    color: var(--bs-primary, #0d6efd);
+    font-size: 2rem;
+    font-weight: bold;
+    animation: arrow-pulse 1.5s infinite;        
+}
+
+@keyframes arrow-pulse {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(8px) scale(1.05);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Adiciona múltiplas setas em cascata visual */
+.scroll-indicator::before {
+    content: '↓';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-primary, #0d6efd);
+    font-weight: bold;
+    font-size: 1.5rem;
+    opacity: 0;
+    animation: arrow-cascade 1.5s infinite;
+    z-index: -1;
+}
+
+.scroll-indicator::after {
+    content: '↓';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-primary, #0d6efd);
+    font-weight: bold;
+    font-size: 1.5rem;
+    opacity: 0;
+    animation: arrow-cascade-2 1.5s infinite;
+    z-index: -1;
+}
+
+@keyframes arrow-cascade {
+    0% {
+        transform: translateY(-15px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(15px);
+        opacity: 0;
+    }
+}
+
+@keyframes arrow-cascade-2 {
+    0% {
+        transform: translateY(-30px);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+}
+
+/* Responsivo para telas pequenas */
+@media (max-width: 768px) {
+    .scroll-indicator {
+        bottom: 20px;
+    }
+
+    .scroll-arrow {
+        width: 36px;
+        height: 36px;
+        font-size: 1.3rem;
+    }
+
+    .scroll-indicator::before,
+    .scroll-indicator::after {
+        width: 36px;
+        height: 36px;
+        font-size: 1.3rem;
+    }
+}
+

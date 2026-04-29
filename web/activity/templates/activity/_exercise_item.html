@@ -1,0 +1,15 @@
+{% if is_update %}
+    <div hx-swap-oob="innerHTML:#exercise-{{ exercise.id }}">
+{% else %}
+    <div hx-swap-oob="beforeend:#page-aside">
+{% endif %}
+    <li id="exercise-{{ exercise.id }}">
+        <button
+            class="btn btn-sm btn-outline-primary rounded-5 w-100 text-truncate"
+            hx-get="{% url 'activity:multiple_choice_exercise_update' exercise.id %}"
+            hx-target="#main-content"
+            hx-swap="innerHTML">
+            {{ exercise.statement }}
+        </button>
+    </li>
+</div>

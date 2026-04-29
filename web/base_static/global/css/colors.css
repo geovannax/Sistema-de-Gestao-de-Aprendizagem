@@ -1,24 +1,54 @@
 :root {
-  /* Cores principais do brand */
-  --educatrix-green: #059669;
-  --educatrix-blue: #4f46e5;
-
   /* Cores básicas */
-  --primary-black: #000000;
-  --primary-white: #ffffff;
-  --primary-gray-light: #dee2e6;
+  --black: #000000;
+  --white: #ffffff;
+
+  /* Tons de Azul */
+  --blue-50: #f0f8ff;
+  --blue-100: #ecf0ff;
+  --blue-400: #1d76db;
+  --blue-500: #0969da;
+  --blue-700: #0749c8;
+  --blue-900: #0d47a1;
+
+  /* Tons de Ciano */
+  --cyan-600: #06b6d4;
 
   /* Tons de cinza */
-  --gray: #f5f5f5;
-  --gray-light: #f8fafc;
-  --text-dark: #1e293b;
-  --text-muted: #64748b;
+  --gray-100: #f8fafc;
+  --gray-200: #f5f5f5;
+  --gray-300: #e5e7eb;
+  --gray-400: #dee2e6;
+  --gray-450: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-525: #6c757d;
+  --gray-550: #64748b;
+  --gray-600: #495057;
+  --gray-650: #57606a;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Tons de Amarelo/Laranja */
+  --amber-100: #fef3c7;
+  --amber-600: #d97706;
+
+  /* Tons de Verde */
+  --green-100: #f0fdf4;
+  --green-500: #10b981;
+  --green-600: #16a34a;
 
   /* Cores de estado */
   --success: #059669;
   --danger: #dc3545;
   --warning: #f59e0b;
   --info: #0d6efd;
+  --bs-primary: var(--blue-500);
 
-  --popup-title-color: var(--gray);
+  /* Background Gradient */
+  --bg-light: #f5f7fa;
+  --bg-medium: #e8eef7;
+  --bg-light-2: #f0f4fa;
+
+  --popup-title-color: var(--gray-200);
 }

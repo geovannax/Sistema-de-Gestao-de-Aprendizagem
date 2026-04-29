@@ -1,32 +1,28 @@
-
-nav > div > a {
-    cursor: pointer;
-}
-
-nav > div > a > div {
-    width: 40px;
-    height: 40px;
-}
-
 nav > div > div > div > button > div:first-child {
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
 
-.text-educatrix-green {
-  color: var(--educatrix-green) !important;
-}
-
-.text-educatrix-blue {
-  color: var(--educatrix-blue);
+.nav-link:hover {
+  color: var(--gray-500) !important;
 }
 
 .dropdown-toggle::after {
-    display: none !important;
+  display: none !important;
 }
 
-.btn-logout {
-    border: none;
-    background: none;
-    cursor: pointer;
+.btn_header {
+  background-color: transparent;
+  color: var(--gray-550);
+}
+
+.btn_header:hover,
+.btn_header:focus {
+  background-color: var(--info);
+  color: var(--gray-200);
+}
+
+.btn_header:hover > div > i,
+.btn_header:focus > div > i {
+  color: var(--info);
 }

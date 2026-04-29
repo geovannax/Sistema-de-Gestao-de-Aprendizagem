@@ -1,60 +1,45 @@
-
 function showNotificationPopup(tag, message) {
+  // Determina tempo de exibição conforme o tipo
+  const sleep = (tag === "Error" || tag === "Warning") ? 15000 : 5000;
 
-  if (tag === 'Error' || tag === 'Warning') {
-    var sleep = 15000;
-  } else{
-    var sleep = 5000;
-  }
+  // Define a classe de cor baseada no tipo
+  const colorMap = {
+    "Error": "danger",
+    "Warning": "warning",
+    "Success": "success",
+    "Info": "info"
+  };
+  const toastColor = colorMap[tag] || "info";
 
-  var popup = document.getElementById('notification-popup');
+  // Cria o HTML da toast
+  const toastHTML = `
+    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-${toastColor} text-white">
+        <strong class="me-auto">${tag}</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body bg-white rounded-5">
+        ${message.replaceAll(". ", ".<br/>")}
+      </div>
+    </div>
+  `;
 
-  var notification = document.createElement('div');
-  notification.className = 'notification';
+  // Cria container se não existir
+  let toastContainer = document.getElementById("toast-container");
+  // Adiciona a toast ao container
+  toastContainer.insertAdjacentHTML("beforeend", toastHTML);
 
-  var titleNotification = document.createElement('div');
-  titleNotification.classList.add('d-flex','justify-content-between','title-notification', tag);
-  titleNotification.innerHTML = tag; 
-
-  var iconClose = document.createElement('i');
-  iconClose.className = 'bi bi-x-lg';
-
-  var closeButton = document.createElement('button');
-  closeButton.classList.add('notification-close-button');
-  closeButton.addEventListener('click', function() {
-    notification.style.display = 'none';
+  // Pega a últ toast criada
+  const toastElement = toastContainer.lastElementChild;
+  const toast = new bootstrap.Toast(toastElement, {
+    autohide: true,
+    delay: sleep
   });
-  closeButton.appendChild(iconClose);
-  titleNotification.appendChild(closeButton);
-  
-  var contentNotification = document.createElement('div');
-  contentNotification.className = 'content-notification';
-  contentNotification.innerHTML = message.replaceAll('. ', '.<br/>');
 
-  notification.appendChild(titleNotification);
-  notification.appendChild(contentNotification);
-  popup.appendChild(notification);
-  popup.style.display = 'block';
+  // Remove o elemento após desaparecer
+  toastElement.addEventListener("hidden.bs.toast", () => {
+    toastElement.remove();
+  });
 
-  var opacity = 0;
-  var interval = setInterval(function() {
-    opacity += 0.1;
-    popup.style.opacity = opacity;
-    if (opacity >= 1) {
-      clearInterval(interval);
-      setTimeout(function() {
-        var interval = setInterval(function() {
-          opacity -= 0.1;
-          popup.style.opacity = opacity;
-          if (opacity <= 0) {
-            clearInterval(interval);
-            popup.removeChild(notification);
-            if (popup.childNodes.length == 0) {
-              popup.style.display = 'none';
-            }
-          }
-        }, 200);
-      }, sleep);
-    }
-  }, 25);
+  toast.show();
 }
