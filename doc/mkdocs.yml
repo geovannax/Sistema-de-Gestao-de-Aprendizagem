@@ -1,0 +1,24 @@
+site_name: Sistema de Gestão de Aprendizagem
+repo_url: https://github.com/geovannax/Sistema-de-Gestao-de-Aprendizagem
+repo_name: geovannax/Sistema-de-Gestao-de-Aprendizagem
+edit_uri: tree/main/doc/docs
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: deep purple
+
+markdown_extensions:
+  - attr_list
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["../web"]
