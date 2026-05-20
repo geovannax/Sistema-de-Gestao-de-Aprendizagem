@@ -8,11 +8,11 @@
                 hx-get="{% url type_info.create_url pk=activity_list_id %}"
                 hx-target="#main-content"
                 hx-swap="innerHTML">                
-                <div class="d-flex justify-content-center gap-3">
+                <div class="text-center">
                     <i class="bi {{ type_info.icon }} fs-2 {{ type_info.color }}"></i>
-                    <div class="card-field">
-                        <div class="card-label text-start"><strong>{{ type_info.label }}</strong></div>
-                        <small class="card-value text-start d-block">{{ type_info.description }}</small>
+                    <div class="card-field text-center">
+                        <div class="card-label text-start text-center"><strong>{{ type_info.label }}</strong></div>
+                        <small class="card-value text-start d-block text-center">{{ type_info.description }}</small>
                     </div>
                 </div>
             </button>

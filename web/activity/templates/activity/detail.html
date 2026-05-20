@@ -1,0 +1,110 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %} {{ page_title }} {% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
+    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/nav_tabs.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- PAGE HEADER -->
+    <div id="page-header">
+        {% include "global/partials/_page_header.html" %}
+    </div>
+
+    <hr class="mt-0">
+
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-lg-4">
+
+            <!-- SEÇÃO 1: DESCRIÇÃO -->
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+                <div class="detail-left-title">
+                    <i class="bi bi-file-earmark-text" style="color: var(--blue-500);"></i>
+                    Descrição
+                </div>
+                <hr class="mb-1 mt-1">
+                <div class="detail-left-text">{{ object.description|linebreaksbr}}</div>
+            </div>
+
+            <!-- SEÇÃO 2: INFORMAÇÕES EXERCÍCIO -->
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+                <aside>
+                    <div class="detail-left-title">
+                        <i class="bi bi-info-circle" style="color: var(--blue-500);"></i>
+                        Informações Exercício
+                    </div>
+                    <hr class="mb-1 mt-1">
+                    <!-- Sem exercícios -->
+                    {% if total_exercises == 0 %}
+                        <p class="text-muted mb-0">
+                            Esta atividade ainda não possui exercícios. 
+                        </p>
+                        <div class=" d-flex justify-content-end">
+                            <a
+                                class="btn btn-sm btn-outline-primary rounded-5"
+                                href="{% url 'activity:update' activity.id %}">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Adicionar
+                            </a>
+                        </div>
+                    {% else %}
+
+                        {% for exercise_type, data in count_exercises_by_type.items %}
+                            <div class="detail-left-item">
+                                <span class="detail-left-label">{{ data.label }}</span>
+                                <span class="detail-left-value">{{ data.count }}</span>
+                            </div>
+                        {% endfor %}
+
+                        <div class="detail-left-item">
+                            <span class="detail-left-label">Total de Exercícios</span>
+                            <span class="detail-left-value highlight">{{ count_all_exercises }}</span>
+                        </div>
+
+                    {% endif %}
+
+                </aside>
+            </div>
+
+            <!-- SEÇÃO 3: TURMAS VINCULADAS -->
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+                <aside>
+                    <div class="detail-left-title">
+                        <i class="bi bi-people" style="color: var(--blue-500);"></i>
+                        Turmas Vinculadas
+                    </div>
+                    <hr class="mb-1 mt-1">
+
+                    <div class="detail-left-item">
+                        <span class="detail-left-label">Total de Turmas</span>
+                        <span class="detail-left-value highlight">{{ count_groups }}</span>
+                    </div>
+
+                </aside>
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-lg-8">
+            <div class="detail-left-card pt-3 px-3 mb-3 rounded-3">
+                <!-- Navigation Tabs -->
+                {% include "global/partials/_nav_tabs.html" %}
+
+                {% block info_right %} {% endblock info_right %}
+            </div>
+        </div>
+
+    </div>
+
+{% endblock main_content %}
+

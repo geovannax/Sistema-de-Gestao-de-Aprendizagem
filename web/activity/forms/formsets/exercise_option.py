@@ -1,8 +1,7 @@
 from activity.forms.exercise import ExerciseOptionForm
-from activity.models import MultipleChoiceExercise, ExerciseOption
+from activity.models import ExerciseOption, MultipleChoiceExercise
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet, inlineformset_factory
-
 
 
 class BaseExerciseOptionFormSet(BaseInlineFormSet):
@@ -37,6 +36,7 @@ ExerciseOptionFormCreateSet = inlineformset_factory(
     extra=3,
     can_delete=True
 )
+
 
 ExerciseOptionFormUpdateSet = inlineformset_factory(
     MultipleChoiceExercise,

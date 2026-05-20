@@ -1,0 +1,57 @@
+{% if is_update %}
+    <div hx-swap-oob="innerHTML:#exercise-{{ exercise.id }}">
+{% else %}
+    <div hx-swap-oob="beforeend:#page-aside">
+{% endif %}
+    <li id="exercise-{{ exercise.id }}" class="mb-2">        
+        <div class="d-flex align-items-center gap-2 p-2 rounded-3 border">
+            {% if exercise.type == 'code' %}
+                <div class="exercise_item exercise_code">
+                    <i class="bi bi-code-slash text-primary fs-5"></i>
+                </div>
+            {% elif exercise.type == 'complete_code' %}
+                <div class="exercise_item exercise_complete_code">
+                    <i class="bi bi-pencil-square text-warning fs-5"></i>
+                </div>
+            {% elif exercise.type == 'multiple_choice' %}
+                <div class="exercise_item exercise_multiple_choice">
+                    <i class="bi bi-list-check text-success fs-5"></i>
+                </div>
+            {% elif exercise.type == 'discursive' %}
+                <div class="exercise_item exercise_discursive">
+                    <i class="bi bi-chat-left-text text-secondary fs-5"></i>
+                </div>
+            {% endif %}
+            <div class="flex-grow-1 overflow-hidden">
+                <p class="mb-0 small fw-semibold text-truncate">{{ exercise.statement }}</p>
+                <p class="mb-0 text-muted" style="font-size:.7rem">
+                    {% if exercise.type == 'code' %}
+                        Código
+                    {% elif exercise.type == 'complete_code' %}
+                        Completar Código
+                    {% elif exercise.type == 'multiple_choice' %}
+                        Múltipla Escolha
+                    {% elif exercise.type == 'discursive' %}
+                        Discursiva
+                    {% endif %}
+                </p>
+            </div>
+
+            <button 
+                class="btn btn-sm btn-outline-danger rounded-5 px-3"
+                hx-get="{% url 'activity:exercise_delete' exercise.id %}"
+                hx-target="#main-content"
+                hx-swap="innerHTML">
+                <i class="bi bi-trash"></i>
+            </button>
+
+            <button
+                class="btn btn-sm btn-outline-primary rounded-5 px-3"
+                hx-get="{% url update_url exercise.id %}"
+                hx-target="#main-content"
+                hx-swap="innerHTML">
+                <i class="bi bi-pencil"></i>
+            </button>
+        </div>
+    </li>
+</div>

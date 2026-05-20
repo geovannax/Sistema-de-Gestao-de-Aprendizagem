@@ -1,5 +1,5 @@
-<!-- PAGE HEADER -->
- {% if object %}
+<!-- PAGE HEADER: Atualiza o header da página para refletir o título e informações da atividade recém-criada. --> 
+{% if object %}
     <div id="page-header" hx-swap-oob="innerHTML">
         {% with page_title=object.title page_description=object.created_by.get_full_name date_subtitle=object.updated_at  %}
             {% include "global/partials/_page_header.html" %}
@@ -7,17 +7,23 @@
     </div>
 {% endif %}
 
-<!-- PAGE HEADER -->
+<!-- CARD LEFT: Adiciona/Atualiza o exercício recém-criado à lista lateral -->
+{% if exercise %}
+    {% include "activity/_exercise_list_item.html" %}
+{% endif %}
+
+<!-- CARD LEFT: Deleta o exercício da lista lateral -->
+{% if is_deleted %}
+    {% include "activity/_exercise_list_item_delete.html" %}
+{% endif %}
+
+<!-- CARD RIGHT HEADER -->
 <div id="form-header" hx-swap-oob="innerHTML">
     <div>
         <div class="form-card-title mb-0"> Adicionar Exercícios </div>
         <div class="form-card-subtitle"> Selecione abaixo o tipo de exercício que deseja adicionar. </div>
     </div>
 </div>
-
-{% if exercise %}
-    {% include "activity/_exercise_item.html" %}
-{% endif %}
-
+ 
 <!-- Swap normal: seletor de tipo -->
-{% include "activity/_exercise_form.html" %}
+{% include "activity/_exercise_types.html" %}

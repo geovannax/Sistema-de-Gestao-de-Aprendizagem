@@ -1,8 +1,8 @@
 <!-- PAGE HEADER -->
 <div id="form-header" hx-swap-oob="innerHTML">
     <div>
-        <div class="form-card-title mb-0"> Múltipla Escolha </div>
-        <div class="form-card-subtitle"> Adicione as alternativas para a questão e marque qual é a correta. </div>
+        <div class="form-card-title mb-0"> Código </div>
+        <div class="form-card-subtitle"> Output do aluno é comparado com o esperado. </div>
     </div>
 </div>
 
@@ -15,35 +15,10 @@
     <!-- FORM PRINCIPAL -->
     {% include "global/partials/generic/create_or_update/_form.html" %}
 
-    <!-- FORMSET -->
-    {{ formset.management_form }}
-
-    <div id="options-container">
-        {% for option_form in formset %}
-            {% include "activity/types/multiple_choice/_options.html" %}
-        {% endfor %}
-    </div>
-
-    {% if formset.non_form_errors %}
-        <div class="alert text-danger">
-            {% for error in formset.non_form_errors %}
-                <p>{{ error }}</p>
-            {% endfor %}
-        </div>
-    {% endif %}
-    
-    <div class="d-flex justify-content-center mt-3">
-        <button
-            type="button"
-            class="btn btn-outline-secondary rounded-5"
-            hx-post="{% url 'activity:multiple_choice_exercise_add_option' %}"
-            hx-target="#options-container"
-            hx-swap="beforeend"
-            onclick="updateFormValues(this)">
-            + Adicionar opção
-        </button>
-    </div>
-
+    <!-- FORM SECUNDÁRIO -->
+    {% with form=secondary_form %}
+        {% include "global/partials/generic/create_or_update/_form.html" %}
+    {% endwith %}
     <hr class="mt-3">
 
     <!-- Actions -->

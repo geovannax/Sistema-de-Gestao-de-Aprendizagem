@@ -67,16 +67,35 @@ class Exercise(models.Model):
 
 class CodeExercise(models.Model):
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='code_exercise')
-    language = models.CharField(max_length=20, choices=LANGUAGE_CHOICES, verbose_name='Linguagem')
-    starter_code = models.TextField(blank=True, verbose_name='Código Inicial')
-    expected_output = models.TextField(verbose_name='Output Esperado')
+    language = models.CharField(
+        max_length=20,
+        choices=LANGUAGE_CHOICES,
+        verbose_name='Linguagem',
+        help_text='Selecione a linguagem de programação para o exercício.'
+    )
+    expected_output = models.TextField(
+        validators=[MinLengthValidator(5)],
+        verbose_name='Output Esperado',
+        help_text='Forneça a saída esperada para o exercício.'
+    )
 
 
 class CompleteCodeExercise(models.Model):
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='complete_code_exercise')
-    language = models.CharField(max_length=20, choices=LANGUAGE_CHOICES, verbose_name='Linguagem')
-    starter_code = models.TextField(verbose_name='Código Incompleto')
-    complete_code = models.TextField(verbose_name='Código Completo (Gabarito)')
+    language = models.CharField(
+        max_length=20,
+        choices=LANGUAGE_CHOICES,
+        verbose_name='Linguagem',
+        help_text='Selecione a linguagem de programação para o exercício.'
+    )
+    starter_code = models.TextField(
+        verbose_name='Código Incompleto',
+        help_text='Forneça o código inicial com lacunas para o aluno completar. Use "___" para indicar as lacunas.'
+    )
+    complete_code = models.TextField(
+        verbose_name='Código Completo (Gabarito)',
+        help_text='Forneça o código completo que serve como gabarito para correção.'
+    )
 
 
 class MultipleChoiceExercise(models.Model):
@@ -91,3 +110,26 @@ class ExerciseOption(models.Model):
     class Meta:
         ordering = ['id']
 
+
+class DiscursiveExercise(models.Model):
+    exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='discursive_exercise')
+    
+    min_words = models.PositiveIntegerField(
+        default=10,
+        verbose_name='Mínimo de Palavras',
+        help_text='Número mínimo de palavras que a resposta deve conter.'
+    )
+    
+    max_words = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Máximo de Palavras',
+        help_text='Número máximo de palavras que a resposta pode conter (opcional).'
+    )
+
+    class Meta:
+        verbose_name = 'Exercício Discursivo'
+        verbose_name_plural = 'Exercícios Discursivos'
+
+    def __str__(self):
+        return f"Discursivo: {self.exercise.statement[:50]}"

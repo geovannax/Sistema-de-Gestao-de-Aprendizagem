@@ -1,19 +1,36 @@
+from accounts.models import UserPreferences
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.paginator import Paginator
-from accounts.models import UserPreferences
-from django.db.models.functions import Lower
-from django.db.models import F, QuerySet
 from django.db import transaction
+from django.db.models import F, Model, QuerySet
+from django.db.models.functions import Lower
+from django.forms import BaseFormSet, BaseModelForm
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
 
 class AuthPermissionMixin(LoginRequiredMixin):
-    
+
     @method_decorator(never_cache)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+
+class HTMXLoginRequiredMixin(LoginRequiredMixin):
+    """Mixin que redireciona requisições HTMX quando não autenticado."""
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            if request.headers.get('HX-Request'):
+                # Retorna header HX-Redirect para HTMX fazer o redirect
+                response = HttpResponse(status=401)
+                response['HX-Redirect'] = self.get_login_url()
+                return response
+            # Para requisições normais, funciona como LoginRequiredMixin
+            return super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class NavigationMixin:
@@ -294,31 +311,78 @@ class PaginationMixin:
 
 
 class InlineFormsetMixin:
-    formset_class = None
-    formset_context_name = 'formset'
-    formset_prefix = 'options'
+    """
+    Mixin para views com formulário secundário de relação um-para-muitos.
 
-    def get_formset(self, instance=None):
+    Usado quando o modelo filho se relaciona via ForeignKey com um modelo
+    intermediário, e as opções são gerenciadas por um inlineformset_factory.
+
+    Exemplo de uso:
+        MultipleChoiceExercise (OneToOne com Exercise) possui N ExerciseOption
+        (ForeignKey com MultipleChoiceExercise) → gerenciado por formset.
+
+    Deve ser combinado com CreateView ou UpdateView.
+
+    Atributos:
+        formset_class: Classe do formset gerada por inlineformset_factory.
+        formset_context_name: Nome da variável no contexto do template.
+        formset_model: Modelo pai do formset (ex: MultipleChoiceExercise).
+        formset_prefix: Prefixo HTML dos campos do formset.
+        formset_related_name: related_name do OneToOne em Exercise (ex: 'multiple_choice_exercise').
+    """
+    formset_class: type[BaseFormSet] | None = None
+    formset_context_name: str = 'formset'
+    formset_model: type[Model] | None = None
+    formset_prefix: str = 'options'
+    formset_related_name: str | None = None
+
+    def get_formset(self, instance: Model | None = None) -> BaseFormSet:
+        """
+        Instancia o formset com ou sem dados do POST.
+
+        Quando há POST, valida que os campos iniciais (ex: activity_list, type)
+        não foram adulterados comparando com get_initial().
+
+        Args:
+            instance: Instância pai do formset (ex: MultipleChoiceExercise).
+
+        Returns:
+            Instância do formset configurado com prefix e dados.
+
+        Raises:
+            ImproperlyConfigured: Se formset_class ou formset_prefix não estiverem definidos.
+            PermissionDenied: Se campos iniciais forem adulterados no POST.
+        """     
+
+        if not self.formset_class or not self.formset_prefix:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} precisa de 'formset_class' e 'formset_prefix'"
+            )
+    
+        kwargs = {'prefix': self.formset_prefix, 'instance': instance}
+        
         if self.request.POST:
-
+            
             if hasattr(self, 'get_initial'):
                 initial = self.get_initial()
                 for key, value in initial.items():
                     if str(self.request.POST.get(key)) != str(value):
                         raise PermissionDenied
+                    
+            kwargs['data'] = self.request.POST
 
-            return self.formset_class(
-                self.request.POST,
-                instance=instance, 
-                prefix=self.formset_prefix
-            )
+        return self.formset_class(**kwargs)
 
-        return self.formset_class(
-            instance=instance,
-            prefix=self.formset_prefix
-        )
+    def get_context_data(self, **kwargs) -> dict:
+        """
+        Adiciona o formset ao contexto do template.
 
-    def get_context_data(self, **kwargs):
+        Só instancia o formset se ainda não estiver no contexto,
+        evitando sobrescrever um formset já passado (ex: em form_invalid).
+
+        Returns:
+            Dicionário de contexto com a chave definida em formset_context_name.
+        """
         context = super().get_context_data(**kwargs)
 
         if self.formset_context_name not in context:
@@ -328,7 +392,23 @@ class InlineFormsetMixin:
 
         return context
 
-    def form_valid(self, form):
+    def form_valid(self, form) -> HttpResponse:
+        """
+        Salva o formulário principal e o formset em uma transação atômica.
+
+        Fluxo:
+            1. Salva o Exercise (sem commit) para ter self.object.
+            2. Obtém a instância pai do formset.
+            3. Valida o formset com os dados do POST.
+            4. Se válido: salva tudo atomicamente.
+            5. Se inválido: retorna form_invalid com o formset com erros.
+
+        params:
+            form: Formulário principal (ExerciseForm) já validado.
+
+        Returns:
+            HttpResponse de sucesso (render_success) ou de erro (form_invalid).
+        """
         self.object = form.save(commit=False)
 
         # hook pra quem herdar poder customizar
@@ -346,26 +426,240 @@ class InlineFormsetMixin:
 
         return self.form_invalid(form)
 
-    def form_invalid(self, form):
+    def form_invalid(self, form) -> HttpResponse:
+        """
+        Retorna a resposta de erro com formulário e formset no contexto.
+
+        Args:
+            form: Formulário principal com erros.
+
+        Returns:
+            HttpResponse renderizado com o contexto de erro.
+        """
         context = self.get_context_data(form=form)
         return self.render_to_response(context)
 
-    # Hooks
-    def get_formset_parent_instance(self):
+    def get_formset_parent_instance(self) -> Model:
         """
-        Retorna a instância pai do formset.
-        Default: usa self.object direto
-        """
-        return self.object
+        Retorna a instância pai do formset (ex: MultipleChoiceExercise).
 
-    def save_parent_instance(self, instance):
+        Tenta buscar via related_name em self.object. Se não existir ainda
+        (criação), retorna uma nova instância não salva do modelo pai.
+
+        Returns:
+            Instância existente ou nova do formset_model.
+
+        Raises:
+            ImproperlyConfigured: Se formset_related_name ou formset_model não estiverem definidos.
         """
-        Caso precise salvar algo além do self.object
+        
+        if not self.formset_related_name or not self.formset_model:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} precisa de 'formset_related_name' e 'formset_model'"
+            )
+        
+        # Recupera a instância existente
+        try:
+            return getattr(self.object, self.formset_related_name)
+        except ( AttributeError, self.formset_model.DoesNotExist ):
+            # Se não existir, cria a instância
+            return self.formset_model(exercise=self.object)
+
+    def save_parent_instance(self, instance: Model) -> None:
+        """
+        Salva a instância pai do formset.
+
+        Necessário para garantir que o formset tenha uma chave estrangeira
+        válida antes de salvar os itens filhos.
+
+        Args:
+            instance: Instância pai (ex: MultipleChoiceExercise) a ser salva.
+        """
+        instance.save()
+
+    def render_success(self) -> HttpResponse:
+        """
+        Retorna a resposta após salvar com sucesso.
+
+        Deve ser sobrescrito nas views para retornar o HTML correto
+        (ex: partial HTMX, redirect, etc.).
+
+        Returns:
+            HttpResponse de sucesso.
         """
         pass
 
-    def render_success(self):
+
+class SecondaryFormMixin:
+    """
+    Mixin para views com formulário secundário de relação um-para-um.
+
+    Usado quando o modelo relacionado se conecta via OneToOneField ao modelo
+    principal (Exercise), sendo gerenciado por um ModelForm simples.
+
+    Diferença do InlineFormsetMixin:
+    - InlineFormsetMixin: um-para-muitos (ForeignKey + inlineformset_factory)
+    - SecondaryFormMixin: um-para-um (OneToOneField + ModelForm)
+
+    Exemplo de uso:
+        CodeExercise (OneToOne com Exercise) → gerenciado por CodeExerciseForm.
+
+    Deve ser combinado com CreateView ou UpdateView.
+
+    Atributos:
+        secondary_form_class: Classe do formulário secundário (ModelForm).
+        secondary_form_context_name: Nome da variável no contexto do template.
+        secondary_form_model: Modelo do formulário secundário (ex: CodeExercise).
+        secondary_form_prefix: Prefixo HTML dos campos do formulário secundário.
+        secondary_form_related_name: related_name do OneToOne em Exercise (ex: 'code_exercise').
+    """
+    secondary_form_class = None
+    secondary_form_context_name = 'secondary_form'
+    secondary_form_model = None
+    secondary_form_prefix = 'secondary'
+    secondary_form_related_name = None
+
+    def get_secondary_instance(self) -> Model:
         """
-        Override para HTMX ou redirect
+        Retorna a instância OneToOne existente ou uma nova (sem salvar).
+
+        Tenta buscar via related_name em self.object. Se não existir ainda
+        (criação), retorna uma nova instância não salva do modelo secundário.
+
+        Returns:
+            Instância existente ou nova do secondary_form_model.
+
+        Raises:
+            ImproperlyConfigured: Se secondary_form_related_name ou secondary_form_model
+                não estiverem definidos.
+        """        
+        if not self.secondary_form_related_name or not self.secondary_form_model:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} precisa de 'secondary_form_related_name' e 'secondary_form_model'"
+            )
+        
+        # Recupera a instância existente
+        try:
+            return getattr(self.object, self.secondary_form_related_name)
+        except ( AttributeError, self.secondary_form_model.DoesNotExist ):
+            # Se não existir, cria a instância
+            return self.secondary_form_model(exercise=self.object)
+
+    def get_secondary_form(self, instance: Model | None = None) -> BaseModelForm:
+        """
+        Instancia o formulário secundário com ou sem dados do POST.
+
+        Quando há POST, valida que os campos iniciais (ex: activity_list, type)
+        não foram adulterados comparando com get_initial().
+
+        Args:
+            instance: Instância do modelo secundário (ex: CodeExercise).
+
+        Returns:
+            Instância do formulário configurado com prefix e dados.
+
+        Raises:
+            ImproperlyConfigured: Se secondary_form_class ou secondary_form_prefix
+                não estiverem definidos.
+            PermissionDenied: Se campos iniciais forem adulterados no POST.
+        """
+        if not self.secondary_form_class or not self.secondary_form_prefix:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} precisa de 'secondary_form_class' e 'secondary_form_prefix'"
+            )
+    
+        kwargs = {'prefix': self.secondary_form_prefix, 'instance': instance}
+        
+        if self.request.POST:
+            
+            if hasattr(self, 'get_initial'):
+                initial = self.get_initial()
+                for key, value in initial.items():
+                    if str(self.request.POST.get(key)) != str(value):
+                        raise PermissionDenied
+                    
+            kwargs['data'] = self.request.POST
+
+        return self.secondary_form_class(**kwargs)
+
+    def get_context_data(self, **kwargs) -> dict:
+        """
+        Adiciona o formulário secundário ao contexto do template.
+
+        Só instancia o formulário se ainda não estiver no contexto,
+        evitando sobrescrever um formulário já passado (ex: em form_invalid).
+
+        Returns:
+            Dicionário de contexto com a chave definida em secondary_form_context_name.
+        """
+        context = super().get_context_data(**kwargs)
+        if self.secondary_form_context_name not in context:
+            secondary_instance = self.get_secondary_instance()
+            context[self.secondary_form_context_name] = self.get_secondary_form(
+                instance=secondary_instance
+            )
+        return context
+
+    def form_valid(self, form) -> HttpResponse:
+        """
+        Salva o formulário principal e o secundário em uma transação atômica.
+
+        Fluxo:
+            1. Obtém a instância secundária (existente ou nova).
+            2. Instancia e valida o formulário secundário com os dados do POST.
+            3. Se válido: salva tudo atomicamente e vincula exercise ao objeto salvo.
+            4. Se inválido: retorna form_invalid com o formulário secundário com erros.
+
+        Args:
+            form: Formulário principal (ExerciseForm) já validado.
+
+        Returns:
+            HttpResponse de sucesso (render_success) ou de erro (form_invalid).
+        """
+        instance = self.get_secondary_instance()
+        secondary_form = self.get_secondary_form(instance=instance)
+
+        if secondary_form.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                secondary_obj = secondary_form.save(commit=False)
+                secondary_obj.exercise = self.object
+                secondary_obj.save()
+            return self.render_success()
+
+        return self.form_invalid(form, secondary_form=secondary_form)
+
+    def form_invalid(self, form, secondary_form: BaseModelForm | None = None) -> HttpResponse:
+        """
+        Retorna a resposta de erro com ambos os formulários no contexto.
+
+        Se o formulário secundário não for fornecido (ex: erro só no principal),
+        instancia um novo com os dados do POST para preservar o que o usuário digitou.
+
+        Args:
+            form: Formulário principal com erros.
+            secondary_form: Formulário secundário com erros (opcional).
+
+        Returns:
+            HttpResponse renderizado com o contexto de erro.
+        """
+        if secondary_form is None:
+            secondary_instance = self.get_secondary_instance()
+            secondary_form = self.get_secondary_form(instance=secondary_instance)
+        context = self.get_context_data(
+            form=form,
+            **{self.secondary_form_context_name: secondary_form}
+        )
+        return self.render_to_response(context)
+
+    def render_success(self) -> HttpResponse:
+        """
+        Retorna a resposta após salvar com sucesso.
+
+        Deve ser sobrescrito nas views para retornar o HTML correto
+        (ex: partial HTMX, redirect, etc.).
+
+        Returns:
+            HttpResponse de sucesso.
         """
         pass

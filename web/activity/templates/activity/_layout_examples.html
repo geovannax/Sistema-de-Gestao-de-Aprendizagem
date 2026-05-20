@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Exemplos de Layout — Exercícios</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        section { margin-bottom: 3rem; }
+        .section-title {
+            font-size: .7rem;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 1rem;
+            padding-bottom: .4rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .preview-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        }
+
+        /* ---- badge tipos ---- */
+        .badge-code            { background:#d1f5e0; color:#0f6c34; }
+        .badge-multiple_choice { background:#d1e7ff; color:#0a58ca; }
+        .badge-complete_code   { background:#fff3cd; color:#856404; }
+        .badge-discursive      { background:#f0d9ff; color:#6f0dad; }
+
+        /* ---- ASIDE clássica ---- */
+        .aside-classic { width: 240px; border-right: 1px solid #e9ecef; min-height: 320px; padding: .5rem; }
+
+        /* ---- BOTTOM BAR ---- */
+        .bottom-bar {
+            display: flex;
+            gap: .5rem;
+            overflow-x: auto;
+            padding: .5rem 0;
+            scrollbar-width: thin;
+        }
+        .bottom-bar::-webkit-scrollbar { height: 4px; }
+        .bottom-bar::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
+        .bottom-pill {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .25rem;
+            padding: .4rem .75rem;
+            border-radius: 20px;
+            border: 1px solid #dee2e6;
+            background: #fff;
+            cursor: pointer;
+            min-width: 80px;
+            font-size: .75rem;
+            transition: all .15s;
+        }
+        .bottom-pill:hover { background: #e7f1ff; border-color: #0d6efd; }
+        .bottom-pill.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+
+        /* ---- STEPPER top ---- */
+        .stepper { display: flex; gap: 0; overflow-x: auto; }
+        .step-item {
+            flex: 1;
+            min-width: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .25rem;
+            padding: .6rem .5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: .75rem;
+            text-align: center;
+            transition: all .15s;
+            color: #6c757d;
+        }
+        .step-item .step-num {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: .7rem;
+        }
+        .step-item.done .step-num { background: #d1f5e0; color: #0f6c34; }
+        .step-item.active { border-bottom-color: #0d6efd; color: #0d6efd; }
+        .step-item.active .step-num { background: #0d6efd; color: #fff; }
+
+        /* ---- CARD GRID ---- */
+        .exercise-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all .15s;
+            background: #fff;
+        }
+        .exercise-card:hover { border-color: #0d6efd; box-shadow: 0 4px 12px rgba(13,110,253,.1); }
+        .exercise-card .card-num {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #e7f1ff;
+            color: #0d6efd;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        /* ---- TIMELINE ---- */
+        .timeline { position: relative; padding-left: 2rem; }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: .75rem;
+            top: 0; bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+        .timeline-item { position: relative; margin-bottom: 1rem; }
+        .timeline-dot {
+            position: absolute;
+            left: -1.65rem;
+            top: .6rem;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: #0d6efd;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #0d6efd;
+        }
+        .timeline-dot.done { background: #198754; box-shadow: 0 0 0 2px #198754; }
+
+        /* ---- TABLE ---- */
+        .exercise-table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; border-bottom: 2px solid #e9ecef; }
+        .exercise-table td { vertical-align: middle; font-size: .875rem; }
+        .exercise-table tbody tr { cursor: pointer; transition: background .1s; }
+        .exercise-table tbody tr:hover { background: #f8f9fa; }
+
+        /* ---- KANBAN ---- */
+        .kanban-col { min-width: 200px; flex: 1; }
+        .kanban-col-header { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .75rem; }
+        .kanban-card {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: .6rem .75rem;
+            margin-bottom: .5rem;
+            font-size: .8rem;
+            cursor: pointer;
+            transition: box-shadow .15s;
+        }
+        .kanban-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.1); }
+
+        /* ---- FLOATING ACTION ---- */
+        .floating-list {
+            position: relative;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            min-height: 260px;
+            overflow: hidden;
+        }
+        .floating-list .fab {
+            position: absolute;
+            bottom: 1rem; right: 1rem;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(13,110,253,.4);
+        }
+
+        /* ---- THUMBNAIL GRID ---- */
+        .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .75rem; }
+        .thumb-item {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            cursor: pointer;
+            font-size: .75rem;
+            text-align: center;
+            padding: .75rem;
+            transition: all .15s;
+            background: #fff;
+        }
+        .thumb-item:hover { border-color: #0d6efd; background: #f0f5ff; }
+        .thumb-item .thumb-icon { font-size: 1.8rem; }
+    </style>
+</head>
+<body class="p-4">
+
+<h4 class="fw-bold mb-1">Exemplos de Layout — Listagem de Exercícios</h4>
+<p class="text-muted small mb-4">Dados mockados. Clique nos itens para ver hover/active states.</p>
+
+<!-- ================================================================
+     GRUPO 1: SIDEBARS / ASIDES
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 1 — Sidebars / Asides</div>
+    <div class="row g-3">
+
+        <!-- 1A: Aside clássica -->
+        <div class="col-12">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">1A — Aside clássica (layout completo)</p>
+                <div class="d-flex" style="min-height:280px; border:1px solid #e9ecef; border-radius:8px; overflow:hidden;">
+                    <nav class="aside-classic">
+                        <div class="text-muted small px-2 mb-2 fw-semibold">4 exercícios</div>
+                        <ul class="list-unstyled d-flex flex-column gap-1">
+                            <li><button class="btn btn-sm btn-outline-primary rounded-5 w-100 text-start text-truncate active">1. Calcule a média de uma lista</button></li>
+                            <li><button class="btn btn-sm btn-outline-secondary rounded-5 w-100 text-start text-truncate">2. Qual a saída do código?</button></li>
+                            <li><button class="btn btn-sm btn-outline-secondary rounded-5 w-100 text-start text-truncate">3. Complete o código de ordenação</button></li>
+                            <li><button class="btn btn-sm btn-outline-secondary rounded-5 w-100 text-start text-truncate">4. Explique recursividade</button></li>
+                        </ul>
+                    </nav>
+                    <main class="flex-grow-1 p-3 bg-light d-flex align-items-center justify-content-center text-muted small">
+                        ← conteúdo principal aqui
+                    </main>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1B: Aside com tipo + progresso -->
+        <div class="col-md-6">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">1B — Aside com badge de tipo</p>
+                <ul class="list-unstyled d-flex flex-column gap-2" style="max-width:260px">
+                    <li><button class="btn btn-sm btn-light w-100 text-start rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center gap-1">
+                            <span class="text-truncate">Calcule a média de uma lista</span>
+                            <span class="badge badge-code">Código</span>
+                        </div>
+                    </button></li>
+                    <li><button class="btn btn-sm btn-light w-100 text-start rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center gap-1">
+                            <span class="text-truncate">Qual a saída do código?</span>
+                            <span class="badge badge-multiple_choice">M. Escolha</span>
+                        </div>
+                    </button></li>
+                    <li><button class="btn btn-sm btn-light w-100 text-start rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center gap-1">
+                            <span class="text-truncate">Complete o código de ordenação</span>
+                            <span class="badge badge-complete_code">Completar</span>
+                        </div>
+                    </button></li>
+                    <li><button class="btn btn-sm btn-light w-100 text-start rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center gap-1">
+                            <span class="text-truncate">Explique recursividade</span>
+                            <span class="badge badge-discursive">Discursiva</span>
+                        </div>
+                    </button></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 1C: Aside com drag handle -->
+        <div class="col-md-6">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">1C — Aside com drag-and-drop</p>
+                <ul class="list-unstyled d-flex flex-column gap-1" style="max-width:260px">
+                    <li class="d-flex align-items-center gap-1">
+                        <i class="bi bi-grip-vertical text-muted" style="cursor:grab"></i>
+                        <button class="btn btn-sm btn-outline-primary rounded-3 flex-grow-1 text-start text-truncate">Calcule a média de uma lista</button>
+                    </li>
+                    <li class="d-flex align-items-center gap-1">
+                        <i class="bi bi-grip-vertical text-muted" style="cursor:grab"></i>
+                        <button class="btn btn-sm btn-outline-primary rounded-3 flex-grow-1 text-start text-truncate">Qual a saída do código?</button>
+                    </li>
+                    <li class="d-flex align-items-center gap-1">
+                        <i class="bi bi-grip-vertical text-muted" style="cursor:grab"></i>
+                        <button class="btn btn-sm btn-outline-primary rounded-3 flex-grow-1 text-start text-truncate">Complete o código de ordenação</button>
+                    </li>
+                    <li class="d-flex align-items-center gap-1">
+                        <i class="bi bi-grip-vertical text-muted" style="cursor:grab"></i>
+                        <button class="btn btn-sm btn-outline-primary rounded-3 flex-grow-1 text-start text-truncate">Explique recursividade</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     GRUPO 2: BARRAS HORIZONTAIS
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 2 — Barras Horizontais</div>
+    <div class="row g-3">
+
+        <!-- 2A: Bottom bar / scrollável -->
+        <div class="col-12">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">2A — Bottom bar (pills scrolláveis)</p>
+                <div class="bottom-bar">
+                    <div class="bottom-pill active">
+                        <i class="bi bi-code-slash fs-5"></i>
+                        <span>Calcule a média</span>
+                    </div>
+                    <div class="bottom-pill">
+                        <i class="bi bi-list-check fs-5"></i>
+                        <span>Saída do código</span>
+                    </div>
+                    <div class="bottom-pill">
+                        <i class="bi bi-code-square fs-5"></i>
+                        <span>Complete o código</span>
+                    </div>
+                    <div class="bottom-pill">
+                        <i class="bi bi-chat-left-text fs-5"></i>
+                        <span>Recursividade</span>
+                    </div>
+                    <div class="bottom-pill">
+                        <i class="bi bi-code-slash fs-5"></i>
+                        <span>Busca binária</span>
+                    </div>
+                    <div class="bottom-pill">
+                        <i class="bi bi-list-check fs-5"></i>
+                        <span>POO conceitos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2B: Stepper / progresso -->
+        <div class="col-12">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">2B — Stepper (progresso por etapa)</p>
+                <div class="stepper">
+                    <div class="step-item done">
+                        <div class="step-num"><i class="bi bi-check"></i></div>
+                        <span>Calcule a média</span>
+                    </div>
+                    <div class="step-item done">
+                        <div class="step-num"><i class="bi bi-check"></i></div>
+                        <span>Saída do código</span>
+                    </div>
+                    <div class="step-item active">
+                        <div class="step-num">3</div>
+                        <span>Complete o código</span>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">4</div>
+                        <span>Recursividade</span>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">5</div>
+                        <span>Busca binária</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2C: Tab bar -->
+        <div class="col-12">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">2C — Tab bar</p>
+                <ul class="nav nav-tabs">
+                    <li class="nav-item"><a class="nav-link active" href="#">1. Calcule a média</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">2. Saída do código</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">3. Complete o código</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">4. Recursividade</a></li>
+                </ul>
+                <div class="p-3 border border-top-0 rounded-bottom bg-light text-muted small">
+                    Conteúdo da aba ativa aqui
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     GRUPO 3: GRIDS / CARDS
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 3 — Grids e Cards</div>
+    <div class="row g-3">
+
+        <!-- 3A: Card grid com número -->
+        <div class="col-12">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">3A — Grid de cards</p>
+                <div class="row g-2">
+                    <div class="col-md-3 col-6">
+                        <div class="exercise-card">
+                            <div class="d-flex align-items-start gap-2 mb-2">
+                                <div class="card-num">1</div>
+                                <span class="badge badge-code">Código</span>
+                            </div>
+                            <p class="mb-0 small text-truncate" style="white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                Calcule a média de uma lista de números
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="exercise-card">
+                            <div class="d-flex align-items-start gap-2 mb-2">
+                                <div class="card-num">2</div>
+                                <span class="badge badge-multiple_choice">M. Escolha</span>
+                            </div>
+                            <p class="mb-0 small" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                Qual a saída do seguinte trecho de código Python?
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="exercise-card">
+                            <div class="d-flex align-items-start gap-2 mb-2">
+                                <div class="card-num">3</div>
+                                <span class="badge badge-complete_code">Completar</span>
+                            </div>
+                            <p class="mb-0 small" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                Complete o código abaixo para implementar ordenação por bolha
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="exercise-card">
+                            <div class="d-flex align-items-start gap-2 mb-2">
+                                <div class="card-num">4</div>
+                                <span class="badge badge-discursive">Discursiva</span>
+                            </div>
+                            <p class="mb-0 small" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                Explique o conceito de recursividade com um exemplo prático
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3B: Thumbnail grid com ícone grande -->
+        <div class="col-12">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">3B — Grid de thumbnails (ícone por tipo)</p>
+                <div class="thumb-grid">
+                    <div class="thumb-item">
+                        <i class="bi bi-code-slash thumb-icon text-success"></i>
+                        <span>Calcule a média</span>
+                    </div>
+                    <div class="thumb-item">
+                        <i class="bi bi-list-check thumb-icon text-primary"></i>
+                        <span>Saída do código</span>
+                    </div>
+                    <div class="thumb-item">
+                        <i class="bi bi-code-square thumb-icon text-warning"></i>
+                        <span>Complete o código</span>
+                    </div>
+                    <div class="thumb-item">
+                        <i class="bi bi-chat-left-text thumb-icon" style="color:#7c3aed"></i>
+                        <span>Recursividade</span>
+                    </div>
+                    <div class="thumb-item">
+                        <i class="bi bi-code-slash thumb-icon text-success"></i>
+                        <span>Busca binária</span>
+                    </div>
+                    <div class="thumb-item border-dashed" style="border-style:dashed; color:#adb5bd;">
+                        <i class="bi bi-plus-lg thumb-icon"></i>
+                        <span>Novo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     GRUPO 4: TABELA
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 4 — Tabela</div>
+    <div class="preview-box">
+        <p class="fw-semibold mb-3 small">4A — Tabela com ações inline</p>
+        <table class="table exercise-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>Enunciado</th>
+                    <th>Tipo</th>
+                    <th style="width:100px">Criado em</th>
+                    <th style="width:80px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-muted">1</td>
+                    <td>Calcule a média de uma lista de números inteiros</td>
+                    <td><span class="badge badge-code">Código</span></td>
+                    <td class="text-muted">06/05/2026</td>
+                    <td>
+                        <button class="btn btn-xs btn-outline-primary btn-sm py-0">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">2</td>
+                    <td>Qual a saída do seguinte trecho de código Python?</td>
+                    <td><span class="badge badge-multiple_choice">M. Escolha</span></td>
+                    <td class="text-muted">06/05/2026</td>
+                    <td>
+                        <button class="btn btn-xs btn-outline-primary btn-sm py-0">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">3</td>
+                    <td>Complete o código abaixo para ordenar uma lista</td>
+                    <td><span class="badge badge-complete_code">Completar</span></td>
+                    <td class="text-muted">06/05/2026</td>
+                    <td>
+                        <button class="btn btn-xs btn-outline-primary btn-sm py-0">Editar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">4</td>
+                    <td>Explique o conceito de recursividade com um exemplo</td>
+                    <td><span class="badge badge-discursive">Discursiva</span></td>
+                    <td class="text-muted">06/05/2026</td>
+                    <td>
+                        <button class="btn btn-xs btn-outline-primary btn-sm py-0">Editar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ================================================================
+     GRUPO 5: TIMELINE
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 5 — Timeline</div>
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">5A — Timeline vertical</p>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot done"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge badge-code mb-1">Código</span>
+                                <p class="mb-0 small">Calcule a média de uma lista de números</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 flex-shrink-0">Editar</button>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot done"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge badge-multiple_choice mb-1">M. Escolha</span>
+                                <p class="mb-0 small">Qual a saída do seguinte trecho de código?</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 flex-shrink-0">Editar</button>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot" style="background:#0d6efd; box-shadow:0 0 0 2px #0d6efd"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge badge-complete_code mb-1">Completar</span>
+                                <p class="mb-0 small">Complete o código abaixo para ordenar</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0">Editar</button>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot" style="background:#dee2e6; box-shadow:0 0 0 2px #dee2e6"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge badge-discursive mb-1">Discursiva</span>
+                                <p class="mb-0 small text-muted">Explique o conceito de recursividade</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 flex-shrink-0">Editar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5B: Timeline horizontal -->
+        <div class="col-md-6">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">5B — Timeline horizontal</p>
+                <div class="d-flex align-items-center" style="overflow-x:auto; gap:0; padding:.5rem 0">
+                    <div class="text-center" style="min-width:110px">
+                        <div class="d-flex flex-column align-items-center">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#198754;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700"><i class="bi bi-check"></i></div>
+                            <div style="height:2px;width:100%;background:#198754;margin:8px 0"></div>
+                        </div>
+                        <p class="mb-0" style="font-size:.7rem">Calcule a média</p>
+                    </div>
+                    <div class="text-center" style="min-width:110px">
+                        <div class="d-flex flex-column align-items-center">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#198754;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700"><i class="bi bi-check"></i></div>
+                            <div style="height:2px;width:100%;background:#0d6efd;margin:8px 0"></div>
+                        </div>
+                        <p class="mb-0" style="font-size:.7rem">Saída do código</p>
+                    </div>
+                    <div class="text-center" style="min-width:110px">
+                        <div class="d-flex flex-column align-items-center">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#0d6efd;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700">3</div>
+                            <div style="height:2px;width:100%;background:#dee2e6;margin:8px 0"></div>
+                        </div>
+                        <p class="mb-0 fw-semibold" style="font-size:.7rem;color:#0d6efd">Complete o código</p>
+                    </div>
+                    <div class="text-center" style="min-width:110px">
+                        <div class="d-flex flex-column align-items-center">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#e9ecef;color:#adb5bd;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700">4</div>
+                            <div style="height:2px;width:100%;background:#dee2e6;margin:8px 0"></div>
+                        </div>
+                        <p class="mb-0 text-muted" style="font-size:.7rem">Recursividade</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     GRUPO 6: KANBAN
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 6 — Kanban por tipo</div>
+    <div class="preview-box">
+        <p class="fw-semibold mb-3 small">6A — Colunas por tipo de exercício</p>
+        <div class="d-flex gap-3" style="overflow-x:auto; padding-bottom:.5rem">
+
+            <div class="kanban-col">
+                <div class="kanban-col-header text-success"><i class="bi bi-code-slash me-1"></i>Código <span class="badge bg-light text-success border ms-1">2</span></div>
+                <div class="kanban-card">Calcule a média de uma lista de números</div>
+                <div class="kanban-card">Implemente busca binária em Python</div>
+            </div>
+
+            <div class="kanban-col">
+                <div class="kanban-col-header text-primary"><i class="bi bi-list-check me-1"></i>Múltipla Escolha <span class="badge bg-light text-primary border ms-1">1</span></div>
+                <div class="kanban-card">Qual a saída do seguinte trecho de código?</div>
+            </div>
+
+            <div class="kanban-col">
+                <div class="kanban-col-header text-warning"><i class="bi bi-code-square me-1"></i>Completar Código <span class="badge bg-light text-warning border ms-1">1</span></div>
+                <div class="kanban-card">Complete o código abaixo para ordenar uma lista</div>
+            </div>
+
+            <div class="kanban-col">
+                <div class="kanban-col-header" style="color:#6f0dad"><i class="bi bi-chat-left-text me-1"></i>Discursiva <span class="badge bg-light border ms-1" style="color:#6f0dad">1</span></div>
+                <div class="kanban-card">Explique o conceito de recursividade com um exemplo</div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ================================================================
+     GRUPO 7: FLOATING ACTION / LISTA COMPACTA
+================================================================ -->
+<section>
+    <div class="section-title">Grupo 7 — Lista compacta com FAB</div>
+    <div class="row g-3">
+        <div class="col-md-5">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">7A — Lista compacta + botão flutuante</p>
+                <div class="floating-list">
+                    <ul class="list-unstyled p-2 mb-0">
+                        <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge badge-code">1</span>
+                                <span class="small text-truncate" style="max-width:160px">Calcule a média de uma lista</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </li>
+                        <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge badge-multiple_choice">2</span>
+                                <span class="small text-truncate" style="max-width:160px">Qual a saída do código?</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </li>
+                        <li class="d-flex align-items-center justify-content-between py-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge badge-discursive">3</span>
+                                <span class="small text-truncate" style="max-width:160px">Explique recursividade</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </li>
+                    </ul>
+                    <button class="fab"><i class="bi bi-plus-lg"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7B: Lista com avatar de tipo -->
+        <div class="col-md-7">
+            <div class="preview-box">
+                <p class="fw-semibold mb-3 small">7B — Lista com avatar de tipo</p>
+                <ul class="list-unstyled d-flex flex-column gap-2">
+                    <li>
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-3 border">
+                            <div style="width:40px;height:40px;border-radius:10px;background:#d1f5e0;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="bi bi-code-slash text-success fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <p class="mb-0 small fw-semibold text-truncate">Calcule a média de uma lista de números</p>
+                                <p class="mb-0 text-muted" style="font-size:.7rem">Código · 06/05/2026</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary flex-shrink-0">Editar</button>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-3 border">
+                            <div style="width:40px;height:40px;border-radius:10px;background:#d1e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="bi bi-list-check text-primary fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <p class="mb-0 small fw-semibold text-truncate">Qual a saída do seguinte trecho de código?</p>
+                                <p class="mb-0 text-muted" style="font-size:.7rem">Múltipla Escolha · 06/05/2026</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary flex-shrink-0">Editar</button>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-3 border">
+                            <div style="width:40px;height:40px;border-radius:10px;background:#f0d9ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="bi bi-chat-left-text fs-5" style="color:#6f0dad"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <p class="mb-0 small fw-semibold text-truncate">Explique o conceito de recursividade</p>
+                                <p class="mb-0 text-muted" style="font-size:.7rem">Discursiva · 06/05/2026</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary flex-shrink-0">Editar</button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+.exercise_item {
+    width:40px !important;
+    height:40px !important;
+    border-radius:10px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex-shrink:0 !important;
+}
+
+.exercise_code {
+    background: var(--blue-100) !important;
+}
+
+.exercise_complete_code {
+    background: var(--amber-100) !important;
+}
+
+.exercise_multiple_choice {
+    background: var(--green-100) !important;
+}
+
+.exercise_multiple_choice {
+    background: var(--green-100) !important;
+}
+
+.exercise_discursive {
+    background: var(--gray-300) !important;
+}

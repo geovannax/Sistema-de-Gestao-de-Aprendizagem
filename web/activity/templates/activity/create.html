@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{% static 'global/css/form.css' %}"> 
     <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
+    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 {% endblock extra_head %}
 
@@ -23,12 +25,22 @@
         <div class="row">            
 
             <!-- RIGHT: SIDE PANEL -->
-            <div class="col-lg-4">
+            <div class="col-lg-4 p-0 pe-2 mb-3">
 
                 <!-- ASIDE -->
-                <div class="col-12 progress-section p-3 mb-3 rounded-3">
+                <div class="col-12 progress-section p-3 rounded-3">
                     <div class="progress-label">Exercícios</div>
-                    <ul id="page-aside"></ul>  
+                    <ul id="page-aside" class="p-0"></ul>
+                    <div id="empty-state-aside">    
+                        <div class="empty-state-card mt-4">
+                            <i class="bi bi-inbox empty-state-icon"></i>
+                            <h5 class="empty-state-title">Nenhum Exercício Encontrado</h5>
+                            <p class="empty-state-text">
+                                Parece que você ainda não adicionou nenhum exercício.
+                            </p>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -93,4 +105,5 @@
 
 {% block extra_script %}    
     <script src="{% static 'activity/js/multiple_choice_form.js' %}"></script>
+    <script src="{% static 'activity/js/exercise_aside_state.js' %}"></script>
 {% endblock extra_script %}

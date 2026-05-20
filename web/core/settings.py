@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('WEB_SECRET_KEY', 'django-insecure-nf8=set_ENV')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('WEB_DEBUG', True)
+DEBUG = bool(os.getenv('WEB_DEBUG', 'False') == 'true')
 
 ALLOWED_HOSTS = os.getenv(
     'WEB_ALLOWED_HOSTS',
@@ -91,11 +91,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'lms'),
@@ -106,29 +103,40 @@ DATABASES = {
     }
 }
 
-# Cache Configuration
-# https://docs.djangoproject.com/en/6.0/topics/cache/#redis
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
-            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            'IGNORE_EXCEPTIONS': True,
+# Use SQLite for development and testing
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-}
 
-CACHES.update({
-    'select2': CACHES['default']
-})
 
-# Tell select2 which cache configuration to use:
-SELECT2_CACHE_BACKEND = "select2"
+# Cache Configuration
+# https://docs.djangoproject.com/en/6.0/topics/cache/#redis
+if not DEBUG:
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+                'IGNORE_EXCEPTIONS': True,
+            }
+        }
+    }
+
+    CACHES.update({
+        'select2': CACHES['default']
+    })
+
+    # Tell select2 which cache configuration to use:
+    SELECT2_CACHE_BACKEND = "select2"
 
 # Session Configuration
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
