@@ -1,0 +1,34 @@
+<!-- CARD BODY -->
+<div class="row form-card-body mb-2">
+
+    <!-- SECTION 1: COMPARTILHAMENTO COM USUÁRIOS -->
+    <div class="form-card-section">
+        <div class="form-section-title">
+            <i class="bi bi-person-plus"></i>
+            Vincular com Turmas
+        </div>
+
+        {% csrf_token %}
+        {{ form.groups }}  
+        <div class="form-text">
+            <i class="bi bi-info-circle"></i>
+            Comece a digitar para buscar turmas.
+        </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="px-2">
+        <hr class="form-divider">
+    </div>
+
+    <!-- SECTION 2: NOVO COMPARTILHAMENTO -->
+    <div class="form-card-section-new-sharing">
+        <div class="form-section-title">
+            <i class="bi bi-check2-circle"></i>
+            Novo Vínculo
+        </div>
+
+        <!-- Shared Users List -->
+        <div class="shared-users-list"></div>
+    </div>
+</div> 

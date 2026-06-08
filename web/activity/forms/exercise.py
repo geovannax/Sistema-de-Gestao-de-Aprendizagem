@@ -147,7 +147,7 @@ class DiscursiveExerciseForm(forms.ModelForm):
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
-        fields = ['activity_list', 'statement', 'type']
+        fields = ['activity_list', 'statement', 'points', 'type']
         widgets = {
             'activity_list': forms.HiddenInput(),          
             'type': forms.HiddenInput(),            
@@ -156,6 +156,12 @@ class ExerciseForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Enunciado...'
             }),  
+            'points': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.5',
+                'placeholder': 'Ex: 1.00'
+            }),
         }
 
 

@@ -9,7 +9,8 @@ from activity.views import (
     ActivityUpdateView,
     ActivityArchiveView,
     ActivityDeleteView,
-    ActivityShareView,
+    ActivityAssignView,
+    ActivityUnshareView,
 
     DiscursiveExerciseCreateView,
     DiscursiveExerciseUpdateView,
@@ -37,42 +38,18 @@ urlpatterns = [
     path('exercise/cancel/<int:pk>/', ExerciseCancelView.as_view(), name='exercise_cancel'),
     path('exercise/delete/<int:pk>/', ExerciseDeleteView.as_view(), name='exercise_delete'),
 
-
     path('exercise/code/create/<int:pk>/', CodeExerciseCreateView.as_view(), name='code_exercise_create'),
     path('exercise/code/update/<int:pk>/', CodeExerciseUpdateView.as_view(), name='code_exercise_update'),
 
     path( 'exercise/complete-code/create/<int:pk>/', CompleteCodeExerciseCreateView.as_view(), name='complete_code_exercise_create'),
     path( 'exercise/complete-code/update/<int:pk>/', CompleteCodeExerciseUpdateView.as_view(), name='complete_code_exercise_update'),
 
-    path(
-        'exercise/discursive/create/<int:pk>/',
-        DiscursiveExerciseCreateView.as_view(),
-        name='discursive_exercise_create'
-    ),
+    path( 'exercise/discursive/create/<int:pk>/', DiscursiveExerciseCreateView.as_view(), name='discursive_exercise_create'),
+    path( 'exercise/discursive/update/<int:pk>/', DiscursiveExerciseUpdateView.as_view(), name='discursive_exercise_update'),
 
-    path(
-        'exercise/discursive/update/<int:pk>/',
-        DiscursiveExerciseUpdateView.as_view(),
-        name='discursive_exercise_update'
-    ),
-
-    path(
-        'exercise/multiple-choice/create/<int:pk>/',
-        MultipleChoiceExerciseCreateView.as_view(),
-        name='multiple_choice_exercise_create'
-    ),
-
-    path(
-        'exercise/multiple-choice/add-option/',
-        MultipleChoiceExerciseAddOptionView.as_view(),
-        name='multiple_choice_exercise_add_option'
-    ),
-
-    path(
-        'exercise/multiple-choice/update/<int:pk>/',
-        MultipleChoiceExerciseUpdateView.as_view(),
-        name='multiple_choice_exercise_update'
-    ),
+    path( 'exercise/multiple-choice/create/<int:pk>/', MultipleChoiceExerciseCreateView.as_view(), name='multiple_choice_exercise_create'),
+    path( 'exercise/multiple-choice/add-option/', MultipleChoiceExerciseAddOptionView.as_view(), name='multiple_choice_exercise_add_option'),
+    path( 'exercise/multiple-choice/update/<int:pk>/', MultipleChoiceExerciseUpdateView.as_view(), name='multiple_choice_exercise_update'),
 
  
     # Não implementado
@@ -81,7 +58,8 @@ urlpatterns = [
     path('update/<int:pk>/', ActivityUpdateView.as_view(), name='update'),
     path('archive/<int:pk>/', ActivityArchiveView.as_view(), name='archive'),
     path('delete/<int:pk>/', ActivityDeleteView.as_view(), name='delete'),
-    path('share/<int:pk>/', ActivityShareView.as_view(), name='share'),
+    path('unshare/<int:pk>/', ActivityUnshareView.as_view(), name='unshare'),
+    path('assign/<int:pk>/', ActivityAssignView.as_view(), name='assign'),
 
 
 

@@ -1,7 +1,7 @@
 from activity.constants import EXERCISE_TYPE_CHOICES, LANGUAGE_CHOICES
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from group.models import Group
 
 
@@ -54,6 +54,14 @@ class Exercise(models.Model):
         verbose_name='Enunciado',
         help_text='Descreva o enunciado do exercício de forma clara e detalhada.',
         validators=[MinLengthValidator(10)]
+    )
+    points = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Nota',
+        help_text='Informe quanto este exercício vale na composição da atividade.'
     )
     order = models.PositiveIntegerField(default=0, verbose_name='Ordem')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -133,3 +141,4 @@ class DiscursiveExercise(models.Model):
 
     def __str__(self):
         return f"Discursivo: {self.exercise.statement[:50]}"
+

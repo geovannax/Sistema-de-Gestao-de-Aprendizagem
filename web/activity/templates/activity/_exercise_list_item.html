@@ -34,6 +34,10 @@
                     {% elif exercise.type == 'discursive' %}
                         Discursiva
                     {% endif %}
+                    <span class="mx-1">•</span>
+                    <span class="exercise-points-value" data-points="{{ exercise.points|stringformat:'f' }}">
+                        {{ exercise.points|floatformat:-2 }} pts
+                    </span>
                 </p>
             </div>
 

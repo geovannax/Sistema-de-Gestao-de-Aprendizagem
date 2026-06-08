@@ -5,6 +5,16 @@
             {% include "global/partials/_page_header.html" %}
         {% endwith %}
     </div>
+    <div id="finish-activity-action" class="d-none d-flex justify-content-end flex-wrap gap-2 mt-3" hx-swap-oob="outerHTML">
+        <a href="{% url 'activity:list' %}?finish_later=1" class="btn btn-outline-secondary rounded-5">
+            <i class="bi bi-clock-history me-1"></i>
+            Finalizar Depois
+        </a>
+        <a href="{% url 'activity:assign' object.id %}?open_share_modal=1" class="btn btn-outline-primary rounded-5">
+            <i class="bi bi-share me-1"></i>
+            Vincular Turmas
+        </a>
+    </div>
 {% endif %}
 
 <!-- CARD LEFT: Adiciona/Atualiza o exercício recém-criado à lista lateral -->

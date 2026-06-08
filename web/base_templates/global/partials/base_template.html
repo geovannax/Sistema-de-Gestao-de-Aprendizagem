@@ -48,6 +48,17 @@
             };
 
             document.addEventListener('DOMContentLoaded', function() {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('finish_later') === '1') {
+                    showNotificationPopup(
+                        'Success',
+                        'Atividade salva com sucesso. Você pode continuar editando e vincular turmas depois.'
+                    );
+                    params.delete('finish_later');
+                    const cleanUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
+                    window.history.replaceState({}, '', cleanUrl);
+                }
+
                 {% if messages %}
                     {% for message in messages %}
                         // Exibe a mensagem um pop-up

@@ -1,11 +1,43 @@
+.page-header-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-header .btn {
+  flex: 0 0 auto;
+}
+
 .page-header h2 {
   color: var(--gray-600);
 }
 
+.page-header-title,
+.page-header .subtitle,
+.page-header .subtitle-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-header-title {
+  display: block;
+}
+
 .page-header .subtitle {
   color: var(--gray-650);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .page-header .subtitle i {
+  flex: 0 0 auto;
   color: var(--info);
+}
+
+.page-header .subtitle-text {
+  display: block;
+  min-width: 0;
 }

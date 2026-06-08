@@ -1,6 +1,8 @@
-from activity.models import ActivityList, Exercise, ExerciseOption, CompleteCodeExercise, MultipleChoiceExercise
+from activity.models import ActivityList
 from django import forms
-
+from django_select2.forms import ModelSelect2MultipleWidget
+from group.models import Group
+import json
 
 class ActivityListForm(forms.ModelForm):
     class Meta:
@@ -12,25 +14,59 @@ class ActivityListForm(forms.ModelForm):
         }
 
 
+class ActivityAssignWidget(ModelSelect2MultipleWidget):
+    search_fields = [
+        "name__icontains",
+    ]
+    
+    def label_from_instance(self, obj):
+        return obj.name
+    
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        
+        groups_data = {}
+        for group in Group.objects.all():
+            groups_data[str(group.id)] = {
+                'group': group.name,
+                'description': group.description,
+            }
+        
+        context['widget']['attrs']['data-groups'] = json.dumps(groups_data)
+        return context
 
 
-# class CodeExerciseForm(forms.ModelForm):
-#     class Meta:
-#         model = CodeExercise
-#         fields = ['language', 'starter_code', 'expected_output']
-#         widgets = {
-#             'language': forms.Select(attrs={'class': 'form-select'}),
-#             'starter_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 4, 'placeholder': 'Código inicial para o aluno (opcional)'}),
-#             'expected_output': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 3, 'placeholder': 'Saída esperada para correção...'}),
-#         }
+class ActivityAssignForm(forms.Form):
+    """Formulário para vincular atividade com turmas"""
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=ActivityAssignWidget(attrs={
+            'data-placeholder': 'Digite o nome da turma para vincular',
+            'class': 'form-control',
+        }),
+        required=False
+    )
 
+    # def __init__(self, group_pk=None, request_user=None, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
 
-# class CompleteCodeExerciseForm(forms.ModelForm):
-#     class Meta:
-#         model = CompleteCodeExercise
-#         fields = ['language', 'starter_code', 'complete_code']
-#         widgets = {
-#             'language': forms.Select(attrs={'class': 'form-select'}),
-#             'starter_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 4, 'placeholder': 'Código com lacunas para o aluno completar...'}),
-#             'complete_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 4, 'placeholder': 'Código completo (gabarito)...'}),
-#         }
+    #     if group_pk is None:
+    #         raise ValidationError('group_pk é obrigatório')
+        
+    #     if request_user is None:
+    #         raise ValidationError('request_user é obrigatório')
+
+    #     if group_pk:
+    #         # Usuários que já têm compartilhamento ativo com este grupo
+    #         excluded_users = GroupSharing.objects.filter(
+    #             group_id=group_pk,
+    #             is_active=True
+    #         ).values_list('shared_with_id', flat=True)
+            
+    #         # Excluir do queryset
+    #         self.fields['users'].queryset = User.objects.exclude(
+    #             id__in=excluded_users
+    #         ).exclude(
+    #             id=request_user.id
+    #         )
+

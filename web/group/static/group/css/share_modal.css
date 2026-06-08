@@ -78,16 +78,23 @@
 .shared-user-avatar[data-color="10"] { background: #F0FDF4; color: #16A34A; }
 
 .shared-user-info {
-    flex: 1;
+    flex: 1;          
+    min-width: 0;     
 }
 
 .shared-user-name {
+    white-space: nowrap;      
+    overflow: hidden;         
+    text-overflow: ellipsis;  
     font-weight: 600;
     color: var(--gray-800);
     font-size: 0.95rem;
 }
 
 .shared-user-email {
+    white-space: nowrap;      
+    overflow: hidden;         
+    text-overflow: ellipsis;  
     font-size: 0.8rem;
     color: var(--gray-500);
 }

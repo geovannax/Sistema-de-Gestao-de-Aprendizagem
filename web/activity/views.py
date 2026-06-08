@@ -1,25 +1,40 @@
 from activity.constants import EXERCISE_TYPES
-from activity.forms.activity import ActivityListForm
+from activity.forms.activity import ActivityAssignForm, ActivityListForm
 from activity.forms.exercise import CodeExerciseForm, CompleteCodeExerciseForm, DiscursiveExerciseForm, ExerciseOptionForm
 from activity.forms.formsets.exercise_option import ExerciseOptionFormCreateSet, ExerciseOptionFormUpdateSet
 from activity.mixins import ExerciseBaseMixin
-from activity.models import ActivityList, CodeExercise, CompleteCodeExercise, DiscursiveExercise, Exercise, MultipleChoiceExercise
+from activity.models import (
+    ActivityList,
+    ActivityListGroup,
+    CodeExercise,
+    CompleteCodeExercise,
+    DiscursiveExercise,
+    Exercise,
+    MultipleChoiceExercise
+)
 from common.mixins import (
     HTMXLoginRequiredMixin,
     InlineFormsetMixin,
     SecondaryFormMixin,
     AuthPermissionMixin,
     ObjectAccessRequiredMixin,
-    InlineFormsetMixin
+    InlineFormsetMixin,
+
+    FilteringMixin,
+    OrderingMixin,
+    PaginationMixin,
+    EnrichObjectMixin,
 )
 from common.utils import get_btn_action
 from common.view.generic import EnhancedListView
+from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import Prefetch, Count
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView, View
-
-
+from django.views.generic.edit import FormMixin
 
 
 class ActivityBaseView(EnhancedListView):
@@ -314,6 +329,7 @@ class ActivityBaseView:
     model = ActivityList
     template_name = 'activity/detail.html'
     context_object_name = 'activity'
+    allowed_fields = None
     
     def get_queryset(self):
         """Otimiza queries com select_related e prefetch_related"""
@@ -356,6 +372,9 @@ class ActivityBaseView:
                 exercises_by_type['multiple_choice']['count'] += 1
                 
         context.update({
+            'table': {
+                'fields': self.allowed_fields,
+            },
             'page_title': activity.title.title(),
             'page_description': f'Criado por {activity.created_by.get_full_name()}',
             'count_exercises_by_type': exercises_by_type,
@@ -379,11 +398,11 @@ class ActivityBaseView:
                 'icon': 'bi-info-circle',
                 'active': self.__class__.__name__ == 'ActivityDetailView'
             }, {
-                'title': 'Compartilhamento',
-                'url': 'activity:share',                
+                'title': 'Vincular a Turmas',
+                'url': 'activity:assign',                
                 'pk': self.object.pk,
                 'icon': 'bi-share',
-                'active': self.__class__.__name__ == 'ActivityShareView'
+                'active': self.__class__.__name__ == 'ActivityAssignView'
             }
         ]
 
@@ -407,8 +426,120 @@ class ActivityBaseView:
             }
         }
 
+
 class ActivityDetailView(ActivityBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
     pass
+
+
+class ActivityAssignView(
+    ActivityBaseView,
+    FilteringMixin,
+    OrderingMixin,
+    PaginationMixin,
+    EnrichObjectMixin,
+    FormMixin,
+    DetailView
+):
+    template_name = 'activity/shared_list_view.html'
+    model = ActivityList
+    form_class = ActivityAssignForm
+    allowed_fields = {
+        "group": "group__name__icontains",
+        "assigned_at": "assigned_at__icontains",
+    }
+
+    def get_sharings_queryset(self):
+        qs = (
+            ActivityListGroup.objects
+            .filter(activity_list=self.object)
+            .select_related('group', 'activity_list')
+        )
+
+        # aplicar filtro
+        qs = self.apply_filtering(
+            queryset=qs,
+        )
+
+        # aplicar ordenação
+        qs = self.apply_ordering(queryset=qs)
+
+        return qs
+
+    def has_object_enrich_actions(self, user, obj):
+        return obj.activity_list.created_by == user
+
+    def enrich_actions(self, user, obj):
+        if self.has_object_enrich_actions(user, obj):
+            return get_btn_action(
+                ['unshare'],
+                self.request.resolver_match.app_name
+            )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        sharings_qs = self.get_sharings_queryset()
+
+        pagination = self.paginate_queryset(sharings_qs)
+
+        enrichment = self.apply_enrichment(pagination)
+
+        context.update({
+            **enrichment,
+            'modal_form': True,
+            'modal_id': "shareModal",
+            'modal_title': "Vincular Turmas",
+            'modal_icon': "bi-share",
+            'modal_form_id': "sharingForm",
+            'modal_subtitle': "Adicione as turmas",
+            'modal_button_submit': "Vincular",
+        })
+
+        return context
+
+    
+    def post(self, request, *args, **kwargs):
+        # Garantir que self.object esteja definido para o form_valid
+        self.object = self.get_object()
+
+        form = self.get_form()
+        if 'groups' not in form.data:
+            messages.error(request, 'Nenhum grupo selecionado para compartilhamento.')
+            return self.get(request, *args, **kwargs)
+
+        if form.is_valid():
+            return self.form_valid(form)
+        
+        return self.get(request, *args, **kwargs)
+
+
+    @transaction.atomic
+    def form_valid(self, form):
+        groups = form.cleaned_data['groups']
+        activity_list = self.object
+
+        # Criamos uma lista de objetos ActivityListGroup na memória
+        new_sharings = [
+            ActivityListGroup(
+                activity_list=activity_list,
+                group=group
+            )
+            for group in groups
+        ]
+    
+        # Insere todos de uma vez
+        ActivityListGroup.objects.bulk_create(
+            new_sharings,
+            unique_fields=['activity_list', 'group'],
+            update_conflicts=True,
+            update_fields=['assigned_at', 'due_date']
+        )
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('activity:assign', kwargs={'pk': self.object.pk})
+
 
 
 
@@ -433,7 +564,7 @@ class ActivityDeleteView(View):
         raise NotImplementedError("Implementar lógica de exibição de detalhes da atividade")
 
 
-class ActivityShareView(View):
+class ActivityUnshareView(View):
     pass
 
     def get(self, request, *args, **kwargs):

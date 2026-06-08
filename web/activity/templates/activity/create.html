@@ -25,11 +25,14 @@
         <div class="row">            
 
             <!-- RIGHT: SIDE PANEL -->
-            <div class="col-lg-4 p-0 pe-2 mb-3">
+            <div class="col-4 p-0 pe-2 mb-3">
 
                 <!-- ASIDE -->
                 <div class="col-12 progress-section p-3 rounded-3">
                     <div class="progress-label">Exercícios</div>
+                    <div id="exercise-total-summary" class="d-none small text-muted mb-2">
+                        Total: <span id="exercise-total-points">0</span> pts
+                    </div>
                     <ul id="page-aside" class="p-0"></ul>
                     <div id="empty-state-aside">    
                         <div class="empty-state-card mt-4">
@@ -40,13 +43,13 @@
                             </p>
                         </div>
                     </div>
-
+                    <div id="finish-activity-action" class="d-none d-flex justify-content-end flex-wrap gap-2 mt-3"></div>
                 </div>
 
             </div>
 
             <!-- LEFT: FORM -->
-            <div class="form-card col-lg-8 p-3 rounded-3 mb-3">
+            <div class="form-card col-8 p-3 rounded-3 mb-3">
 
                 <!-- Header -->
                 <div class="form-card-header d-flex mb-0" id="form-header">

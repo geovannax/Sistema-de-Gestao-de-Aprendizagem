@@ -17,6 +17,11 @@
     font-size: 0.9rem;
     color: var(--gray-500);
     line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 10;
+    -webkit-box-orient: vertical;
 }
 
 .detail-left-item {

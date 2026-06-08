@@ -1,4 +1,4 @@
-{% extends "group/_detail.html" %}
+{% extends "activity/detail.html" %}
 {% load static %}
 
 {% block extra_head %}
@@ -56,17 +56,13 @@
 
 {% block modal %}
     {{ block.super }}
-
-    {% with modal_form=True modal_id="shareModal" modal_title="Gerenciar Compartilhamento" modal_icon="bi-share" modal_form_id="sharingForm" modal_subtitle="Adicione pessoas para colaborar" modal_button_submit="Compartilhar" %}
-        {% include "global/partials/_modal.html" with content_template="group/_share_modal.html" %}
-    {% endwith %}
-    
+    {% include "global/partials/_modal.html" with content_template="activity/_share_modal.html" %}    
 {% endblock modal %}
 
 {% block extra_script %}
 
     <script src="{% static 'global/ajax/libs/jquery/3.5.1/jquery.min.js' %}"></script>
     {{ form.media.js }}
-    <script src="{% static 'group/js/share_modal.js' %}"></script>
+    <script src="{% static 'activity/js/share_modal.js' %}"></script>
 
 {% endblock extra_script %}
