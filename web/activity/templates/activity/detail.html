@@ -58,16 +58,32 @@
                         </div>
                     {% else %}
 
+                        <div class="detail-left-table">
+                            <div class="detail-left-table-header">
+                                <span>Tipo</span>
+                                <span>Qtd</span>
+                                <span>Pontos</span>
+                            </div>
+
                         {% for exercise_type, data in count_exercises_by_type.items %}
-                            <div class="detail-left-item">
+                            <div class="detail-left-table-row">
                                 <span class="detail-left-label">{{ data.label }}</span>
                                 <span class="detail-left-value">{{ data.count }}</span>
+                                <span class="detail-left-value">{{ data.points|floatformat:-2 }} pts</span>
+                                <span class="d-none">
+                                    {{ data.count }} • {{ data.points|floatformat:-2 }} pts
+                                </span>
                             </div>
                         {% endfor %}
 
-                        <div class="detail-left-item">
+                        <div class="detail-left-table-row detail-left-table-total">
                             <span class="detail-left-label">Total de Exercícios</span>
-                            <span class="detail-left-value highlight">{{ count_all_exercises }}</span>
+                            <span>{{ count_all_exercises }}</span>
+                            <span>{{ total_points|floatformat:-2 }} pts</span>
+                            </div>
+                            <span class="d-none">
+                                {{ count_all_exercises }} • {{ total_points|floatformat:-2 }} pts
+                            </span>
                         </div>
 
                     {% endif %}

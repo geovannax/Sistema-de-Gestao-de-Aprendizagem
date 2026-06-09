@@ -1,7 +1,9 @@
-{% if is_update %}
-    <div hx-swap-oob="innerHTML:#exercise-{{ exercise.id }}">
-{% else %}
-    <div hx-swap-oob="beforeend:#page-aside">
+{% if render_oob %}
+    {% if is_update %}
+        <div hx-swap-oob="innerHTML:#exercise-{{ exercise.id }}">
+    {% else %}
+        <div hx-swap-oob="beforeend:#page-aside">
+    {% endif %}
 {% endif %}
     <li id="exercise-{{ exercise.id }}" class="mb-2">        
         <div class="d-flex align-items-center gap-2 p-2 rounded-3 border">
@@ -51,11 +53,14 @@
 
             <button
                 class="btn btn-sm btn-outline-primary rounded-5 px-3"
-                hx-get="{% url update_url exercise.id %}"
+                {% firstof update_url exercise.update_url as exercise_update_url %}
+                hx-get="{% url exercise_update_url exercise.id %}"
                 hx-target="#main-content"
                 hx-swap="innerHTML">
                 <i class="bi bi-pencil"></i>
             </button>
         </div>
     </li>
-</div>
+{% if render_oob %}
+    </div>
+{% endif %}

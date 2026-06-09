@@ -193,6 +193,13 @@
             showNotificationPopup('Warning','Em desenvolvimento');
         }
 
+        const loginParams = new URLSearchParams(window.location.search);
+        const loginType = loginParams.get('tipo');
+
+        if (loginType === 'aluno' || loginType === 'professor') {
+            localStorage.setItem('viewMode', loginType);
+        }
+
         // Fill input with value
         document.querySelectorAll('.btn-fill-input').forEach(button => {
             button.addEventListener('click', function (e) {

@@ -57,6 +57,15 @@ $(document).ready(function() {
         let userData = usersData[userId] || {};
         let group = userData.group || data.text;
         let description = userData.description || '';
+        let startsAt = $('#id_starts_at').val();
+        let endsAt = $('#id_ends_at').val();
+        let startsAtText = startsAt
+            ? new Date(startsAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+            : 'Inicio livre';
+        let endsAtText = endsAt
+            ? new Date(endsAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+            : 'Sem fim definido';
+        let periodText = `${startsAtText} - ${endsAtText}`;
         let colorIndex = Math.floor(Math.random() * 10) + 1;
 
         $('.shared-users-list').append(`
@@ -68,6 +77,9 @@ $(document).ready(function() {
                 <div class="shared-user-info">
                     <div class="shared-user-name">${group}</div>
                     <div class="shared-user-email">${description}</div>
+                    <div class="shared-user-email">
+                        <i class="bi bi-calendar-event me-1"></i>${periodText}
+                    </div>
                 </div>
                 <div class="btn btn-outline-danger btn-sm shared-user-remove rounded-5 px-3" data-id="${userId}">
                     <i class="bi bi-trash"></i>

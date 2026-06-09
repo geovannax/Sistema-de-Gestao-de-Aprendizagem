@@ -1,72 +1,128 @@
 from activity.models import ActivityList
 from django import forms
+from django.db.models import Q
 from django_select2.forms import ModelSelect2MultipleWidget
 from group.models import Group
 import json
+
 
 class ActivityListForm(forms.ModelForm):
     class Meta:
         model = ActivityList
         fields = ['title', 'description']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Lista 01 — Lógica de Programação'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva o objetivo desta lista...'}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: Lista 01 - Logica de Programacao',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Descreva o objetivo desta lista...',
+            }),
         }
 
 
 class ActivityAssignWidget(ModelSelect2MultipleWidget):
     search_fields = [
-        "name__icontains",
+        'name__icontains',
+        'description__icontains',
     ]
-    
+
     def label_from_instance(self, obj):
         return obj.name
-    
+
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        
-        groups_data = {}
-        for group in Group.objects.all():
-            groups_data[str(group.id)] = {
-                'group': group.name,
-                'description': group.description,
-            }
-        
-        context['widget']['attrs']['data-groups'] = json.dumps(groups_data)
         return context
+
+    def filter_queryset(self, request, term, queryset=None, **dependent_fields):
+        queryset = super().filter_queryset(request, term, queryset, **dependent_fields)
+
+        if not request.user.is_authenticated:
+            return queryset.none()
+
+        return queryset.filter(
+            Q(created_by=request.user) |
+            Q(sharings__shared_with=request.user, sharings__is_active=True),
+            deleted_at__isnull=True,
+        ).distinct()
 
 
 class ActivityAssignForm(forms.Form):
-    """Formulário para vincular atividade com turmas"""
+    starts_at = forms.DateTimeField(
+        label='Inicio',
+        required=False,
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control',
+        })
+    )
+    ends_at = forms.DateTimeField(
+        label='Fim',
+        required=False,
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control',
+        })
+    )
     groups = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(),
+        queryset=Group.objects.filter(deleted_at__isnull=True),
         widget=ActivityAssignWidget(attrs={
             'data-placeholder': 'Digite o nome da turma para vincular',
             'class': 'form-control',
         }),
         required=False
     )
+    bind_all_groups = forms.BooleanField(
+        label='Vincular a todas as turmas disponiveis',
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+        })
+    )
 
-    # def __init__(self, group_pk=None, request_user=None, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
+    def clean(self):
+        cleaned_data = super().clean()
+        starts_at = cleaned_data.get('starts_at')
+        ends_at = cleaned_data.get('ends_at')
 
-    #     if group_pk is None:
-    #         raise ValidationError('group_pk é obrigatório')
-        
-    #     if request_user is None:
-    #         raise ValidationError('request_user é obrigatório')
+        if starts_at and ends_at and ends_at < starts_at:
+            raise forms.ValidationError(
+                'A data de fim deve ser posterior ou igual a data de inicio.'
+            )
 
-    #     if group_pk:
-    #         # Usuários que já têm compartilhamento ativo com este grupo
-    #         excluded_users = GroupSharing.objects.filter(
-    #             group_id=group_pk,
-    #             is_active=True
-    #         ).values_list('shared_with_id', flat=True)
-            
-    #         # Excluir do queryset
-    #         self.fields['users'].queryset = User.objects.exclude(
-    #             id__in=excluded_users
-    #         ).exclude(
-    #             id=request_user.id
-    #         )
+        return cleaned_data
 
+    def get_available_groups(self, request_user):
+        if request_user is None or not request_user.is_authenticated:
+            return Group.objects.none()
+
+        return (
+            Group.objects
+            .filter(
+                Q(created_by=request_user) |
+                Q(sharings__shared_with=request_user, sharings__is_active=True),
+                deleted_at__isnull=True,
+            )
+            .distinct()
+        )
+
+    def __init__(self, request_user=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        groups = self.get_available_groups(request_user)
+
+        if not groups.exists():
+            self.fields['groups'].queryset = groups
+            self.fields['groups'].widget.attrs['data-groups'] = '{}'
+            return
+
+        self.fields['groups'].queryset = groups
+        self.fields['groups'].widget.attrs['data-groups'] = json.dumps({
+            str(group.id): {
+                'group': group.name,
+                'description': group.description,
+            }
+            for group in groups
+        })

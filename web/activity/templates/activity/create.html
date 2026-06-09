@@ -33,7 +33,11 @@
                     <div id="exercise-total-summary" class="d-none small text-muted mb-2">
                         Total: <span id="exercise-total-points">0</span> pts
                     </div>
-                    <ul id="page-aside" class="p-0"></ul>
+                    <ul id="page-aside" class="p-0">
+                        {% for exercise in exercises %}
+                            {% include "activity/_exercise_list_item.html" %}
+                        {% endfor %}
+                    </ul>
                     <div id="empty-state-aside">    
                         <div class="empty-state-card mt-4">
                             <i class="bi bi-inbox empty-state-icon"></i>
@@ -43,7 +47,11 @@
                             </p>
                         </div>
                     </div>
-                    <div id="finish-activity-action" class="d-none d-flex justify-content-end flex-wrap gap-2 mt-3"></div>
+                    <div id="finish-activity-action" class="{% if not has_exercises %}d-none {% endif %}d-flex justify-content-end flex-wrap gap-2 mt-3">
+                        {% if object %}
+                            {% include "activity/_finish_activity_actions.html" %}
+                        {% endif %}
+                    </div>
                 </div>
 
             </div>

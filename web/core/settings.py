@@ -111,6 +111,18 @@ if DEBUG:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'lms-default-cache',
+        },
+        'select2': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'lms-select2-cache',
+            'TIMEOUT': 3600,
+        }
+    }
+    SELECT2_CACHE_BACKEND = 'select2'
 
 
 # Cache Configuration

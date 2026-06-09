@@ -43,6 +43,14 @@ function updateAsideState() {
 
 document.addEventListener('DOMContentLoaded', updateAsideState);
 
+document.body.addEventListener('htmx:oobAfterSwap', () => {
+    requestAnimationFrame(updateAsideState);
+});
+
+document.body.addEventListener('htmx:afterSwap', () => {
+    requestAnimationFrame(updateAsideState);
+});
+
 const observer = new MutationObserver(() => {
     updateAsideState();
 });

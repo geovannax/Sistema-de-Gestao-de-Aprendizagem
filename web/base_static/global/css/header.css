@@ -26,3 +26,9 @@ nav > div > div > div > button > div:first-child {
 .btn_header:focus > div > i {
   color: var(--info);
 }
+
+.header-view-mode-toggle {
+  min-width: 260px;
+  cursor: pointer;
+  text-align: left;
+}

@@ -30,10 +30,28 @@ class ActivityList(models.Model):
         verbose_name_plural = 'Listas de Exercícios'
 
 
+class ActivityArchived(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='archived_activities')
+    activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='archived_activities')
+    is_archived = models.BooleanField(db_index=True, default=True, verbose_name='Arquivado')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Arquivado em')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['activity_list', 'user'],
+                name='unique_activity_archived_user'
+            )
+        ]
+
+
 class ActivityListGroup(models.Model):
     activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='list_groups')
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='activity_list_groups')
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name='Vinculado em')
+    starts_at = models.DateTimeField(null=True, blank=True, verbose_name='Início')
+    ends_at = models.DateTimeField(null=True, blank=True, verbose_name='Fim')
     due_date = models.DateTimeField(null=True, blank=True, verbose_name='Prazo')
 
     class Meta:

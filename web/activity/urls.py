@@ -2,6 +2,7 @@ from django.urls import path
 from activity.views import (
 
     ActivityCreateView,
+    ActivityArchivedListView,
     ActivityListView,
 
     # Não implementado
@@ -35,6 +36,7 @@ app_name = 'activity'
 
 urlpatterns = [
     path('list/', ActivityListView.as_view(), name='list'),
+    path('archived/', ActivityArchivedListView.as_view(), name='archived'),
     path('exercise/cancel/<int:pk>/', ExerciseCancelView.as_view(), name='exercise_cancel'),
     path('exercise/delete/<int:pk>/', ExerciseDeleteView.as_view(), name='exercise_delete'),
 

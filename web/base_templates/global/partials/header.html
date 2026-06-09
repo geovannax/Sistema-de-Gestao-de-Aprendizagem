@@ -23,18 +23,6 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-dark me-4" href="#" onclick="showAlert()">
-                            Professores
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-dark me-4" href="#" onclick="showAlert()">
-                            Alunos
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
                         <a class="nav-link text-dark me-4" href="{% url 'group:active' %}">
                             Turmas
                         </a>
@@ -72,6 +60,17 @@
                             <div><i class="bi bi-list me-2"></i>Atividades</div>
                             <small class="text-muted ms-4">Ver todas as suas atividades</small>
                         </a>
+                        <button class="dropdown-item header-view-mode-toggle" type="button" id="viewModeToggle">
+                            <div class="d-flex align-items-center justify-content-between gap-3 w-100">
+                                <div>
+                                    <div>
+                                        <i class="bi bi-eye me-2"></i>
+                                        <span id="viewModeLabel">Visualizar como Professor</span>
+                                    </div>
+                                    <small class="text-muted ms-4">Alternar modo de visualizacao</small>
+                                </div>
+                            </div>
+                        </button>
                         <hr class="dropdown-divider">                            
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
@@ -86,4 +85,53 @@
         </div>
     </nav>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const button = document.getElementById('viewModeToggle');
+            const label = document.getElementById('viewModeLabel');
+
+            if (!button || !label) return;
+
+            const params = new URLSearchParams(window.location.search);
+            const urlMode = params.get('tipo');
+
+            if (urlMode === 'aluno' || urlMode === 'professor') {
+                localStorage.setItem('viewMode', urlMode);
+            }
+
+            const normalizeViewMode = function (mode) {
+                if (mode === 'student') return 'aluno';
+                if (mode === 'teacher') return 'professor';
+                return mode === 'aluno' ? 'aluno' : 'professor';
+            };
+
+            const updateViewModeLabel = function () {
+                const currentMode = normalizeViewMode(localStorage.getItem('viewMode'));
+
+                label.textContent = currentMode === 'aluno'
+                    ? 'Visualizar como Professor'
+                    : 'Visualizar como Aluno';
+            };
+
+            localStorage.setItem('viewMode', normalizeViewMode(localStorage.getItem('viewMode')));
+            updateViewModeLabel();
+
+            button.addEventListener('click', function () {
+                const currentMode = normalizeViewMode(localStorage.getItem('viewMode'));
+                const nextMode = currentMode === 'aluno' ? 'professor' : 'aluno';
+
+                localStorage.setItem('viewMode', nextMode);
+                updateViewModeLabel();
+
+                if (typeof showNotificationPopup === 'function') {
+                    showNotificationPopup(
+                        'Success',
+                        nextMode === 'aluno'
+                            ? 'Visualização como aluno ativada.'
+                            : 'Visualização como professor ativada.'
+                    );
+                }
+            });
+        });
+    </script>
 </header>

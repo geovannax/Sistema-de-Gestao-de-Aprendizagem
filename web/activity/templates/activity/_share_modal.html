@@ -9,10 +9,30 @@
         </div>
 
         {% csrf_token %}
+        <div class="row g-2 mb-3">
+            <div class="col-md-6">
+                {{ form.starts_at.label_tag }}
+                {{ form.starts_at }}
+            </div>
+            <div class="col-md-6">
+                {{ form.ends_at.label_tag }}
+                {{ form.ends_at }}
+            </div>
+            <div class="form-text">
+                <i class="bi bi-calendar-event"></i>
+                Defina o período em que a atividade ficará disponível para as turmas selecionadas.
+            </div>
+        </div>
         {{ form.groups }}  
         <div class="form-text">
             <i class="bi bi-info-circle"></i>
             Comece a digitar para buscar turmas.
+        </div>
+        <div class="form-check mt-2">
+            {{ form.bind_all_groups }}
+            <label class="form-check-label" for="{{ form.bind_all_groups.id_for_label }}">
+                {{ form.bind_all_groups.label }}
+            </label>
         </div>
     </div>
 

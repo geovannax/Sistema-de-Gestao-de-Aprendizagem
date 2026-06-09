@@ -9,6 +9,7 @@ from common.mixins import (
 )
 from common.utils import get_btn_action
 from common.view.generic import EnhancedListView
+from activity.models import ActivityListGroup
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
@@ -234,6 +235,15 @@ class GroupBaseView:
             'table': {
                 'fields': self.allowed_fields,
             },
+            'recent_activities': (
+                ActivityListGroup.objects
+                .filter(
+                    group=self.object,
+                    activity_list__deleted_at__isnull=True
+                )
+                .select_related('activity_list')
+                .order_by('-pk')
+            ),
         })
 
         return context

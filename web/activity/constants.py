@@ -6,28 +6,32 @@ EXERCISE_TYPES = {
         'icon': 'bi-chat-left-text',
         'color': 'text-secondary',
         'description': 'Aluno responde com texto livre',
-        'create_url': 'activity:discursive_exercise_create'
+        'create_url': 'activity:discursive_exercise_create',
+        'update_url': 'activity:discursive_exercise_update',
     },
     'code': {
         'label': 'Código',
         'icon': 'bi-code-slash',
         'color': 'text-primary',
         'description': 'Output do aluno é comparado com o esperado',
-        'create_url': 'activity:code_exercise_create'
+        'create_url': 'activity:code_exercise_create',
+        'update_url': 'activity:code_exercise_update',
     },
     'complete_code': {
         'label': 'Completar Código',
         'icon': 'bi-pencil-square',
         'color': 'text-warning',
         'description': 'Aluno preenche lacunas no código dado',
-        'create_url': 'activity:complete_code_exercise_create'
+        'create_url': 'activity:complete_code_exercise_create',
+        'update_url': 'activity:complete_code_exercise_update',
     },
     'multiple_choice': {
         'label': 'Múltipla Escolha',
         'icon': 'bi-list-check',
         'color': 'text-success',
         'description': 'Aluno escolhe entre as alternativas',
-        'create_url': 'activity:multiple_choice_exercise_create'
+        'create_url': 'activity:multiple_choice_exercise_create',
+        'update_url': 'activity:multiple_choice_exercise_update',
     }
 }
 
