@@ -1,0 +1,13 @@
+<div id="group-invite-action" class="{% if latest_invite_url %}d-none{% endif %}">
+    <button
+        type="button"
+        class="btn btn-sm btn-outline-success rounded-5"
+        hx-post="{% url 'group:invite_create' object.pk %}"
+        hx-include="#sharingForm"
+        hx-target="#group-invite-link"
+        hx-swap="innerHTML"
+    >
+        <i class="bi bi-link-45deg me-1"></i>
+        Gerar link de convite
+    </button>
+</div>

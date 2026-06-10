@@ -1,0 +1,106 @@
+.invite-page {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+}
+
+.invite-card {
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+    overflow: hidden;
+}
+
+.invite-card-header {
+    background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-700) 100%);
+    color: var(--white);
+    padding: 1.25rem;
+}
+
+.invite-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.invite-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.invite-subtitle {
+    color: var(--gray-200);
+    font-size: 0.85rem;
+}
+
+.invite-body {
+    padding: 1.25rem;
+}
+
+.invite-group-title {
+    color: var(--gray-800);
+    font-weight: 700;
+    font-size: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.invite-description {
+    color: var(--gray-550);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.invite-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.invite-meta-item {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.5rem;
+    padding: 0.8rem;
+}
+
+.invite-meta-label {
+    color: var(--gray-500);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.invite-meta-value {
+    color: var(--gray-800);
+    font-weight: 700;
+    margin-top: 0.2rem;
+}
+
+.invite-status {
+    background: var(--blue-50);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.5rem;
+    color: var(--gray-650);
+    font-size: 0.85rem;
+    padding: 0.75rem;
+}
+
+@media (max-width: 575.98px) {
+    .invite-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}

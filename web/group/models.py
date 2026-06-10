@@ -1,7 +1,14 @@
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+import secrets
 # Create your models here.
+
+
+def generate_group_invite_token():
+    return secrets.token_urlsafe(32)
 
 
 class Group(models.Model):
@@ -79,3 +86,60 @@ class GroupSharing(models.Model):
                 name='unique_group_sharing_with'
             )
         ]
+
+
+class GroupStudent(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='students')
+    student = models.ForeignKey(User, on_delete=models.PROTECT, related_name='student_groups')
+    joined_at = models.DateTimeField(auto_now_add=True, verbose_name='Entrou em')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    is_active = models.BooleanField(db_index=True, default=True, verbose_name='Esta ativo')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['group', 'student'],
+                name='unique_group_student'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.student} - {self.group}'
+
+
+class GroupInvite(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='invites')
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_group_invites')
+    token = models.CharField(max_length=128, unique=True, default=generate_group_invite_token)
+    expires_at = models.DateTimeField(verbose_name='Expira em')
+    max_uses = models.PositiveIntegerField(null=True, blank=True, verbose_name='Limite de usos')
+    used_count = models.PositiveIntegerField(default=0, verbose_name='Usos')
+    is_active = models.BooleanField(db_index=True, default=True, verbose_name='Esta ativo')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=7)
+
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return self.expires_at <= timezone.now()
+
+    def has_uses_available(self):
+        return self.max_uses is None or self.used_count < self.max_uses
+
+    def can_be_used(self):
+        return (
+            self.is_active and
+            not self.is_expired() and
+            self.group.deleted_at is None and
+            self.has_uses_available()
+        )
+
+    def __str__(self):
+        return f'Convite para {self.group}'

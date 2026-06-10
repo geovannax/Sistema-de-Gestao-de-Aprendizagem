@@ -6,6 +6,9 @@
         class="d-flex justify-content-between align-items-center gap-2 p-2"
     >
         {% csrf_token %}
+        {% if share_view %}
+            <input type="hidden" name="share_view" value="{{ share_view }}">
+        {% endif %}
 
         <!-- Campo de Busca -->
         <input 

@@ -10,18 +10,19 @@ from common.mixins import (
 from common.utils import get_btn_action
 from common.view.generic import EnhancedListView
 from activity.models import ActivityListGroup
+from datetime import timedelta
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.db.utils import IntegrityError
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView, View
 from django.views.generic.edit import FormMixin
 from group.forms.group import GroupForm, GroupSharingForm
-from group.models import Group, GroupArchived, GroupSharing
+from group.models import Group, GroupArchived, GroupInvite, GroupSharing, GroupStudent
 
 
 ##### INICIO VIEW NAVTABS DA ABA TURMAS #####
@@ -62,6 +63,7 @@ class GroupListBaseView(EnhancedListView):
             'table': {
                 'fields': self.allowed_fields,
             },
+            'create_url': self.create_url,
         })
         return context
 
@@ -73,12 +75,14 @@ class GroupListBaseView(EnhancedListView):
                 'url': 'group:active',
                 'icon': 'bi-check-circle',
                 'active': self.__class__.__name__ == 'GroupActiveListView'
-            },{
+            },
+            {
                 'title': 'Compartilhadas',
                 'url': 'group:shared',
                 'icon': 'bi-share',
                 'active': self.__class__.__name__ == 'GroupSharedListView'
-            },{
+            },
+            {
                 'title': 'Arquivadas',
                 'url': 'group:archived',
                 'icon': 'bi-inbox',
@@ -309,6 +313,40 @@ class GroupShareView(
     }
     success_message = "Compartilhado com sucesso!"
 
+    def get_share_view(self):
+        share_view = self.request.GET.get('share_view', 'teachers')
+        return share_view if share_view in ['teachers', 'students'] else 'teachers'
+
+    def get_share_allowed_fields(self):
+        if self.get_share_view() == 'students':
+            return {
+                "student": "student__username__icontains",
+                "joined_at": "joined_at__icontains",
+            }
+
+        return {
+            "shared_with": "shared_with__username__icontains",
+            "created_at": "created_at__icontains",
+        }
+
+    def get_share_tabs(self):
+        share_view = self.get_share_view()
+
+        return [
+            {
+                'title': 'Professores',
+                'url': f'{self.request.path}?share_view=teachers',
+                'icon': 'bi-person-check',
+                'active': share_view == 'teachers',
+            },
+            {
+                'title': 'Alunos',
+                'url': f'{self.request.path}?share_view=students',
+                'icon': 'bi-mortarboard',
+                'active': share_view == 'students',
+            }
+        ]
+
     def has_object_access(self, user, obj):
         # Verificar se o usuário é o criador da turma
         if hasattr(obj, 'created_by') and obj.created_by == user:
@@ -327,11 +365,20 @@ class GroupShareView(
             )
 
     def get_sharings_queryset(self):
-        qs = (
-            GroupSharing.objects
-            .filter(group=self.object, is_active=True)
-            .select_related('shared_with', 'shared_by')
-        )
+        self.allowed_fields = self.get_share_allowed_fields()
+
+        if self.get_share_view() == 'students':
+            qs = (
+                GroupStudent.objects
+                .filter(group=self.object, is_active=True)
+                .select_related('student', 'group')
+            )
+        else:
+            qs = (
+                GroupSharing.objects
+                .filter(group=self.object, is_active=True)
+                .select_related('shared_with', 'shared_by')
+            )
 
         # 🔹 aplicar filtro
         qs = self.apply_filtering(
@@ -362,14 +409,52 @@ class GroupShareView(
 
         pagination = self.paginate_queryset(sharings_qs)
 
-        enrichment = self.apply_enrichment(pagination)
+        enrichment = (
+            self.apply_enrichment(pagination)
+            if self.get_share_view() == 'teachers'
+            else pagination
+        )
+
+        latest_invite = None
+        latest_invite_url = None
+        latest_invite_id = self.request.session.pop('latest_group_invite_id', None)
+
+        if latest_invite_id:
+            latest_invite = GroupInvite.objects.filter(
+                pk=latest_invite_id,
+                group=self.object,
+                is_active=True,
+            ).first()
+        else:
+            latest_invite = (
+                GroupInvite.objects
+                .filter(
+                    group=self.object,
+                    is_active=True,
+                    expires_at__gt=timezone.now(),
+                )
+                .order_by('-created_at')
+                .first()
+            )
+
+        if latest_invite:
+            latest_invite_url = self.request.build_absolute_uri(
+                reverse('group:invite_confirm', kwargs={'token': latest_invite.token})
+            )
 
         context.update({
             'form': self.get_form(),
             **enrichment,
             **self.get_filter_flags(),
             **self.has_filtering(return_context=True),
-            **self.has_ordering(return_context=True)
+            **self.has_ordering(return_context=True),
+            'latest_invite': latest_invite,
+            'latest_invite_url': latest_invite_url,
+            'share_view': self.get_share_view(),
+            'share_tabs': self.get_share_tabs(),
+            'table': {
+                'fields': self.get_share_allowed_fields(),
+            },
         })
 
         return context
@@ -462,6 +547,174 @@ class GroupManageArchivingView(AuthPermissionMixin, ObjectAccessRequiredMixin, V
         )
 
         return redirect('group:active')
+
+
+class GroupInviteCreateView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
+    def get_object(self):
+        return Group.objects.filter(
+            pk=self.kwargs['pk'],
+            created_by=self.request.user,
+            deleted_at__isnull=True
+        ).first()
+
+    def has_object_access(self, user, obj):
+        return obj and obj.created_by == user
+
+    def post(self, request, *args, **kwargs):
+        group = self.get_object()
+        invite = GroupInvite.objects.create(
+            group=group,
+            created_by=request.user,
+            expires_at=timezone.now() + timedelta(days=7)
+        )
+
+        invite_url = request.build_absolute_uri(
+            reverse('group:invite_confirm', kwargs={'token': invite.token})
+        )
+
+        if request.headers.get('HX-Request'):
+            return render(
+                request,
+                'group/partials/_invite_link.html',
+                {
+                    'latest_invite': invite,
+                    'latest_invite_url': invite_url,
+                    'object': group,
+                }
+            )
+
+        request.session['latest_group_invite_id'] = invite.pk
+
+        return redirect('group:share', pk=group.pk)
+
+
+class GroupInviteExpireView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
+    def get_object(self):
+        if hasattr(self, 'object'):
+            return self.object
+
+        self.object = (
+            GroupInvite.objects
+            .select_related('group', 'created_by')
+            .filter(
+                pk=self.kwargs['invite_pk'],
+                group_id=self.kwargs['pk'],
+                group__deleted_at__isnull=True,
+            )
+            .first()
+        )
+        return self.object
+
+    def has_object_access(self, user, obj):
+        return obj and obj.group.created_by == user
+
+    def post(self, request, *args, **kwargs):
+        invite = self.get_object()
+        invite.is_active = False
+        invite.expires_at = timezone.now()
+        invite.save(update_fields=['is_active', 'expires_at', 'updated_at'])
+
+        if request.headers.get('HX-Request'):
+            return render(
+                request,
+                'group/partials/_invite_link.html',
+                {
+                    'object': invite.group,
+                    'invite_expired': True,
+                }
+            )
+
+        return redirect('group:share', pk=invite.group.pk)
+
+
+class GroupInviteConfirmView(AuthPermissionMixin, View):
+    template_name = 'group/invite_confirm.html'
+
+    def get_invite(self):
+        if hasattr(self, 'invite'):
+            return self.invite
+
+        self.invite = (
+            GroupInvite.objects
+            .select_related('group', 'group__created_by', 'created_by')
+            .filter(token=self.kwargs['token'])
+            .first()
+        )
+        return self.invite
+
+    def get_context_data(self):
+        invite = self.get_invite()
+        context = {
+            'invite': invite,
+            'can_join': False,
+            'already_joined': False,
+            'is_owner': False,
+            'active_activities_count': 0,
+            'active_students_count': 0,
+            'blocked_reason': None,
+        }
+
+        if not invite:
+            context['blocked_reason'] = 'Convite não encontrado.'
+            return context
+
+        group = invite.group
+        context.update({
+            'already_joined': group.students.filter(
+                student=self.request.user,
+                is_active=True
+            ).exists(),
+            'is_owner': group.created_by == self.request.user,
+            'active_activities_count': group.activity_list_groups.filter(
+                activity_list__deleted_at__isnull=True
+            ).count(),
+            'active_students_count': group.students.filter(is_active=True).count(),
+        })
+
+        if not invite.can_be_used():
+            context['blocked_reason'] = 'Este convite expirou ou não está mais disponível.'
+        elif context['is_owner']:
+            context['blocked_reason'] = 'Você é o professor responsável por esta turma.'
+        elif context['already_joined']:
+            context['blocked_reason'] = 'Você já participa desta turma.'
+        else:
+            context['can_join'] = True
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context_data())
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        invite = context['invite']
+
+        if not invite or not context['can_join']:
+            if context['blocked_reason']:
+                messages.error(request, context['blocked_reason'])
+            return render(request, self.template_name, context, status=400)
+
+        enrollment, created = GroupStudent.objects.get_or_create(
+            group=invite.group,
+            student=request.user,
+            defaults={'is_active': True}
+        )
+
+        if not created and not enrollment.is_active:
+            enrollment.is_active = True
+            enrollment.save(update_fields=['is_active', 'updated_at'])
+
+        if created or not context['already_joined']:
+            invite.used_count += 1
+            invite.save(update_fields=['used_count', 'updated_at'])
+
+        messages.success(
+            request,
+            f'Você entrou na turma "{invite.group.name}" com sucesso.'
+        )
+
+        return redirect('home')
 
 
 ##### INICIO VIEW DE SOFT DELETE DE TURMA #####

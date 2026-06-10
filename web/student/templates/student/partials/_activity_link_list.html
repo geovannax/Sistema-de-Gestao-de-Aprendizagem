@@ -1,0 +1,31 @@
+<div class="student-activity-list">
+    {% for activity_link in activity_links %}
+        <article class="student-activity-item">
+            <div class="min-width-0">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="student-status student-status-{{ status_class }}">{{ status_label }}</span>
+                    <span class="student-activity-group">{{ activity_link.group.name }}</span>
+                </div>
+                <div class="student-activity-title">{{ activity_link.activity_list.title }}</div>
+                <div class="student-activity-description">{{ activity_link.activity_list.description }}</div>
+                <div class="student-activity-period">
+                    {% if activity_link.starts_at %}
+                        Início: {{ activity_link.starts_at|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Início livre
+                    {% endif %}
+                    ·
+                    {% if activity_link.ends_at %}
+                        Fim: {{ activity_link.ends_at|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Sem fim definido
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="student-empty">
+            {{ empty_message }}
+        </div>
+    {% endfor %}
+</div>

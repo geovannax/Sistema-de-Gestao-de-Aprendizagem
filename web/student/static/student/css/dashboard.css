@@ -1,0 +1,27 @@
+.table-type-table {
+    border: 1px solid var(--gray-300);
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+}
+
+.card-content {
+    min-width: 0;
+}
+
+.card-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.student-activity-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.student-activity-actions .btn {
+    align-items: center;
+    display: inline-flex;
+    font-weight: 600;
+}

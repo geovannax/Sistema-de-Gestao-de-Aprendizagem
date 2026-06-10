@@ -1,34 +1,53 @@
 <!-- CARD BODY -->
 <div class="row form-card-body mb-2">
 
-    <!-- SECTION 1: COMPARTILHAMENTO COM USUÁRIOS -->
-    <div class="form-card-section">
-        <div class="form-section-title">
-            <i class="bi bi-person-plus"></i>
-            Compartilhar com Usuários
+    {% if share_view == 'students' %}
+        <!-- SECTION: STUDENT INVITE -->
+        <div class="form-card-section">
+            <div class="form-section-title">
+                <i class="bi bi-link-45deg"></i>
+                Convite para Alunos
+            </div>
+
+            <p class="form-text mb-2">
+                Gere um link temporario para que alunos confirmem a entrada nesta turma.
+            </p>
+
+            <div id="group-invite-link">
+                {% include "group/partials/_invite_link.html" %}
+            </div>
+
+            {% include "group/partials/_invite_action.html" %}
+        </div>
+    {% else %}
+        <!-- SECTION 1: TEACHER SHARING -->
+        <div class="form-card-section">
+            <div class="form-section-title">
+                <i class="bi bi-person-plus"></i>
+                Compartilhar com Professores
+            </div>
+
+            {% csrf_token %}
+            {{ form.users }}
+            <div class="form-text">
+                <i class="bi bi-info-circle"></i>
+                Comece a digitar para buscar professores.
+            </div>
         </div>
 
-        {% csrf_token %}
-        {{ form.users }}  
-        <div class="form-text">
-            <i class="bi bi-info-circle"></i>
-            Comece a digitar para buscar usuários.
-        </div>
-    </div>
-
-    <!-- DIVIDER -->
-    <div class="px-2">
-        <hr class="form-divider">
-    </div>
-
-    <!-- SECTION 2: NOVO COMPARTILHAMENTO -->
-    <div class="form-card-section-new-sharing">
-        <div class="form-section-title">
-            <i class="bi bi-check2-circle"></i>
-            Novo Compartilhamento
+        <!-- DIVIDER -->
+        <div class="px-2">
+            <hr class="form-divider">
         </div>
 
-        <!-- Shared Users List -->
-        <div class="shared-users-list"></div>
-    </div>
-</div> 
+        <!-- SECTION 2: NEW SHARING -->
+        <div class="form-card-section-new-sharing">
+            <div class="form-section-title">
+                <i class="bi bi-check2-circle"></i>
+                Novo Compartilhamento
+            </div>
+
+            <div class="shared-users-list"></div>
+        </div>
+    {% endif %}
+</div>

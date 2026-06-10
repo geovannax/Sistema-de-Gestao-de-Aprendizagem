@@ -32,3 +32,30 @@ nav > div > div > div > button > div:first-child {
   cursor: pointer;
   text-align: left;
 }
+
+.view-mode-inline {
+  align-items: center;
+  border-left: 1px solid var(--gray-450);
+  color: var(--gray-550);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 0.35rem;
+  padding: 0.15rem 0 0.15rem 0.75rem;
+  white-space: nowrap;
+}
+
+.view-mode-inline[data-mode="professor"] [data-view-mode-text] {
+  color: var(--blue-700);
+}
+
+.view-mode-inline[data-mode="aluno"] [data-view-mode-text] {
+  color: var(--success);
+}
+
+@media (max-width: 575.98px) {
+  .view-mode-inline {
+    font-size: 0.78rem;
+  }
+}

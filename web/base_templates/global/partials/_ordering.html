@@ -32,7 +32,7 @@
             {% for field_name, value in object_list.0|get_model_only_fields:table.fields %}
 
                 <li>
-                    <a href="?sort={{ value.name }}{% if has_ordering_session.sort == value.name and has_ordering_session.order != 'desc' %}&order=desc{% else %}&order=asc{% endif %}"
+                    <a href="?{% if share_view %}share_view={{ share_view }}&{% endif %}sort={{ value.name }}{% if has_ordering_session.sort == value.name and has_ordering_session.order != 'desc' %}&order=desc{% else %}&order=asc{% endif %}"
                         class="dropdown-item">
                         {% if not has_ordering_session %}
                             <i class="bi bi-arrow-down-up me-2"></i>
@@ -55,7 +55,7 @@
         <hr class="dropdown-divider">
         
         <li>
-            <a href="{{ request.path }}?clear_order=1" class="dropdown-item d-flex justify-content-start align-items-center">
+            <a href="{{ request.path }}?{% if share_view %}share_view={{ share_view }}&{% endif %}clear_order=1" class="dropdown-item d-flex justify-content-start align-items-center">
                 <i class="bi bi-trash me-2"></i>
                 Limpar
             </a>

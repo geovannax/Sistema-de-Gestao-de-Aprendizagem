@@ -33,6 +33,7 @@ urlpatterns = [
     path('activity/', include('activity.urls')),
     path('admin/', admin.site.urls),
     path('group/', include('group.urls')),
+    path('student/', include('student.urls')),
 
     # Third party
     path("select2/", include("django_select2.urls")),

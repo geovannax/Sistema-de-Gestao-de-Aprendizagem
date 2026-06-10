@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'activity',
     'common',
     'group',
+    'student',
 ]
 
 MIDDLEWARE = [

@@ -25,6 +25,9 @@
         color: var(--gray-800);
         font-size: 0.9rem;
         margin-bottom: 0.3rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .activity-date {
@@ -35,6 +38,10 @@
     .activity-period {
         font-size: 0.75rem;
         color: var(--gray-600);
+    }
+
+    .activity-content {
+        min-width: 0;
     }
 </style>
 
@@ -52,7 +59,7 @@
                 <div class="activity-item p-3 mb-2 rounded-2">
                     <div class="d-flex gap-2">
                         <div class="activity-dot"></div>
-                        <div class="flex-grow-1">
+                        <div class="flex-grow-1 activity-content">
                             <div class="activity-title">{{ activity_group.activity_list.title }}</div>
                             <div class="activity-date">
                                 <i class="bi bi-calendar-event me-1" style="font-size: 0.8rem;"></i>

@@ -3,9 +3,14 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
         <div class="container-fluid align-items-center">
             <!-- Brand/Logo -->
-            <a class="navbar-brand text-primary fw-bolder ps-4 fs-4"  href="{% url 'home' %}">
-                <i class="bi bi-book"></i> Educatrix
-            </a>
+            <div class="d-flex align-items-center gap-2 ps-4">
+                <a class="navbar-brand text-primary fw-bolder fs-4 m-0" href="{% url 'home' %}">
+                    <i class="bi bi-book"></i> Educatrix
+                </a>
+                <span id="viewModeBadge" class="view-mode-inline" data-mode="professor">
+                    <span data-view-mode-text>Professor</span>
+                </span>
+            </div>
 
             <!-- Toggle para mobile -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,15 +27,21 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" data-professor-nav>
                         <a class="nav-link text-dark me-4" href="{% url 'group:active' %}">
                             Turmas
                         </a>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item" data-professor-nav>
                         <a class="nav-link text-dark me-4" href="{% url 'activity:list' %}">
                             Atividades
+                        </a>
+                    </li>
+
+                    <li class="nav-item" data-student-nav>
+                        <a class="nav-link text-dark me-4" href="{% url 'student:dashboard' %}">
+                            Área do Aluno
                         </a>
                     </li>
                 </ul>
@@ -55,10 +66,6 @@
                         <a class="dropdown-item" href="#" onclick="showAlert()">
                             <div><i class="bi bi-person me-2"></i>Perfil</div>
                             <small class="text-muted ms-4">Editar informações pessoais</small>
-                        </a>
-                        <a class="dropdown-item" href="#" onclick="showAlert()">
-                            <div><i class="bi bi-list me-2"></i>Atividades</div>
-                            <small class="text-muted ms-4">Ver todas as suas atividades</small>
                         </a>
                         <button class="dropdown-item header-view-mode-toggle" type="button" id="viewModeToggle">
                             <div class="d-flex align-items-center justify-content-between gap-3 w-100">
@@ -89,15 +96,12 @@
         document.addEventListener('DOMContentLoaded', function () {
             const button = document.getElementById('viewModeToggle');
             const label = document.getElementById('viewModeLabel');
+            const badge = document.getElementById('viewModeBadge');
 
-            if (!button || !label) return;
+            if (!button || !label || !badge) return;
 
             const params = new URLSearchParams(window.location.search);
             const urlMode = params.get('tipo');
-
-            if (urlMode === 'aluno' || urlMode === 'professor') {
-                localStorage.setItem('viewMode', urlMode);
-            }
 
             const normalizeViewMode = function (mode) {
                 if (mode === 'student') return 'aluno';
@@ -105,12 +109,29 @@
                 return mode === 'aluno' ? 'aluno' : 'professor';
             };
 
+            if (urlMode === 'aluno' || urlMode === 'professor') {
+                localStorage.setItem('viewMode', urlMode);
+            }
+
             const updateViewModeLabel = function () {
                 const currentMode = normalizeViewMode(localStorage.getItem('viewMode'));
 
                 label.textContent = currentMode === 'aluno'
                     ? 'Visualizar como Professor'
                     : 'Visualizar como Aluno';
+
+                badge.dataset.mode = currentMode;
+                badge.querySelector('[data-view-mode-text]').textContent = currentMode === 'aluno'
+                    ? 'Aluno'
+                    : 'Professor';
+
+                document.querySelectorAll('[data-professor-nav]').forEach((item) => {
+                    item.classList.toggle('d-none', currentMode === 'aluno');
+                });
+
+                document.querySelectorAll('[data-student-nav]').forEach((item) => {
+                    item.classList.toggle('d-none', currentMode !== 'aluno');
+                });
             };
 
             localStorage.setItem('viewMode', normalizeViewMode(localStorage.getItem('viewMode')));

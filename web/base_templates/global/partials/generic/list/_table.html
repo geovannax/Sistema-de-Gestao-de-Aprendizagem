@@ -10,7 +10,7 @@
                 <tr>
                     {% for field_name, value in object_list.0|get_model_only_fields:table.fields %}
                         <th>
-                            <a href="?sort={{ value.name }}{% if has_ordering_session.sort == value.name and has_ordering_session.order != 'desc' %}&order=desc{% else %}&order=asc{% endif %}"
+                            <a href="?{% if share_view %}share_view={{ share_view }}&{% endif %}sort={{ value.name }}{% if has_ordering_session.sort == value.name and has_ordering_session.order != 'desc' %}&order=desc{% else %}&order=asc{% endif %}"
                                 style="text-decoration: none; color: inherit;">
                                 {{ field_name }}
                                 {% if has_ordering_session.sort == value.name %}

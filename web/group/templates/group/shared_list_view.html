@@ -8,22 +8,52 @@
     <link rel="stylesheet" href="{% static 'global/css/table.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
     <link rel="stylesheet" href="{% static 'group/css/share_modal.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 {% endblock extra_head %}
 
 {% block info_right %}
 
     <!-- Navigation Buttons -->
-    <div class="d-flex align-items-center justify-content-end mt-2 mb-2 gap-2">
-        <!-- Order Filter Button -->
-        {% include "global/partials/_ordering.html" %}
+    <div class="mt-2 mb-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <div class="fw-semibold text-dark">Compartilhamento</div>
+                <div class="text-muted small">
+                    {% if share_view == 'students' %}
+                        Alunos entram na turma por link de convite e visualizam as atividades disponíveis.
+                    {% else %}
+                        Professores compartilhados podem colaborar na gestão da turma.
+                    {% endif %}
+                </div>
+            </div>
 
-        <!-- Filter Button -->
-        {% include "global/partials/_search_filter.html" %}
+            <div class="d-flex align-items-center justify-content-end gap-2">
+                <!-- Order Filter Button -->
+                {% include "global/partials/_ordering.html" %}
 
-        <!-- Shared Button -->
-        <button type="button" class="d-flex btn btn-sm btn-outline-primary rounded-5" data-bs-toggle="modal" data-bs-target="#shareModal">
-            <i class="bi bi-share me-2"></i>Compartilhar
-        </button>
+                <!-- Filter Button -->
+                {% include "global/partials/_search_filter.html" %}
+
+                <!-- Shared Button -->
+                <button type="button" class="d-flex btn btn-sm btn-outline-primary rounded-5" data-bs-toggle="modal" data-bs-target="#shareModal">
+                    {% if share_view == 'students' %}
+                        <i class="bi bi-link-45deg me-2"></i>Convidar Aluno
+                    {% else %}
+                        <i class="bi bi-share me-2"></i>Compartilhar com Professor
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+
+        <div class="btn-group btn-group-sm mt-3" role="group" aria-label="Tipo de compartilhamento">
+            {% for tab in share_tabs %}
+                <a href="{{ tab.url }}"
+                   class="btn rounded-5 me-2 {% if tab.active %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    <i class="bi {{ tab.icon }} me-1"></i>
+                    {{ tab.title }}
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
     {% if object_list.all %}
@@ -57,9 +87,15 @@
 {% block modal %}
     {{ block.super }}
 
-    {% with modal_form=True modal_id="shareModal" modal_title="Gerenciar Compartilhamento" modal_icon="bi-share" modal_form_id="sharingForm" modal_subtitle="Adicione pessoas para colaborar" modal_button_submit="Compartilhar" %}
-        {% include "global/partials/_modal.html" with content_template="group/_share_modal.html" %}
-    {% endwith %}
+    {% if share_view == 'students' %}
+        {% with modal_form=True modal_id="shareModal" modal_title="Convidar Aluno" modal_icon="bi-link-45deg" modal_form_id="sharingForm" modal_subtitle="Gere um link para entrada na turma" modal_hide_submit=True %}
+            {% include "global/partials/_modal.html" with content_template="group/_share_modal.html" %}
+        {% endwith %}
+    {% else %}
+        {% with modal_form=True modal_id="shareModal" modal_title="Compartilhar com Professor" modal_icon="bi-share" modal_form_id="sharingForm" modal_subtitle="Adicione professores para colaborar" modal_button_submit="Compartilhar" %}
+            {% include "global/partials/_modal.html" with content_template="group/_share_modal.html" %}
+        {% endwith %}
+    {% endif %}
     
 {% endblock modal %}
 
@@ -68,5 +104,20 @@
     <script src="{% static 'global/ajax/libs/jquery/3.5.1/jquery.min.js' %}"></script>
     {{ form.media.js }}
     <script src="{% static 'group/js/share_modal.js' %}"></script>
+    <script>
+        document.addEventListener('click', function (event) {
+            const copyButton = event.target.closest('#copyInviteUrl');
+            if (!copyButton) return;
+
+            const inviteInput = document.getElementById('latestInviteUrl');
+            if (!inviteInput) return;
+
+            navigator.clipboard.writeText(inviteInput.value);
+
+            if (typeof showNotificationPopup === 'function') {
+                showNotificationPopup('Success', 'Link de convite copiado.');
+            }
+        });
+    </script>
 
 {% endblock extra_script %}

@@ -1,0 +1,54 @@
+{% if latest_invite_url %}
+    <div id="group-invite-action" class="d-none" hx-swap-oob="outerHTML"></div>
+
+    <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+            <small class="text-muted">
+                <i class="bi bi-link-45deg me-1"></i>
+                Link de convite
+            </small>
+            <small class="text-muted">
+                Expira em {{ latest_invite.expires_at|date:"d/m/Y H:i" }}
+            </small>
+        </div>
+
+        <div class="input-group input-group-sm mb-2">
+            <input id="latestInviteUrl" type="text" class="form-control" value="{{ latest_invite_url }}" readonly>
+            <button class="btn btn-outline-primary" type="button" id="copyInviteUrl">
+                <i class="bi bi-clipboard me-1"></i>Copiar
+            </button>
+        </div>
+
+        <div class="d-flex justify-content-start">
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-danger rounded-5"
+                hx-post="{% url 'group:invite_expire' object.pk latest_invite.pk %}"
+                hx-include="#sharingForm"
+                hx-target="#group-invite-link"
+                hx-swap="innerHTML"
+            >
+                <i class="bi bi-clock-history me-1"></i>
+                Expirar link agora
+            </button>
+        </div>
+    </div>
+{% elif invite_expired %}
+    <div id="group-invite-action" hx-swap-oob="outerHTML">
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-success rounded-5"
+            hx-post="{% url 'group:invite_create' object.pk %}"
+            hx-include="#sharingForm"
+            hx-target="#group-invite-link"
+            hx-swap="innerHTML"
+        >
+            <i class="bi bi-link-45deg me-1"></i>
+            Gerar link de convite
+        </button>
+    </div>
+    <div class="text-muted small mb-3">
+        <i class="bi bi-check-circle me-1"></i>
+        Link expirado. Gere um novo convite quando precisar.
+    </div>
+{% endif %}
