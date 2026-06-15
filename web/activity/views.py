@@ -1,5 +1,5 @@
 from activity.constants import EXERCISE_TYPES
-from activity.forms.activity import ActivityAssignForm, ActivityListForm
+from activity.forms.activity import ActivityAssignForm, ActivityListForm, ActivityListGroupPeriodForm
 from activity.forms.exercise import CodeExerciseForm, CompleteCodeExerciseForm, DiscursiveExerciseForm, ExerciseOptionForm
 from activity.forms.formsets.exercise_option import ExerciseOptionFormCreateSet, ExerciseOptionFormUpdateSet
 from activity.mixins import ExerciseBaseMixin
@@ -587,7 +587,7 @@ class ActivityAssignView(
     def enrich_actions(self, user, obj):
         if self.has_object_enrich_actions(user, obj):
             return get_btn_action(
-                ['unshare'],
+                ['assign_update', 'unshare'],
                 self.request.resolver_match.app_name
             )
 
@@ -674,6 +674,73 @@ class ActivityAssignView(
 
     def get_success_url(self):
         return reverse('activity:assign', kwargs={'pk': self.object.pk})
+
+
+class ActivityAssignUpdateView(AuthPermissionMixin, ObjectAccessRequiredMixin, UpdateView):
+    model = ActivityListGroup
+    form_class = ActivityListGroupPeriodForm
+    template_name = 'global/partials/generic/create_or_update/view.html'
+    context_object_name = 'activity_group'
+    page_title = 'Editar Periodo da Atividade'
+    page_description = 'Ajuste o periodo em que esta atividade ficara disponivel para a turma.'
+    form_title = 'Periodo da Atividade'
+    form_subtitle = 'Defina quando os alunos poderao iniciar e finalizar esta atividade.'
+    submit_title = 'Salvar'
+    form_submit_confirm_text = None
+    tip_card_content = [
+        {
+            'title': 'Inicio',
+            'text': 'Use o inicio para liberar a atividade apenas no momento correto.',
+            'icon': 'bi-calendar-event',
+        },
+        {
+            'title': 'Fim',
+            'text': 'Use o fim para encerrar o periodo de respostas dos alunos.',
+            'icon': 'bi-clock-fill',
+        },
+    ]
+
+    def get_queryset(self):
+        return (
+            ActivityListGroup.objects
+            .select_related('activity_list', 'group')
+            .filter(
+                activity_list__created_by=self.request.user,
+                activity_list__deleted_at__isnull=True,
+                group__deleted_at__isnull=True,
+            )
+        )
+
+    def has_object_access(self, user, obj):
+        return obj and obj.activity_list.created_by == user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': self.page_title,
+            'page_description': self.page_description,
+            'form_title': self.form_title,
+            'form_subtitle': self.form_subtitle,
+            'submit_title': self.submit_title,
+            'form_submit_confirm_text': self.form_submit_confirm_text,
+            'tip_card_content': self.tip_card_content,
+        })
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.due_date = self.object.ends_at
+        self.object.save(update_fields=['starts_at', 'ends_at', 'due_date'])
+
+        messages.success(
+            self.request,
+            f'Periodo da atividade para a turma "{self.object.group.name}" atualizado com sucesso!'
+        )
+
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('activity:assign', kwargs={'pk': self.object.activity_list.pk})
 
 
 class ActivityArchiveView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):

@@ -28,6 +28,12 @@ def get_btn_action(action: list, app_name: str):
             'icon': 'bi-pencil',
             'class': 'btn-outline-primary',
         },
+        'assign_update': {
+            'url': f'{app_name}:assign_update',
+            'method': 'get',
+            'icon': 'bi-pencil',
+            'class': 'btn-outline-primary',
+        },
     }
 
     return [actions.get(act) for act in action]

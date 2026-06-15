@@ -1,4 +1,4 @@
-from activity.models import ActivityList
+from activity.models import ActivityList, ActivityListGroup
 from django import forms
 from django.db.models import Q
 from django_select2.forms import ModelSelect2MultipleWidget
@@ -126,3 +126,50 @@ class ActivityAssignForm(forms.Form):
             }
             for group in groups
         })
+
+
+class ActivityListGroupPeriodForm(forms.ModelForm):
+    class Meta:
+        model = ActivityListGroup
+        fields = ['starts_at', 'ends_at']
+        widgets = {
+            'starts_at': forms.DateTimeInput(
+                format='%Y-%m-%dT%H:%M',
+                attrs={
+                    'type': 'datetime-local',
+                    'class': 'form-control',
+                }
+            ),
+            'ends_at': forms.DateTimeInput(
+                format='%Y-%m-%dT%H:%M',
+                attrs={
+                    'type': 'datetime-local',
+                    'class': 'form-control',
+                }
+            ),
+        }
+        labels = {
+            'starts_at': 'Inicio',
+            'ends_at': 'Fim',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name in ['starts_at', 'ends_at']:
+            self.fields[field_name].input_formats = ['%Y-%m-%dT%H:%M']
+            value = getattr(self.instance, field_name, None)
+            if value:
+                self.fields[field_name].initial = value.strftime('%Y-%m-%dT%H:%M')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        starts_at = cleaned_data.get('starts_at')
+        ends_at = cleaned_data.get('ends_at')
+
+        if starts_at and ends_at and ends_at < starts_at:
+            raise forms.ValidationError(
+                'A data de fim deve ser posterior ou igual a data de inicio.'
+            )
+
+        return cleaned_data

@@ -11,6 +11,7 @@ from activity.views import (
     ActivityArchiveView,
     ActivityDeleteView,
     ActivityAssignView,
+    ActivityAssignUpdateView,
     ActivityUnshareView,
 
     DiscursiveExerciseCreateView,
@@ -61,6 +62,7 @@ urlpatterns = [
     path('archive/<int:pk>/', ActivityArchiveView.as_view(), name='archive'),
     path('delete/<int:pk>/', ActivityDeleteView.as_view(), name='delete'),
     path('unshare/<int:pk>/', ActivityUnshareView.as_view(), name='unshare'),
+    path('assign/update/<int:pk>/', ActivityAssignUpdateView.as_view(), name='assign_update'),
     path('assign/<int:pk>/', ActivityAssignView.as_view(), name='assign'),
 
 
