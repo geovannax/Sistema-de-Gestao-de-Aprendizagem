@@ -52,7 +52,7 @@
                     </thead>
                     <tbody>
                         {% for enrollment in enrollments %}
-                            <tr>
+                            <tr data-href="{% url 'student:group_detail' enrollment.group.pk %}" class="clickable-row">
                                 <td class="td-truncate-1 fw-semibold">{{ enrollment.group.name }}</td>
                                 <td class="td-truncate-1">{{ enrollment.group.description }}</td>
                                 <td class="td-truncate-1">{{ enrollment.group.created_by.get_full_name|default:enrollment.group.created_by.username }}</td>
@@ -80,7 +80,7 @@
         {% else %}
             <div class="card-wrapper pt-4">
                 {% for enrollment in enrollments %}
-                    <div class="card-content pt-3">
+                    <div class="card-content pt-3" data-href="{% url 'student:group_detail' enrollment.group.pk %}">
                         <div class="card-field px-4 gap-2">
                             <span class="card-label">Turma</span>
                             <span class="card-value">{{ enrollment.group.name }}</span>
@@ -122,6 +122,14 @@
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (tooltipTriggerEl) {
                 new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            document.querySelectorAll('[data-href]').forEach(function (el) {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', function (e) {
+                    if (e.target.closest('.card-actions, .student-activity-actions, button, a')) return;
+                    window.location.href = el.dataset.href;
+                });
             });
         });
     </script>

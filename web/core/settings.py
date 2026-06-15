@@ -128,7 +128,7 @@ if DEBUG:
 
 # Cache Configuration
 # https://docs.djangoproject.com/en/6.0/topics/cache/#redis
-if not DEBUG:
+if not DEBUG:  # pragma: no cover
 
     CACHES = {
         'default': {

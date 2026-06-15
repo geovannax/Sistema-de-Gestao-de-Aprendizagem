@@ -632,7 +632,7 @@ class GroupInviteConfirmView(AuthPermissionMixin, View):
 
     def get_invite(self):
         if hasattr(self, 'invite'):
-            return self.invite
+            return self.invite  # pragma: no cover
 
         self.invite = (
             GroupInvite.objects

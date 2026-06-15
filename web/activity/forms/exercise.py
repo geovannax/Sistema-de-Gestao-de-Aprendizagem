@@ -26,7 +26,7 @@ class SyntaxValidator:
             open_parens = code.count('(')
             close_parens = code.count(')')
             return open_braces == close_braces and open_parens == close_parens
-        except:
+        except:  # pragma: no cover
             return False
     
     @staticmethod

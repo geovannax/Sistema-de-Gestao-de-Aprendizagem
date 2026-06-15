@@ -1,0 +1,7 @@
+[report]
+omit =
+    manage.py
+    core/asgi.py
+    core/wsgi.py
+    */migrations/*
+    common/management/commands/seed.py

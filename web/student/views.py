@@ -1,8 +1,9 @@
 from activity.models import ActivityListGroup
 from common.mixins import AuthPermissionMixin
+from django.http import Http404
 from django.utils import timezone
 from django.views.generic import TemplateView
-from group.models import GroupStudent
+from group.models import Group, GroupStudent
 
 
 class StudentDashboardView(AuthPermissionMixin, TemplateView):
@@ -75,5 +76,64 @@ class StudentDashboardView(AuthPermissionMixin, TemplateView):
             'page_description': 'Acompanhe suas turmas e atividades disponíveis em um só lugar.',
             'enrollments': enrollments,
             'view_type': view_type,
+        })
+        return context
+
+
+class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
+    template_name = 'student/group_detail.html'
+
+    STATUS_LABELS = {
+        'open': ('open', 'Aberta'),
+        'future': ('future', 'Em breve'),
+        'closed': ('closed', 'Encerrada'),
+    }
+
+    def get_enrollment(self):
+        try:
+            return (
+                GroupStudent.objects
+                .select_related('group', 'group__created_by')
+                .get(
+                    group_id=self.kwargs['pk'],
+                    student=self.request.user,
+                    is_active=True,
+                    group__deleted_at__isnull=True,
+                )
+            )
+        except GroupStudent.DoesNotExist:
+            raise Http404
+
+    def get_activity_links(self, group):
+        links = list(
+            ActivityListGroup.objects
+            .filter(
+                group=group,
+                activity_list__deleted_at__isnull=True,
+                activity_list__is_published=True,
+            )
+            .select_related('activity_list')
+            .order_by('-assigned_at')
+        )
+        now = timezone.now()
+        for link in links:
+            if link.starts_at and link.starts_at > now:
+                status_key = 'future'
+            elif link.ends_at and link.ends_at < now:
+                status_key = 'closed'
+            else:
+                status_key = 'open'
+            link.status_class, link.status_label = self.STATUS_LABELS[status_key]
+        return links
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        enrollment = self.get_enrollment()
+        activity_links = self.get_activity_links(enrollment.group)
+
+        context.update({
+            'enrollment': enrollment,
+            'group': enrollment.group,
+            'activity_links': activity_links,
         })
         return context

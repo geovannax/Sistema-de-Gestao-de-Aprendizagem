@@ -43,6 +43,6 @@ def get_item(obj, key):
         if hasattr(obj, key):
             return getattr(obj, key)
         return obj.get(key) if isinstance(obj, dict) else '-'
-    except:
+    except:  # pragma: no cover
         return '-'
 

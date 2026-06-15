@@ -6,7 +6,7 @@ import random
 from django.contrib.auth.hashers import make_password
 
 
-class Command(BaseCommand):
+class Command(BaseCommand):  # pragma: no cover
     help = 'Criar usuários de teste'
 
     def handle(self, *args, **options):

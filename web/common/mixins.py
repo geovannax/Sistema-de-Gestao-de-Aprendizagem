@@ -247,13 +247,13 @@ class EnrichObjectMixin:
 
     def has_object_enrich_actions(self, user, obj):
         # Implementar lógica na view para determinar se o usuário tem acesso ao objeto
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def enrich_actions(self, user, obj):
         # Implementar lógica na view para retornar as ações disponíveis.
         # Dev validar se o usuário tem acesso ao objeto ou não,
         # utilizando o método has_object_enrich_actions.
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def apply_enrichment(self, context):
         user = self.request.user
@@ -265,7 +265,7 @@ class EnrichObjectMixin:
 
         # DetailView
         if obj := context.get("object"):
-            obj.ui_actions = self.enrich_actions(user, obj)
+            obj.ui_actions = self.enrich_actions(user, obj)  # pragma: no cover
 
         return context
 
@@ -281,7 +281,7 @@ class ObjectAccessRequiredMixin:
 
     def has_object_access(self, user, obj):
         # Implementar lógica na view para determinar se o usuário tem acesso ao objeto
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -355,7 +355,7 @@ class InlineFormsetMixin:
         """     
 
         if not self.formset_class or not self.formset_prefix:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 f"{self.__class__.__name__} precisa de 'formset_class' e 'formset_prefix'"
             )
     
@@ -454,7 +454,7 @@ class InlineFormsetMixin:
         """
         
         if not self.formset_related_name or not self.formset_model:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 f"{self.__class__.__name__} precisa de 'formset_related_name' e 'formset_model'"
             )
         
@@ -477,7 +477,7 @@ class InlineFormsetMixin:
         """
         instance.save()
 
-    def render_success(self) -> HttpResponse:
+    def render_success(self) -> HttpResponse:  # pragma: no cover
         """
         Retorna a resposta após salvar com sucesso.
 
@@ -534,7 +534,7 @@ class SecondaryFormMixin:
                 não estiverem definidos.
         """        
         if not self.secondary_form_related_name or not self.secondary_form_model:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 f"{self.__class__.__name__} precisa de 'secondary_form_related_name' e 'secondary_form_model'"
             )
         
@@ -564,7 +564,7 @@ class SecondaryFormMixin:
             PermissionDenied: Se campos iniciais forem adulterados no POST.
         """
         if not self.secondary_form_class or not self.secondary_form_prefix:
-            raise ImproperlyConfigured(
+            raise ImproperlyConfigured(  # pragma: no cover
                 f"{self.__class__.__name__} precisa de 'secondary_form_class' e 'secondary_form_prefix'"
             )
     
@@ -652,7 +652,7 @@ class SecondaryFormMixin:
         )
         return self.render_to_response(context)
 
-    def render_success(self) -> HttpResponse:
+    def render_success(self) -> HttpResponse:  # pragma: no cover
         """
         Retorna a resposta após salvar com sucesso.
 

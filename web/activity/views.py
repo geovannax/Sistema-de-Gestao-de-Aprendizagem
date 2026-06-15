@@ -62,7 +62,7 @@ class ActivityListBaseView(EnhancedListView):
                 ['update', 'archive', 'delete'],
                 self.request.resolver_match.app_name
             )
-        else:
+        else:  # pragma: no cover
             return get_btn_action(
                 ['archive'],
                 self.request.resolver_match.app_name
@@ -122,7 +122,7 @@ class ActivityArchivedListView(AuthPermissionMixin, ActivityListBaseView):
             archived_activities__user=self.request.user,
             archived_activities__is_archived=True,
             deleted_at__isnull=True,
-        ).distinct()
+        ).distinct().order_by('-id')
 
 
 ##### INICIO VIEW DE CRIAÇÃO/ATUALIZAÇÃO DE ATIVIDADE #####

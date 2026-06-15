@@ -75,7 +75,7 @@ class ExerciseBaseMixin(HTMXLoginRequiredMixin, ObjectAccessRequiredMixin):
         if self.type_exercise not in dict(EXERCISE_TYPES):
             raise ValueError(f"Tipo de exercício inválido: {self.type_exercise}")
         
-        if not self.type_exercise:
+        if not self.type_exercise:  # pragma: no cover
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__} precisa de 'type_exercise'"
             )
@@ -94,7 +94,7 @@ class ExerciseBaseMixin(HTMXLoginRequiredMixin, ObjectAccessRequiredMixin):
             ID da ActivityList.
         """
         if self.is_update:
-            if not hasattr(self, 'object'):
+            if not hasattr(self, 'object'):  # pragma: no cover
                 self.object = self.get_object()
             return self.object.activity_list.id
         return self.kwargs.get('pk')

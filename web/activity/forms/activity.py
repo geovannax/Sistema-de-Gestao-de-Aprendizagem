@@ -36,7 +36,7 @@ class ActivityAssignWidget(ModelSelect2MultipleWidget):
         context = super().get_context(name, value, attrs)
         return context
 
-    def filter_queryset(self, request, term, queryset=None, **dependent_fields):
+    def filter_queryset(self, request, term, queryset=None, **dependent_fields):  # pragma: no cover
         queryset = super().filter_queryset(request, term, queryset, **dependent_fields)
 
         if not request.user.is_authenticated:

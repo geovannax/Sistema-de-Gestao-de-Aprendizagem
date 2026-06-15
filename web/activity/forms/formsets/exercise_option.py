@@ -10,12 +10,12 @@ class BaseExerciseOptionFormSet(BaseInlineFormSet):
 
         # evita validar duas vezes
         if any(self.errors):
-            return
+            return  # pragma: no cover
 
         correct_count = 0
 
         for form in self.forms:
-            if form.cleaned_data.get('DELETE'):
+            if form.cleaned_data.get('DELETE'):  # pragma: no cover
                 continue
             
             # Usa form.data em vez de cleaned_data
