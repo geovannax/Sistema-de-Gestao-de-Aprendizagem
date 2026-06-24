@@ -1,0 +1,370 @@
+/* ============================================================
+   Activity v5 — one-exercise-at-a-time slide layout
+   ============================================================ */
+
+/* ── Shell ─────────────────────────────────────────────────── */
+.act-shell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    background: #f8fafc;
+}
+
+/* ── Mini Topbar ───────────────────────────────────────────── */
+.act-topbar {
+    flex-shrink: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--gray-300);
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 54px;
+    z-index: 10;
+}
+
+.act-back {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--gray-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    text-decoration: none;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    transition: background 0.1s;
+}
+.act-back:hover { background: var(--gray-100); color: var(--gray-700); }
+
+.act-info { flex: 1; min-width: 0; }
+.act-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.act-sub { font-size: 0.7rem; color: var(--gray-500); margin-top: 1px; }
+
+/* Stepper pill strip */
+.act-stepper {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--gray-200);
+    border-radius: 99px;
+    padding: 3px;
+    overflow-x: auto;
+    justify-content: center;
+}
+.act-step {
+    width: 34px;
+    height: 28px;
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.act-step.answered   { color: var(--green-500); }
+.act-step.answered:hover   { background: #fff; }
+.act-step.unanswered:hover { background: #fff; }
+.act-step.active    { background: #fff; color: var(--blue-500); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+.act-step.unanswered { color: var(--gray-500); }
+
+.act-sep { width: 1px; height: 20px; background: var(--gray-300); flex-shrink: 0; }
+.act-counter {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.act-counter strong { color: var(--gray-800); }
+
+/* ── Slide Area ────────────────────────────────────────────── */
+.act-slide-area {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    min-height: 0;
+}
+
+.act-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(40px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.act-slide.visible {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+}
+
+.act-slide-inner {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Card — mesmo estilo de .form-card ────────────────────── */
+.act-card {
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+    margin: 0 auto;
+}
+
+.act-stripe { height: 4px; }
+.act-stripe-discursive      { background: var(--gray-450); }
+.act-stripe-code            { background: var(--blue-500); }
+.act-stripe-complete_code   { background: var(--warning); }
+.act-stripe-multiple_choice { background: var(--green-500); }
+
+.act-num-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+.act-nc-discursive    { background: var(--gray-100); color: var(--gray-500); }
+.act-nc-code          { background: var(--blue-100); color: var(--blue-700); }
+.act-nc-complete_code { background: var(--amber-100); color: var(--amber-600); }
+.act-nc-multiple_choice { background: var(--green-100); color: var(--green-600); }
+
+/* Badges */
+.act-badges { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+.act-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.22rem 0.65rem;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+.act-b-discursive    { background: var(--gray-100); color: var(--gray-500); }
+.act-b-code          { background: var(--blue-100); color: var(--blue-700); }
+.act-b-complete_code { background: var(--amber-100); color: var(--amber-600); }
+.act-b-multiple_choice { background: var(--green-100); color: var(--green-600); }
+.act-b-ok   { background: #dcfce7; color: #15803d; }
+.act-b-miss { background: var(--gray-100); color: var(--gray-500); }
+
+/* Statement */
+.act-statement {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    line-height: 1.55;
+    margin-bottom: 1.1rem;
+}
+
+/* Starter + answer block shells */
+.act-starter-block,
+.act-answer-block {
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+.act-block-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0.9rem;
+    background: var(--gray-100);
+    border-bottom: 1px solid var(--gray-300);
+}
+.act-block-lbl {
+    font-size: 0.63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-600);
+}
+.act-block-lang { font-size: 0.67rem; font-weight: 600; color: var(--blue-500); }
+
+.act-starter-block pre  { margin: 0; }
+.act-starter-block code { border-radius: 0; font-size: 0.8rem; }
+
+/* Code info bar */
+.act-code-info-bar {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-bottom: 0.75rem;
+}
+
+/* Multiple choice */
+.act-mc-list {
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.act-mc-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+    margin: 0;
+}
+.act-mc-option:has(input:checked) {
+    border-color: var(--blue-500);
+    background: #eff6ff;
+}
+.act-mc-option input[type="radio"] { display: none; }
+.act-mc-radio {
+    width: 17px;
+    height: 17px;
+    border: 2px solid var(--gray-400);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+.act-mc-option:has(input:checked) .act-mc-radio {
+    border-color: var(--blue-500);
+    background: var(--blue-500);
+    box-shadow: inset 0 0 0 3px #fff;
+}
+.act-mc-text {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    line-height: 1.5;
+}
+
+/* Textarea inside answer block */
+.act-answer-block .form-control {
+    border: none;
+    border-radius: 0;
+    resize: vertical;
+    font-size: 0.9rem;
+    box-shadow: none;
+}
+.act-answer-block .form-control:focus {
+    box-shadow: none;
+    border: none;
+    outline: none;
+}
+/* CodeMirror inside answer block */
+.act-answer-block .CodeMirror {
+    border: none;
+    border-radius: 0;
+    font-size: 0.83rem;
+    height: auto;
+    min-height: 200px;
+}
+.act-answer-block .CodeMirror-scroll {
+    height: auto;
+    min-height: 200px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.act-field-hint {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    padding: 0.25rem 0.9rem 0.5rem;
+    font-style: italic;
+}
+
+/* Observation */
+.act-obs-block { margin-top: 0.75rem; }
+.act-obs-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+.act-obs-opt { font-weight: 400; color: var(--gray-450); }
+
+/* ── Bottom Nav ────────────────────────────────────────────── */
+.act-bottom-nav {
+    flex-shrink: 0;
+    background: #fff;
+    border-top: 1px solid var(--gray-300);
+    padding: 0.7rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+
+.act-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 99px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.12s, opacity 0.12s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.act-nav-prev {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300) !important;
+}
+.act-nav-prev:hover:not(:disabled) { background: var(--gray-200); }
+.act-nav-prev:disabled { cursor: not-allowed; }
+
+.act-nav-next {
+    background: var(--blue-500);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(9,105,218,.25);
+}
+.act-nav-next:hover { background: var(--blue-700); }
+
+.act-nav-submit {
+    background: var(--green-500);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(16,185,129,.25);
+}
+.act-nav-submit:hover { background: var(--green-600); }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .act-topbar { gap: 0.4rem; padding: 0 0.75rem; }
+    .act-counter { display: none; }
+    .act-card-body { padding: 1rem 1.25rem 1.25rem; }
+    .act-slide-inner { padding: 1rem 0.5rem; }
+    .act-nav-btn { padding: 0.5rem 0.75rem; font-size: 0.78rem; }
+    .act-step { width: 28px; height: 26px; font-size: 0.68rem; }
+}

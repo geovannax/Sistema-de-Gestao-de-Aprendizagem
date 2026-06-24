@@ -267,6 +267,7 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
         current_index = 0
         for i, ex in enumerate(exercises):
             ex.is_answered = ex.pk in answers
+            ex.answer = answers.get(ex.pk)
             ex.is_current = current_exercise is not None and ex.pk == current_exercise.pk
             ex.nav_index = i + 1
             if ex.is_current:
@@ -323,11 +324,9 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                 except ExerciseOption.DoesNotExist:
                     pass
         else:
-            text = post_data.get('answer_text', '').strip()
-            if text:
-                defaults['answer_text'] = text
+            defaults['answer_text'] = post_data.get('answer_text', '').strip()
 
-        # Only persist if there is something to save
+        # Persist or delete based on whether there is content
         has_content = defaults['selected_option'] is not None or defaults['answer_text'] or observation
         if has_content:
             ExerciseAnswer.objects.update_or_create(
@@ -335,6 +334,8 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                 exercise=exercise,
                 defaults=defaults,
             )
+        else:
+            ExerciseAnswer.objects.filter(submission=submission, exercise=exercise).delete()
 
     # ------------------------------------------------------------------
     # HTTP handlers

@@ -1,108 +1,431 @@
-{% extends "global/partials/base.html" %}
+{% extends "global/partials/base_template.html" %}
 {% load static %}
 
 {% block title %}{{ activity_link.activity_list.title }}{% endblock title %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
-    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
-    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
-    <link rel="stylesheet" href="{% static 'student/css/activity.css' %}">
     <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
     <link rel="stylesheet" href="{% static 'global/codemirror/codemirror.min.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/activity_v5.css' %}">
+    <style>
+        footer#footer { display: none !important; }
+        nav.navbar.fixed-top { display: none !important; }
+        body { overflow: hidden; padding-top: 0 !important; }
+    </style>
 {% endblock extra_head %}
 
-{% block main_content %}
+{% block main %}
+<div class="act-shell">
 
-    <!-- Page Header -->
-    <div class="page-header pt-5">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3 page-header-content">
-                <div>
-                    <h2 class="fw-bold page-header-title">{{ activity_link.activity_list.title }}</h2>
-                    <p class="subtitle">
-                        <i class="bi bi-info-circle"></i>
-                        <span class="subtitle-text">{{ activity_link.group.name }}</span>
-                    </p>
-                </div>
-            </div>
-
-            <button class="btn btn-outline-primary rounded-5 px-4 flex-shrink-0"
-                    hx-post="{% url 'student:activity' activity_link.pk %}"
-                    hx-include="#answer-fields"
-                    hx-vals='{"go_review": "1"}'
-                    hx-target="body">
-                <i class="bi bi-eye me-2"></i>Revisar e Entregar
-            </button>
+    <!-- ─── MINI TOPBAR ──────────────────────────────────────── -->
+    <div class="act-topbar">
+        <a href="{% url 'student:group_detail' activity_link.group.pk %}" class="act-back" title="Voltar para a turma">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="act-info">
+            <div class="act-title">{{ activity_link.activity_list.title }}</div>
+            <div class="act-sub">{{ activity_link.group.name }}</div>
         </div>
     </div>
 
-    <!-- Swappable content area (sidebar + exercise) -->
-    <div id="main-row" class="row g-4">
-        {% include "student/partials/_activity_main.html" %}
+    <!-- ─── SLIDES ───────────────────────────────────────────── -->
+    <div class="act-slide-area">
+        {% for exercise in exercises %}
+        <div class="act-slide {% if exercise.is_current %}visible{% endif %}"
+             data-index="{{ forloop.counter0 }}"
+             data-exercise-pk="{{ exercise.pk }}">
+            <div class="act-slide-inner">
+                <div class="act-card col-8 align-items-center{% if not exercise.answer %} act-card-miss{% endif %}">
+
+                    <div class="act-stripe act-stripe-{{ exercise.type }}"></div>
+                    <div class="p-3">
+
+                        <!-- Header — mesmo estilo de form-card-header -->
+                        <div class="form-card-header d-flex align-items-center justify-content-between mb-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="act-num-circle act-nc-{{ exercise.type }}">{{ forloop.counter }}</span>
+                                <div class="form-card-title mb-0">Questão {{ forloop.counter }}</div>
+                            </div>
+                            <div class="act-badges">
+                                <span class="act-badge act-b-{{ exercise.type }}">
+                                    {% if exercise.type == 'code' %}<i class="bi bi-code-slash"></i> Código
+                                    {% elif exercise.type == 'complete_code' %}<i class="bi bi-pencil-square"></i> Completar Código
+                                    {% elif exercise.type == 'multiple_choice' %}<i class="bi bi-list-check"></i> Múltipla Escolha
+                                    {% elif exercise.type == 'discursive' %}<i class="bi bi-chat-left-text"></i> Discursiva
+                                    {% endif %}
+                                </span>
+                                <span class="act-badge act-b-ok"{% if not exercise.answer %} style="display:none"{% endif %}>&#10003; Respondida</span>
+                                <span class="act-badge act-b-miss"{% if exercise.answer %} style="display:none"{% endif %}>&#9675; Não respondida</span>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Statement -->
+                        <div class="act-statement">{{ exercise.statement|linebreaksbr }}</div>
+
+                        <!-- Starter code (complete_code) -->
+                        {% if exercise.type == 'complete_code' %}
+                            {% if exercise.complete_code_exercise.starter_code %}
+                            <div class="act-starter-block">
+                                <div class="act-block-head">
+                                    <span class="act-block-lbl">Código base</span>
+                                    <span class="act-block-lang">{{ exercise.complete_code_exercise.get_language_display }}</span>
+                                </div>
+                                <pre><code class="language-{{ exercise.complete_code_exercise.language }}">{{ exercise.complete_code_exercise.starter_code }}</code></pre>
+                            </div>
+                            {% endif %}
+                        {% elif exercise.type == 'code' %}
+                            <div class="act-code-info-bar">
+                                <i class="bi bi-code-slash me-1"></i>
+                                Linguagem: <strong>{{ exercise.code_exercise.get_language_display }}</strong>
+                                <span class="text-muted ms-2">· Escreva o código que produza o output esperado</span>
+                            </div>
+                        {% endif %}
+
+                        <!-- Answer block -->
+                        <div class="act-answer-block">
+                            <div class="act-block-head">
+                                <span class="act-block-lbl">Sua resposta</span>
+                                {% if exercise.type == 'code' %}
+                                    <span class="act-block-lang">{{ exercise.code_exercise.get_language_display }}</span>
+                                {% elif exercise.type == 'complete_code' %}
+                                    <span class="act-block-lang">{{ exercise.complete_code_exercise.get_language_display }}</span>
+                                {% endif %}
+                            </div>
+
+                            {% if exercise.type == 'multiple_choice' %}
+                                <div class="act-mc-list">
+                                    {% for option in exercise.multiple_choice_exercise.options.all %}
+                                    <label class="act-mc-option">
+                                        <input type="radio"
+                                               name="selected_option_{{ exercise.pk }}"
+                                               value="{{ option.pk }}"
+                                               {% if exercise.answer.selected_option_id == option.pk %}checked{% endif %}>
+                                        <span class="act-mc-radio"></span>
+                                        <span class="act-mc-text">{{ option.text }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+
+                            {% elif exercise.type == 'discursive' %}
+                                <textarea name="answer_text_{{ exercise.pk }}"
+                                          class="form-control"
+                                          rows="7"
+                                          placeholder="Digite sua resposta aqui...">{{ exercise.answer.answer_text|default:'' }}</textarea>
+                                {% if exercise.discursive_exercise.min_words %}
+                                    <div class="act-field-hint">
+                                        Mínimo de {{ exercise.discursive_exercise.min_words }} palavras{% if exercise.discursive_exercise.max_words %} · máximo de {{ exercise.discursive_exercise.max_words }}{% endif %}.
+                                    </div>
+                                {% endif %}
+
+                            {% elif exercise.type == 'code' %}
+                                <textarea name="answer_text_{{ exercise.pk }}"
+                                          class="code-editor"
+                                          data-language="{{ exercise.code_exercise.language }}"
+                                          rows="12"
+                                          placeholder="# Digite seu código aqui...">{{ exercise.answer.answer_text|default:'' }}</textarea>
+
+                            {% elif exercise.type == 'complete_code' %}
+                                <textarea name="answer_text_{{ exercise.pk }}"
+                                          class="code-editor"
+                                          data-language="{{ exercise.complete_code_exercise.language }}"
+                                          rows="12"
+                                          placeholder="# Complete o código aqui...">{{ exercise.answer.answer_text|default:'' }}</textarea>
+                                <div class="act-field-hint">Preencha as lacunas <code>___</code> no código base acima.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Observation -->
+                        <div class="act-obs-block">
+                            <label class="act-obs-lbl">
+                                <i class="bi bi-chat-left-dots me-1"></i>Observação
+                                <span class="act-obs-opt">(opcional)</span>
+                            </label>
+                            <textarea name="student_observation_{{ exercise.pk }}"
+                                      class="form-control form-control-sm"
+                                      rows="2"
+                                      placeholder="Dificuldades ou dúvidas sobre esta questão...">{{ exercise.answer.student_observation|default:'' }}</textarea>
+                        </div>
+                    </div><!-- /.p-3 -->
+                </div><!-- /.act-card -->
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
-    <script>
-        (function () {
-            // Delegation in capture phase — fires before element handlers, survives HTMX swaps
-            ['paste', 'copy', 'cut', 'drop', 'contextmenu'].forEach(function (evt) {
-                document.addEventListener(evt, function (e) {
-                    if (e.target.closest('#answer-fields')) e.preventDefault();
-                }, true);
-            });
-            document.addEventListener('keydown', function (e) {
-                if (e.target.closest('#answer-fields') &&
-                    (e.ctrlKey || e.metaKey) && ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
-                    e.preventDefault();
-                }
-            }, true);
-            function highlightCode() {
-                document.querySelectorAll('pre.starter-code code').forEach(function (el) {
-                    hljs.highlightElement(el);
-                    el.innerHTML = el.innerHTML.replace(/___/g, '<span class="code-placeholder">___</span>');
-                });
-            }
-            document.addEventListener('DOMContentLoaded', highlightCode);
-            document.addEventListener('htmx:afterSwap', highlightCode);
+    <!-- ─── BOTTOM NAV ───────────────────────────────────────── -->
+    <div class="act-bottom-nav">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" id="btn-prev">
+            <i class="bi bi-arrow-left"></i> Anterior
+        </button>
+        <nav class="act-stepper" id="act-stepper">
+            {% for exercise in exercises %}
+            <button type="button"
+                    class="act-step {% if exercise.is_current %}active{% elif exercise.is_answered %}answered{% else %}unanswered{% endif %}"
+                    data-slide="{{ forloop.counter0 }}">
+                {% if exercise.is_answered and not exercise.is_current %}&#10003;{% else %}{{ forloop.counter }}{% endif %}
+            </button>
+            {% endfor %}
+        </nav>
+        <button type="button" class="btn btn-outline-primary rounded-pill" id="btn-next">
+            Próxima <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+    </div>
 
-            const LANG_MAP = {
-                python: 'python',
-                javascript: 'javascript',
-                java: 'text/x-java',
-                c: 'text/x-csrc',
-                cpp: 'text/x-c++src',
-            };
-            let cmEditor = null;
+</div>
 
-            function initCodeEditor() {
-                const textarea = document.querySelector('textarea.code-editor');
-                if (cmEditor) { try { cmEditor.toTextArea(); } catch (e) {} cmEditor = null; }
-                if (!textarea) return;
-                cmEditor = CodeMirror.fromTextArea(textarea, {
-                    lineNumbers: true,
-                    mode: LANG_MAP[textarea.dataset.language] || 'python',
-                    theme: 'atom-one-dark',
-                    indentUnit: 4,
-                    tabSize: 4,
-                    lineWrapping: true,
-                });
+<!-- Hidden form for review/submit redirect -->
+<form id="review-form" method="post" action="{% url 'student:activity' activity_link.pk %}" style="display:none">
+    {% csrf_token %}
+    <input type="hidden" name="current_exercise_pk" id="rf-pk">
+    <input type="hidden" name="selected_option"     id="rf-option">
+    <input type="hidden" name="answer_text"         id="rf-text">
+    <input type="hidden" name="student_observation" id="rf-obs">
+    <input type="hidden" name="go_review" value="1">
+</form>
 
-            }
-
-            document.addEventListener('htmx:configRequest', function (e) {
-                if (cmEditor) e.detail.parameters['answer_text'] = cmEditor.getValue();
-            });
-            document.addEventListener('DOMContentLoaded', initCodeEditor);
-            document.addEventListener('htmx:afterSwap', initCodeEditor);
-        })();
-    </script>
-
-{% endblock main_content %}
+{% endblock main %}
 
 {% block extra_script %}
-    <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+<script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
+<script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
+<script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
+<script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
+<script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+<script>
+(function () {
+    'use strict';
+
+    /* ── DOM refs ─────────────────────────────────────────── */
+    var slides  = Array.from(document.querySelectorAll('.act-slide'));
+    var steps   = Array.from(document.querySelectorAll('.act-step'));
+    var btnPrev = document.getElementById('btn-prev');
+    var btnNext = document.getElementById('btn-next');
+    var total   = slides.length;
+
+    /* ── State ────────────────────────────────────────────── */
+    var current = 0;
+    var cmEditors = {};
+
+    /* answered[] initialized from server context */
+    var answered = [{% for ex in exercises %}{{ ex.is_answered|yesno:"true,false" }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+    /* Find which slide is currently visible */
+    slides.forEach(function (s, i) {
+        if (s.classList.contains('visible')) current = i;
+    });
+
+    /* ── Highlight starter code blocks ────────────────────── */
+    document.querySelectorAll('.act-starter-block pre code').forEach(function (el) {
+        hljs.highlightElement(el);
+        el.innerHTML = el.innerHTML.replace(
+            /___/g,
+            '<span style="color:#ef4444;background:rgba(239,68,68,.12);border-radius:3px;padding:0 3px">___</span>'
+        );
+    });
+
+    /* ── CodeMirror ───────────────────────────────────────── */
+    var LANG_MAP = {
+        python: 'python',
+        javascript: 'javascript',
+        java: 'text/x-java',
+        c: 'text/x-csrc',
+        cpp: 'text/x-c++src',
+    };
+
+    function initEditorForSlide(idx) {
+        var slide = slides[idx];
+        if (!slide) return;
+        var pk = slide.dataset.exercisePk;
+        if (cmEditors[pk]) return;
+        var textarea = slide.querySelector('textarea.code-editor');
+        if (!textarea) return;
+        cmEditors[pk] = CodeMirror.fromTextArea(textarea, {
+            lineNumbers: true,
+            mode: LANG_MAP[textarea.dataset.language] || 'python',
+            theme: 'atom-one-dark',
+            indentUnit: 4,
+            tabSize: 4,
+            lineWrapping: true,
+        });
+        cmEditors[pk].on('change', function () {
+            answered[idx] = cmEditors[pk].getValue().trim().length > 0;
+            updateUI();
+        });
+    }
+
+    /* ── CSRF ─────────────────────────────────────────────── */
+    function getCsrf() {
+        var v = document.cookie.split('; ').find(function (r) {
+            return r.startsWith('csrftoken=');
+        });
+        return v ? v.split('=')[1] : '';
+    }
+
+    /* ── Gather answer data from a slide ──────────────────── */
+    function getSlideData(idx) {
+        var slide = slides[idx];
+        var pk    = slide.dataset.exercisePk;
+        var data  = { pk: pk, selected_option: '', answer_text: '', observation: '' };
+
+        var radio = slide.querySelector('input[type="radio"]:checked');
+        if (radio) data.selected_option = radio.value;
+
+        var ta = slide.querySelector('textarea[name="answer_text_' + pk + '"]');
+        if (ta) {
+            data.answer_text = cmEditors[pk] ? cmEditors[pk].getValue() : ta.value;
+        }
+
+        var obs = slide.querySelector('textarea[name="student_observation_' + pk + '"]');
+        if (obs) data.observation = obs.value;
+
+        return data;
+    }
+
+    /* ── Fire-and-forget save ─────────────────────────────── */
+    function saveSlide(idx) {
+        var d  = getSlideData(idx);
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', getCsrf());
+        fd.append('current_exercise_pk', d.pk);
+        if (d.selected_option) fd.append('selected_option', d.selected_option);
+        fd.append('answer_text', d.answer_text);
+        fd.append('student_observation', d.observation);
+        fetch('{% url "student:activity" activity_link.pk %}', { method: 'POST', body: fd })
+            .catch(function () {});
+    }
+
+    /* ── Update stepper, dots, buttons ───────────────────── */
+    function updateUI() {
+        /* stepper pills */
+        steps.forEach(function (s, i) {
+            s.classList.remove('active', 'answered', 'unanswered');
+            if (i === current) {
+                s.classList.add('active');
+                s.textContent = i + 1;
+            } else if (answered[i]) {
+                s.classList.add('answered');
+                s.innerHTML = '&#10003;';
+            } else {
+                s.classList.add('unanswered');
+                s.textContent = i + 1;
+            }
+        });
+
+        /* Anterior */
+        btnPrev.disabled     = (current === 0);
+        btnPrev.style.opacity = (current === 0) ? '0.4' : '1';
+
+        /* Próxima / Revisar e Entregar */
+        if (current === total - 1) {
+            btnNext.className = 'btn btn-success rounded-pill';
+            btnNext.innerHTML = '<i class="bi bi-send-check me-1"></i> Revisar e Entregar';
+        } else {
+            btnNext.className = 'btn btn-outline-primary rounded-pill';
+            btnNext.innerHTML = 'Próxima <i class="bi bi-arrow-right ms-1"></i>';
+        }
+
+        /* update badges on visible card */
+        var activeSlide = slides[current];
+        var missBadge = activeSlide.querySelector('.act-b-miss');
+        var okBadge   = activeSlide.querySelector('.act-b-ok');
+        if (answered[current]) {
+            if (missBadge) missBadge.style.display = 'none';
+            if (okBadge)   okBadge.style.display   = '';
+        } else {
+            if (missBadge) missBadge.style.display = '';
+            if (okBadge)   okBadge.style.display   = 'none';
+        }
+    }
+
+    /* ── Navigate to slide ────────────────────────────────── */
+    function goTo(idx) {
+        if (idx < 0 || idx >= total || idx === current) return;
+
+        /* mark answered/unanswered based on current value */
+        var d = getSlideData(current);
+        answered[current] = !!(d.selected_option || d.answer_text.trim());
+
+        /* save before leaving */
+        saveSlide(current);
+
+        /* animate */
+        slides[current].classList.remove('visible');
+        current = idx;
+        slides[current].classList.add('visible');
+
+        initEditorForSlide(current);
+        updateUI();
+    }
+
+    /* ── Last slide → review form submit ──────────────────── */
+    function goToNext() {
+        if (current === total - 1) {
+            var d = getSlideData(current);
+            answered[current] = !!(d.selected_option || d.answer_text.trim());
+            saveSlide(current);
+            document.getElementById('rf-pk').value     = d.pk;
+            document.getElementById('rf-option').value = d.selected_option;
+            document.getElementById('rf-text').value   = d.answer_text;
+            document.getElementById('rf-obs').value    = d.observation;
+            document.getElementById('review-form').submit();
+        } else {
+            goTo(current + 1);
+        }
+    }
+
+    /* ── Event listeners ──────────────────────────────────── */
+    btnPrev.addEventListener('click', function () { goTo(current - 1); });
+    btnNext.addEventListener('click', goToNext);
+
+    steps.forEach(function (s) {
+        s.addEventListener('click', function () {
+            goTo(parseInt(this.dataset.slide, 10));
+        });
+    });
+
+    /* Track answered state on radio change */
+    document.addEventListener('change', function (e) {
+        if (e.target.type !== 'radio') return;
+        var slide = e.target.closest('.act-slide');
+        if (!slide) return;
+        var idx = parseInt(slide.dataset.index, 10);
+        answered[idx] = true;
+        updateUI();
+    });
+
+    /* Track answered state on textarea input */
+    document.addEventListener('input', function (e) {
+        if (e.target.tagName !== 'TEXTAREA') return;
+        var name = e.target.name || '';
+        if (!name.startsWith('answer_text_')) return;
+        var slide = e.target.closest('.act-slide');
+        if (!slide) return;
+        var idx = parseInt(slide.dataset.index, 10);
+        answered[idx] = e.target.value.trim().length > 0;
+        updateUI();
+    });
+
+    /* ── Anti-cheat: block copy/paste in answer fields ───── */
+    ['paste', 'copy', 'cut', 'drop', 'contextmenu'].forEach(function (evt) {
+        document.addEventListener(evt, function (e) {
+            if (e.target.closest('.act-answer-block')) e.preventDefault();
+        }, true);
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.target.closest('.act-answer-block') &&
+            (e.ctrlKey || e.metaKey) &&
+            ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
+            e.preventDefault();
+        }
+    }, true);
+
+    /* ── Init ─────────────────────────────────────────────── */
+    initEditorForSlide(current);
+    updateUI();
+
+})();
+</script>
 {% endblock extra_script %}
