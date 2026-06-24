@@ -1,0 +1,3 @@
+# NavigationMixin
+
+::: common.mixins.NavigationMixin

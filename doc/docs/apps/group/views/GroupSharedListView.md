@@ -1,0 +1,3 @@
+# GroupSharedListView
+
+::: group.views.GroupSharedListView

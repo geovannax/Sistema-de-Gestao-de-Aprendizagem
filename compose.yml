@@ -100,7 +100,11 @@ services:
         python manage.py migrate
         python manage.py seed
         python manage.py collectstatic --noinput
-        uvicorn core.asgi:application --host 0.0.0.0 --port $${WEB_PORT} --workers 4
+        if [ "$$WEB_DEBUG" = "true" ]; then
+          uvicorn core.asgi:application --host 0.0.0.0 --port $${WEB_PORT} --reload
+        else
+          uvicorn core.asgi:application --host 0.0.0.0 --port $${WEB_PORT} --workers 4
+        fi
 
     volumes:
       - ./web:/app:rw

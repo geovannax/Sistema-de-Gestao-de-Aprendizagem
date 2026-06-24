@@ -1,0 +1,3 @@
+# CompleteCodeExercise
+
+::: activity.models.CompleteCodeExercise

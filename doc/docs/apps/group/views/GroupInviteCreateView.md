@@ -1,0 +1,3 @@
+# GroupInviteCreateView
+
+::: group.views.GroupInviteCreateView

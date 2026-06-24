@@ -1,0 +1,3 @@
+# ExerciseBaseMixin
+
+::: activity.mixins.ExerciseBaseMixin

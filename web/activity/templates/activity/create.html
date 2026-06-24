@@ -4,11 +4,12 @@
 {% block title %} {{ page_title }} {% endblock title %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'global/css/form.css' %}"> 
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
     <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
+    <link rel="stylesheet" href="{% static 'global/codemirror/codemirror.min.css' %}">
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 {% endblock extra_head %}
 
@@ -114,7 +115,71 @@
 
 {% endblock main_content %}
 
-{% block extra_script %}    
+{% block extra_script %}
     <script src="{% static 'activity/js/multiple_choice_form.js' %}"></script>
     <script src="{% static 'activity/js/exercise_aside_state.js' %}"></script>
+    <script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+    <script>
+        (function () {
+            const LANG_MAP = {
+                python: 'python', javascript: 'javascript',
+                java: 'text/x-java', c: 'text/x-csrc', cpp: 'text/x-c++src',
+            };
+            let codeEditors = [];
+
+            function getLang() {
+                const checked = document.querySelector('[name="secondary-language"]:checked');
+                return checked ? checked.value : 'python';
+            }
+
+            function initCodeEditors() {
+                codeEditors.forEach(function (ed) { try { ed.toTextArea(); } catch (e) {} });
+                codeEditors = [];
+
+                document.querySelectorAll('textarea.font-monospace').forEach(function (textarea) {
+                    const isCode = textarea.name.endsWith('_code');
+                    const editor = CodeMirror.fromTextArea(textarea, {
+                        lineNumbers: true,
+                        mode: isCode ? (LANG_MAP[getLang()] || 'python') : null,
+                        theme: 'atom-one-dark',
+                        indentUnit: 4,
+                        tabSize: 4,
+                        lineWrapping: true,
+                    });
+                    textarea.removeAttribute('required');
+                    codeEditors.push(editor);
+                });
+
+                document.querySelectorAll('[name="secondary-language"]').forEach(function (radio) {
+                    radio.addEventListener('change', function () {
+                        const mode = LANG_MAP[this.value] || 'python';
+                        codeEditors.forEach(function (ed) {
+                            if (ed.getTextArea().name.endsWith('_code')) {
+                                ed.setOption('mode', mode);
+                            }
+                        });
+                    });
+                });
+            }
+
+            document.addEventListener('htmx:configRequest', function (e) {
+                codeEditors.forEach(function (ed) {
+                    const textarea = ed.getTextArea();
+                    if (textarea && textarea.name) {
+                        e.detail.parameters[textarea.name] = ed.getValue();
+                    }
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', initCodeEditors);
+            document.addEventListener('htmx:afterSwap', function (e) {
+                if (e.detail.target && e.detail.target.id === 'main-content') {
+                    initCodeEditors();
+                }
+            });
+        })();
+    </script>
 {% endblock extra_script %}

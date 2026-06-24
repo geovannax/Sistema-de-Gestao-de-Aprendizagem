@@ -1,0 +1,183 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Resultado — {{ activity_link.activity_list.title }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'student/css/activity.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4 pt-5">
+        <a href="{% url 'student:group_detail' activity_link.group.pk %}"
+           class="btn btn-sm btn-outline-secondary rounded-circle" title="Voltar para a turma">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h5 class="mb-0 fw-semibold">{{ activity_link.activity_list.title }}</h5>
+            <small class="text-muted">{{ activity_link.group.name }}</small>
+        </div>
+    </div>
+
+    <!-- Score summary card -->
+    <div class="result-summary-card mb-4">
+        <div class="result-summary-icon">
+            <i class="bi bi-trophy-fill"></i>
+        </div>
+        <div class="result-summary-content">
+            <h4 class="mb-1">Atividade concluída!</h4>
+            <p class="text-muted mb-3">
+                Submetida em {{ submission.submitted_at|date:"d/m/Y \à\s H:i" }}
+            </p>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <span class="result-stat-value">{{ answered_count }}/{{ total_exercises }}</span>
+                    <span class="result-stat-label">Respondidas</span>
+                </div>
+                {% if total_points > 0 %}
+                    <div class="result-stat">
+                        <span class="result-stat-value text-success">{{ earned_points|floatformat:1 }}/{{ total_points|floatformat:1 }}</span>
+                        <span class="result-stat-label">Pontos (auto)</span>
+                    </div>
+                {% endif %}
+                {% if pending_review > 0 %}
+                    <div class="result-stat">
+                        <span class="result-stat-value text-warning">{{ pending_review }}</span>
+                        <span class="result-stat-label">Aguardam revisão</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercise results -->
+    {% for exercise in exercises %}
+        <div class="result-exercise-card mb-3
+            {% if exercise.answer %}
+                {% if exercise.answer.is_correct %}result-correct
+                {% elif exercise.answer.is_correct == False %}result-wrong
+                {% else %}result-pending{% endif %}
+            {% else %}result-skipped{% endif %}">
+
+            <div class="result-exercise-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-semibold text-muted">{{ forloop.counter }}.</span>
+                    <span class="exercise-type-badge exercise-type-{{ exercise.type }}">
+                        {% if exercise.type == 'multiple_choice' %}<i class="bi bi-list-check"></i> Múltipla Escolha
+                        {% elif exercise.type == 'discursive' %}<i class="bi bi-chat-left-text"></i> Discursiva
+                        {% elif exercise.type == 'code' %}<i class="bi bi-code-slash"></i> Código
+                        {% elif exercise.type == 'complete_code' %}<i class="bi bi-pencil-square"></i> Completar Código
+                        {% endif %}
+                    </span>
+                    {% if exercise.points > 0 %}
+                        <span class="text-muted small">{{ exercise.points }} pt{{ exercise.points|pluralize:"o,os" }}</span>
+                    {% endif %}
+                </div>
+                <span class="result-badge">
+                    {% if not exercise.answer %}
+                        <span class="badge bg-secondary">Não respondida</span>
+                    {% elif exercise.answer.is_correct %}
+                        <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Correta</span>
+                    {% elif exercise.answer.is_correct == False %}
+                        <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>Incorreta</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Aguardando revisão</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="result-exercise-statement">
+                {{ exercise.statement }}
+            </div>
+
+            {% if exercise.answer %}
+                <div class="result-exercise-answer">
+                    {% if exercise.type == 'multiple_choice' %}
+                        <label class="result-label">Sua resposta:</label>
+                        <div class="result-option
+                            {% if exercise.answer.is_correct %}result-option-correct{% elif exercise.answer.is_correct == False %}result-option-wrong{% endif %}">
+                            {{ exercise.answer.selected_option.text|default:"—" }}
+                        </div>
+                        {% if not exercise.answer.is_correct %}
+                            {% for option in exercise.multiple_choice_exercise.options.all %}
+                                {% if option.is_correct %}
+                                    <label class="result-label mt-2">Resposta correta:</label>
+                                    <div class="result-option result-option-correct">{{ option.text }}</div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <label class="result-label">Sua resposta:</label>
+                        {% if exercise.type == 'code' or exercise.type == 'complete_code' %}
+                            <pre class="result-code-answer"><code>{{ exercise.answer.answer_text|default:"(sem resposta)" }}</code></pre>
+                        {% else %}
+                            <div class="result-text-answer">{{ exercise.answer.answer_text|default:"(sem resposta)"|linebreaksbr }}</div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if exercise.answer.student_observation %}
+                        <div class="mt-2" style="font-size:0.82rem; color:var(--gray-500); font-style:italic;">
+                            <i class="bi bi-chat-left-dots me-1"></i>{{ exercise.answer.student_observation }}
+                        </div>
+                    {% endif %}
+
+                    {% if exercise.answer.teacher_comment %}
+                        <div class="mt-2 p-2 rounded" style="background:#eff6ff; border:1px solid #bfdbfe; font-size:0.85rem;">
+                            <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; color:#1e40af; margin-bottom:0.25rem;">
+                                <i class="bi bi-chat-quote me-1"></i>Feedback do professor
+                            </div>
+                            {{ exercise.answer.teacher_comment|linebreaksbr }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        </div>
+    {% endfor %}
+
+    {% if submission.teacher_comment %}
+        <div class="mb-4 p-3 rounded" style="background:#eff6ff; border:1px solid #bfdbfe;">
+            <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; color:#1e40af; margin-bottom:0.5rem;">
+                <i class="bi bi-chat-quote me-1"></i>Comentário geral do professor
+            </div>
+            <div style="white-space: pre-wrap;">{{ submission.teacher_comment }}</div>
+        </div>
+    {% endif %}
+
+    <!-- Feedback do aluno sobre a atividade -->
+    <div class="mb-4 p-3 rounded" style="background:var(--gray-50,#f9fafb); border:1px solid var(--gray-200);">
+        <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.75rem;">
+            <i class="bi bi-hand-thumbs-up me-1"></i>Sua opinião sobre esta atividade
+            <span style="font-weight:400; font-size:0.75rem; text-transform:none;">(opcional)</span>
+        </div>
+        {% if submission.student_feedback %}
+            <div style="white-space: pre-wrap; font-size:0.875rem; color:var(--gray-700);">{{ submission.student_feedback }}</div>
+            <form method="post" action="{% url 'student:activity_feedback' activity_link.pk %}" class="mt-2">
+                {% csrf_token %}
+                <textarea name="student_feedback" class="form-control form-control-sm mb-2" rows="3">{{ submission.student_feedback }}</textarea>
+                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-5">
+                    <i class="bi bi-pencil me-1"></i>Atualizar feedback
+                </button>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'student:activity_feedback' activity_link.pk %}">
+                {% csrf_token %}
+                <textarea name="student_feedback" class="form-control form-control-sm mb-2" rows="3"
+                          placeholder="O que você achou desta atividade? Teve dificuldades? Deixe seu comentário..."></textarea>
+                <button type="submit" class="btn btn-sm btn-primary rounded-5">
+                    <i class="bi bi-send me-1"></i>Enviar feedback
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="text-center mt-2 mb-2">
+        <a href="{% url 'student:group_detail' activity_link.group.pk %}"
+           class="btn btn-outline-primary rounded-5 px-5">
+            <i class="bi bi-arrow-left me-2"></i>Voltar para a turma
+        </a>
+    </div>
+
+{% endblock main_content %}

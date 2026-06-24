@@ -1,0 +1,3 @@
+# TeacherSubmissionsView
+
+::: student.views.TeacherSubmissionsView

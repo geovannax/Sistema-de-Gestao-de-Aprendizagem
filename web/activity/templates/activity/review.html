@@ -1,0 +1,406 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Revisão — {{ object.title }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <style>
+        body {
+            background: #e8e8e8;
+        }
+
+        /* ── action bar ── */
+        .review-actions {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #fff;
+            border-bottom: 1px solid #d1d5db;
+            padding: 0.65rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        }
+
+        .review-actions .meta {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        /* ── A4 paper ── */
+        .a4-paper {
+            width: 794px;
+            min-height: 1123px;
+            background: #fff;
+            margin: 1.5rem auto 3rem;
+            padding: 72px 80px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.18);
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.55;
+            color: #111;
+            position: relative;
+        }
+
+        /* ── exam header ── */
+        .exam-header {
+            border-bottom: 2.5px solid #111;
+            padding-bottom: 10px;
+            margin-bottom: 6px;
+        }
+
+        .exam-institution {
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #555;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .exam-title {
+            font-size: 16pt;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .exam-meta-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5pt;
+            border-top: 1px solid #bbb;
+            padding-top: 6px;
+            margin-top: 6px;
+        }
+
+        .exam-meta-line span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ── description ── */
+        .exam-instructions {
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 8px 12px;
+            font-size: 10pt;
+            background: #fafafa;
+            margin: 14px 0 20px;
+            color: #333;
+        }
+
+        .exam-instructions-label {
+            font-weight: 700;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            color: #555;
+        }
+
+        /* ── question block ── */
+        .question-block {
+            margin-bottom: 28px;
+            page-break-inside: avoid;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+        }
+
+        .question-num {
+            font-weight: 700;
+            font-size: 11pt;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .question-type-badge {
+            font-size: 8.5pt;
+            color: #666;
+            font-style: italic;
+        }
+
+        .question-points {
+            font-weight: 700;
+            font-size: 9.5pt;
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        .question-statement {
+            font-size: 11pt;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        /* ── multiple choice ── */
+        .mc-options {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mc-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 5px 0;
+            font-size: 11pt;
+        }
+
+        .mc-circle {
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid #444;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .mc-letter {
+            font-weight: 700;
+            width: 16px;
+            flex-shrink: 0;
+            font-size: 10.5pt;
+        }
+
+        /* ── code blocks ── */
+        .code-lang-badge {
+            display: inline-block;
+            font-size: 8pt;
+            background: #e5e7eb;
+            color: #374151;
+            border-radius: 3px;
+            padding: 1px 6px;
+            margin-bottom: 6px;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        pre.exam-code {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 4px;
+            padding: 12px 14px;
+            font-size: 9.5pt;
+            font-family: "Courier New", Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+
+        /* blank lines for code answer */
+        .code-blank-area {
+            border: 1px solid #aaa;
+            border-radius: 3px;
+            min-height: 120px;
+            margin-top: 6px;
+            background: #fff;
+            position: relative;
+        }
+
+        .code-blank-area::after {
+            content: 'Espaço para resposta';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 9pt;
+            color: #bbb;
+            font-style: italic;
+            font-family: "Times New Roman", serif;
+            pointer-events: none;
+        }
+
+        /* ── discursive ── */
+        .word-count-info {
+            font-size: 9pt;
+            color: #777;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .ruled-lines {
+            margin-top: 8px;
+        }
+
+        .ruled-line {
+            border-bottom: 1px solid #aaa;
+            height: 24px;
+            margin-bottom: 0;
+        }
+
+        /* ── separator ── */
+        .question-separator {
+            border: none;
+            border-top: 1px dashed #ccc;
+            margin: 4px 0 8px;
+        }
+
+        /* ── print ── */
+        @media print {
+            body { background: #fff !important; }
+            .review-actions, .no-print { display: none !important; }
+            .a4-paper {
+                box-shadow: none;
+                margin: 0;
+                padding: 60px 70px;
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- Action bar -->
+    <div class="review-actions no-print">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'activity:update' object.pk %}"
+               class="btn btn-sm btn-outline-secondary rounded-5">
+                <i class="bi bi-pencil me-1"></i>Voltar e editar
+            </a>
+            <span class="meta">
+                <i class="bi bi-eye me-1"></i>
+                Revisão — verifique o conteúdo antes de finalizar
+            </span>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-sm btn-outline-secondary rounded-5">
+                <i class="bi bi-printer me-1"></i>Imprimir
+            </button>
+            <a href="{% url 'activity:assign' object.pk %}?open_share_modal=1"
+               class="btn btn-sm btn-primary rounded-5 px-4">
+                <i class="bi bi-check-circle me-1"></i>Confirmar e vincular
+            </a>
+        </div>
+    </div>
+
+    <!-- A4 Paper -->
+    <div class="a4-paper">
+
+        <!-- Exam Header -->
+        <div class="exam-header">
+            <div class="exam-institution">
+                {{ object.created_by.get_full_name|default:object.created_by.username }}
+            </div>
+            <div class="exam-title">{{ object.title }}</div>
+            <div class="exam-meta-line">
+                <span>
+                    <strong>Professor(a):</strong>&nbsp;
+                    {{ object.created_by.get_full_name|default:object.created_by.username }}
+                </span>
+                <span>
+                    <strong>Total:</strong>&nbsp;{{ total_points|floatformat:-2 }} pts
+                    &nbsp;|&nbsp;
+                    <strong>Questões:</strong>&nbsp;{{ count_all_exercises }}
+                </span>
+                <span>
+                    Nome:&nbsp;___________________________&nbsp;
+                    Nota:&nbsp;_______
+                </span>
+            </div>
+        </div>
+
+        <!-- Instructions / description -->
+        {% if object.description %}
+            <div class="exam-instructions">
+                <div class="exam-instructions-label">Instruções</div>
+                {{ object.description }}
+            </div>
+        {% endif %}
+
+        <!-- Questions -->
+        {% for exercise in object.exercises.all %}
+            <div class="question-block">
+
+                <div class="question-header">
+                    <span class="question-num">Questão {{ forloop.counter }}</span>
+                    <span class="question-type-badge">
+                        {% if exercise.type == 'code' %}Código
+                        {% elif exercise.type == 'complete_code' %}Completar Código
+                        {% elif exercise.type == 'multiple_choice' %}Múltipla Escolha
+                        {% else %}Discursiva{% endif %}
+                    </span>
+                    <span class="question-points">{{ exercise.points|floatformat:-2 }} pts</span>
+                </div>
+
+                <div class="question-statement">{{ exercise.statement }}</div>
+
+                {% if exercise.type == 'multiple_choice' %}
+                    <!-- Multiple choice options -->
+                    <ul class="mc-options">
+                        {% for option in exercise.multiple_choice_exercise.options.all %}
+                            <li class="mc-option">
+                                <span class="mc-circle"></span>
+                                <span class="mc-letter">
+                                    {% if forloop.counter == 1 %}A)
+                                    {% elif forloop.counter == 2 %}B)
+                                    {% elif forloop.counter == 3 %}C)
+                                    {% elif forloop.counter == 4 %}D)
+                                    {% elif forloop.counter == 5 %}E)
+                                    {% else %}{{ forloop.counter }}){% endif %}
+                                </span>
+                                <span>{{ option.text }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                {% elif exercise.type == 'code' %}
+                    <!-- Code exercise -->
+                    <span class="code-lang-badge">{{ exercise.code_exercise.language }}</span>
+                    <div class="code-blank-area"></div>
+
+                {% elif exercise.type == 'complete_code' %}
+                    <!-- Complete code exercise -->
+                    <span class="code-lang-badge">{{ exercise.complete_code_exercise.language }}</span>
+                    <p style="font-size:9.5pt; color:#555; margin: 4px 0 2px;">
+                        Complete as lacunas marcadas com <code>___</code>:
+                    </p>
+                    <pre class="exam-code">{{ exercise.complete_code_exercise.starter_code }}</pre>
+
+                {% elif exercise.type == 'discursive' %}
+                    <!-- Discursive exercise -->
+                    {% with d=exercise.discursive_exercise %}
+                        <div class="word-count-info">
+                            Resposta com mínimo de {{ d.min_words }} palavra{{ d.min_words|pluralize }}{% if d.max_words %} e máximo de {{ d.max_words }} palavra{{ d.max_words|pluralize }}{% endif %}.
+                        </div>
+                    {% endwith %}
+                    <div class="ruled-lines">
+                        {% for i in "12345678" %}
+                            <div class="ruled-line"></div>
+                        {% endfor %}
+                    </div>
+
+                {% endif %}
+
+                {% if not forloop.last %}
+                    <hr class="question-separator" style="margin-top:20px;">
+                {% endif %}
+
+            </div>
+        {% empty %}
+            <p style="text-align:center; color:#aaa; font-style:italic; margin-top:3rem;">
+                Nenhum exercício adicionado.
+            </p>
+        {% endfor %}
+
+    </div><!-- /a4-paper -->
+
+{% endblock main_content %}

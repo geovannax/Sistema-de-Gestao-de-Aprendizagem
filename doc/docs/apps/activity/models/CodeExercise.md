@@ -1,0 +1,3 @@
+# CodeExercise
+
+::: activity.models.CodeExercise

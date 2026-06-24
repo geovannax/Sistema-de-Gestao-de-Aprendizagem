@@ -1,0 +1,3 @@
+# StudentResultView
+
+::: student.views.StudentResultView

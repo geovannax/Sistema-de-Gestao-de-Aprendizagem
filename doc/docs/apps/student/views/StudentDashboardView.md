@@ -1,0 +1,3 @@
+# StudentDashboardView
+
+::: student.views.StudentDashboardView

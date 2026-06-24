@@ -1,0 +1,54 @@
+<div class="sidebar-sticky-wrapper">
+
+    {% include "global/partials/generic/create_or_update/_progress.html" with progress_label="Progresso" progress_percent=answered_percent %}
+
+    <div class="activity-sidebar progress-section p-3 rounded-3">
+        <ul class="sidebar-exercise-list p-0 mb-0" style="list-style: none;">
+            {% for exercise in exercises %}
+                <li class="mb-2">
+                    <button
+                        class="w-100 d-flex align-items-center gap-2 p-2 rounded-3 border bg-transparent {% if exercise.is_current %}active-exercise{% endif %}"
+                        hx-post="{% url 'student:activity' activity_link.pk %}"
+                        hx-include="#answer-fields"
+                        hx-vals='{"navigate_to_pk": "{{ exercise.pk }}"}'
+                        hx-target="#main-row"
+                        hx-swap="innerHTML"
+                        hx-indicator=".htmx-loading">
+
+                        <div class="exercise_item exercise_{{ exercise.type }} flex-shrink-0">
+                            {% if exercise.type == 'code' %}
+                                <i class="bi bi-code-slash text-primary fs-5"></i>
+                            {% elif exercise.type == 'complete_code' %}
+                                <i class="bi bi-pencil-square text-warning fs-5"></i>
+                            {% elif exercise.type == 'multiple_choice' %}
+                                <i class="bi bi-list-check text-success fs-5"></i>
+                            {% elif exercise.type == 'discursive' %}
+                                <i class="bi bi-chat-left-text text-secondary fs-5"></i>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-grow-1 overflow-hidden text-start">
+                            <p class="mb-0 small fw-semibold text-truncate">{{ exercise.nav_index }}. {{ exercise.statement }}</p>
+                            <p class="mb-0 text-muted" style="font-size:.7rem">
+                                {% if exercise.type == 'code' %}Código
+                                {% elif exercise.type == 'complete_code' %}Completar Código
+                                {% elif exercise.type == 'multiple_choice' %}Múltipla Escolha
+                                {% elif exercise.type == 'discursive' %}Discursiva
+                                {% endif %}
+                                <span class="mx-1">•</span>
+                                {{ exercise.points|floatformat:-2 }} pts
+                            </p>
+                        </div>
+
+                        {% if exercise.is_answered %}
+                            <span class="ex-item-status st-ok flex-shrink-0">&#10003;</span>
+                        {% else %}
+                            <span class="ex-item-status flex-shrink-0"></span>
+                        {% endif %}
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>

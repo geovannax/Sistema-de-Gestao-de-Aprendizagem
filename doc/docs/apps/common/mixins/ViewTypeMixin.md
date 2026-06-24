@@ -1,0 +1,3 @@
+# ViewTypeMixin
+
+::: common.mixins.ViewTypeMixin

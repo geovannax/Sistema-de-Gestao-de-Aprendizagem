@@ -1,0 +1,3 @@
+# GroupReviewView
+
+::: group.views.GroupReviewView

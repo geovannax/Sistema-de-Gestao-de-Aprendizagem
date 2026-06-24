@@ -1,0 +1,3 @@
+# InlineFormsetMixin
+
+::: common.mixins.InlineFormsetMixin

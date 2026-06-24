@@ -1,0 +1,3 @@
+# UserPreferences
+
+::: accounts.models.UserPreferences

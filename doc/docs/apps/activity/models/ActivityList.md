@@ -1,0 +1,3 @@
+# ActivityList
+
+::: activity.models.ActivityList

@@ -1,0 +1,3 @@
+# PaginationMixin
+
+::: common.mixins.PaginationMixin

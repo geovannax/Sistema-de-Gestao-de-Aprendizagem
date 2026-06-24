@@ -1,0 +1,3 @@
+# MultipleChoiceExercise
+
+::: activity.models.MultipleChoiceExercise

@@ -6,6 +6,13 @@ edit_uri: tree/main/doc/docs
 theme:
   name: material
   language: pt-BR
+  features:
+    - navigation.top
+    - navigation.sections
+    - toc.follow
+    - content.code.copy
+    - search.suggest
+    - search.highlight
   palette:
     - scheme: slate
       primary: deep purple
@@ -13,12 +20,183 @@ theme:
 
 markdown_extensions:
   - attr_list
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+      title: Nesta página
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
 
 extra_css:
   - stylesheets/extra.css
 
 plugins:
+  - search:
+      lang: pt
   - mkdocstrings:
+      default_handler: python
       handlers:
         python:
           paths: ["../web"]
+          options:
+            docstring_style: google
+            docstring_options:
+              warn_missing_types: false
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            members_order: source
+            filters:
+              - "!^_"
+            show_if_no_docstring: false
+            merge_init_into_class: true
+
+nav:
+  - Início: index.md
+  - Guia de Início:
+      - Desenvolvimento: guia_de_início/dev.md
+      - Produção: guia_de_início/prod.md
+  - Apps:
+      - accounts:
+          - Visão Geral: apps/accounts/index.md
+          - models:
+              - UserPreferences: apps/accounts/models/UserPreferences.md
+          - middleware:
+              - CookieMiddleware: apps/accounts/middleware/CookieMiddleware.md
+          - signals:
+              - on_login: apps/accounts/signals/on_login.md
+              - on_logout: apps/accounts/signals/on_logout.md
+      - activity:
+          - Visão Geral: apps/activity/index.md
+          - Constantes: apps/activity/constants.md
+          - models:
+              - ActivityList: apps/activity/models/ActivityList.md
+              - ActivityArchived: apps/activity/models/ActivityArchived.md
+              - ActivityListGroup: apps/activity/models/ActivityListGroup.md
+              - Exercise: apps/activity/models/Exercise.md
+              - CodeExercise: apps/activity/models/CodeExercise.md
+              - CompleteCodeExercise: apps/activity/models/CompleteCodeExercise.md
+              - MultipleChoiceExercise: apps/activity/models/MultipleChoiceExercise.md
+              - ExerciseOption: apps/activity/models/ExerciseOption.md
+              - DiscursiveExercise: apps/activity/models/DiscursiveExercise.md
+          - views:
+              - ActivityListBaseView: apps/activity/views/ActivityListBaseView.md
+              - ActivityListView: apps/activity/views/ActivityListView.md
+              - ActivityArchivedListView: apps/activity/views/ActivityArchivedListView.md
+              - ActivityCreateOrUpdateView: apps/activity/views/ActivityCreateOrUpdateView.md
+              - ActivityCreateView: apps/activity/views/ActivityCreateView.md
+              - ActivityUpdateView: apps/activity/views/ActivityUpdateView.md
+              - ActivityDetailBaseView: apps/activity/views/ActivityDetailBaseView.md
+              - ActivityDetailView: apps/activity/views/ActivityDetailView.md
+              - ActivityAssignView: apps/activity/views/ActivityAssignView.md
+              - ActivityAssignUpdateView: apps/activity/views/ActivityAssignUpdateView.md
+              - ActivityArchiveView: apps/activity/views/ActivityArchiveView.md
+              - ActivityDeleteView: apps/activity/views/ActivityDeleteView.md
+              - ActivityUnshareView: apps/activity/views/ActivityUnshareView.md
+              - ExerciseCancelView: apps/activity/views/ExerciseCancelView.md
+              - ExerciseDeleteView: apps/activity/views/ExerciseDeleteView.md
+              - MultipleChoiceExerciseBaseView: apps/activity/views/MultipleChoiceExerciseBaseView.md
+              - MultipleChoiceExerciseCreateView: apps/activity/views/MultipleChoiceExerciseCreateView.md
+              - MultipleChoiceExerciseUpdateView: apps/activity/views/MultipleChoiceExerciseUpdateView.md
+              - MultipleChoiceExerciseAddOptionView: apps/activity/views/MultipleChoiceExerciseAddOptionView.md
+              - CodeExerciseBaseView: apps/activity/views/CodeExerciseBaseView.md
+              - CodeExerciseCreateView: apps/activity/views/CodeExerciseCreateView.md
+              - CodeExerciseUpdateView: apps/activity/views/CodeExerciseUpdateView.md
+              - CompleteCodeExerciseBaseView: apps/activity/views/CompleteCodeExerciseBaseView.md
+              - CompleteCodeExerciseCreateView: apps/activity/views/CompleteCodeExerciseCreateView.md
+              - CompleteCodeExerciseUpdateView: apps/activity/views/CompleteCodeExerciseUpdateView.md
+              - DiscursiveExerciseBaseView: apps/activity/views/DiscursiveExerciseBaseView.md
+              - DiscursiveExerciseCreateView: apps/activity/views/DiscursiveExerciseCreateView.md
+              - DiscursiveExerciseUpdateView: apps/activity/views/DiscursiveExerciseUpdateView.md
+          - forms:
+              - ActivityListForm: apps/activity/forms/ActivityListForm.md
+              - ActivityAssignWidget: apps/activity/forms/ActivityAssignWidget.md
+              - ActivityAssignForm: apps/activity/forms/ActivityAssignForm.md
+              - ActivityListGroupPeriodForm: apps/activity/forms/ActivityListGroupPeriodForm.md
+              - SyntaxValidator: apps/activity/forms/SyntaxValidator.md
+              - ExerciseForm: apps/activity/forms/ExerciseForm.md
+              - CodeExerciseForm: apps/activity/forms/CodeExerciseForm.md
+              - CompleteCodeExerciseForm: apps/activity/forms/CompleteCodeExerciseForm.md
+              - DiscursiveExerciseForm: apps/activity/forms/DiscursiveExerciseForm.md
+              - ExerciseOptionForm: apps/activity/forms/ExerciseOptionForm.md
+              - BaseExerciseOptionFormSet: apps/activity/forms/BaseExerciseOptionFormSet.md
+          - mixins:
+              - ExerciseBaseMixin: apps/activity/mixins/ExerciseBaseMixin.md
+      - common:
+          - Visão Geral: apps/common/index.md
+          - generic:
+              - EnhancedListView: apps/common/generic/EnhancedListView.md
+          - mixins:
+              - AuthPermissionMixin: apps/common/mixins/AuthPermissionMixin.md
+              - HTMXLoginRequiredMixin: apps/common/mixins/HTMXLoginRequiredMixin.md
+              - ObjectAccessRequiredMixin: apps/common/mixins/ObjectAccessRequiredMixin.md
+              - NavigationMixin: apps/common/mixins/NavigationMixin.md
+              - FilteringMixin: apps/common/mixins/FilteringMixin.md
+              - OrderingMixin: apps/common/mixins/OrderingMixin.md
+              - ViewTypeMixin: apps/common/mixins/ViewTypeMixin.md
+              - PaginationMixin: apps/common/mixins/PaginationMixin.md
+              - EnrichObjectMixin: apps/common/mixins/EnrichObjectMixin.md
+              - ActionsMixin: apps/common/mixins/ActionsMixin.md
+              - SecondaryFormMixin: apps/common/mixins/SecondaryFormMixin.md
+              - InlineFormsetMixin: apps/common/mixins/InlineFormsetMixin.md
+          - views:
+              - LandingPage: apps/common/views/LandingPage.md
+              - HomeView: apps/common/views/HomeView.md
+              - permission_denied: apps/common/views/permission_denied.md
+              - page_not_found: apps/common/views/page_not_found.md
+          - utils:
+              - get_btn_action: apps/common/utils/get_btn_action.md
+          - filters:
+              - get_attr: apps/common/filters/get_attr.md
+              - get_attr_with_truncate: apps/common/filters/get_attr_with_truncate.md
+              - get_model_only_fields: apps/common/filters/get_model_only_fields.md
+              - get_item: apps/common/filters/get_item.md
+      - group:
+          - Visão Geral: apps/group/index.md
+          - models:
+              - generate_group_invite_token: apps/group/models/generate_group_invite_token.md
+              - Group: apps/group/models/Group.md
+              - GroupArchived: apps/group/models/GroupArchived.md
+              - GroupSharing: apps/group/models/GroupSharing.md
+              - GroupStudent: apps/group/models/GroupStudent.md
+              - GroupInvite: apps/group/models/GroupInvite.md
+          - views:
+              - GroupListBaseView: apps/group/views/GroupListBaseView.md
+              - GroupActiveListView: apps/group/views/GroupActiveListView.md
+              - GroupArchivedListView: apps/group/views/GroupArchivedListView.md
+              - GroupSharedListView: apps/group/views/GroupSharedListView.md
+              - GroupCreateOrUpdateView: apps/group/views/GroupCreateOrUpdateView.md
+              - GroupCreateView: apps/group/views/GroupCreateView.md
+              - GroupUpdateView: apps/group/views/GroupUpdateView.md
+              - GroupBaseView: apps/group/views/GroupBaseView.md
+              - GroupDetailView: apps/group/views/GroupDetailView.md
+              - GroupShareView: apps/group/views/GroupShareView.md
+              - GroupManageArchivingView: apps/group/views/GroupManageArchivingView.md
+              - GroupSoftDeleteView: apps/group/views/GroupSoftDeleteView.md
+              - GroupUnshareView: apps/group/views/GroupUnshareView.md
+              - GroupInviteCreateView: apps/group/views/GroupInviteCreateView.md
+              - GroupInviteExpireView: apps/group/views/GroupInviteExpireView.md
+              - GroupInviteConfirmView: apps/group/views/GroupInviteConfirmView.md
+              - GroupReviewView: apps/group/views/GroupReviewView.md
+          - forms:
+              - GroupForm: apps/group/forms/GroupForm.md
+              - GroupSharingWidget: apps/group/forms/GroupSharingWidget.md
+              - GroupSharingForm: apps/group/forms/GroupSharingForm.md
+      - student:
+          - Visão Geral: apps/student/index.md
+          - models:
+              - Submission: apps/student/models/Submission.md
+              - ExerciseAnswer: apps/student/models/ExerciseAnswer.md
+          - views:
+              - StudentDashboardView: apps/student/views/StudentDashboardView.md
+              - StudentGroupDetailView: apps/student/views/StudentGroupDetailView.md
+              - StudentActivityView: apps/student/views/StudentActivityView.md
+              - StudentSubmitView: apps/student/views/StudentSubmitView.md
+              - StudentResultView: apps/student/views/StudentResultView.md
+              - TeacherSubmissionsView: apps/student/views/TeacherSubmissionsView.md
+              - TeacherGradeView: apps/student/views/TeacherGradeView.md

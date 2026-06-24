@@ -1,0 +1,3 @@
+# GroupArchivedListView
+
+::: group.views.GroupArchivedListView

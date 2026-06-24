@@ -1,0 +1,3 @@
+# CompleteCodeExerciseUpdateView
+
+::: activity.views.CompleteCodeExerciseUpdateView

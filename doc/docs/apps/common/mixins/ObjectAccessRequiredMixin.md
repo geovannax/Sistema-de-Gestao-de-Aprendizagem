@@ -1,0 +1,3 @@
+# ObjectAccessRequiredMixin
+
+::: common.mixins.ObjectAccessRequiredMixin

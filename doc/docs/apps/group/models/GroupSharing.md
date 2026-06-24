@@ -1,0 +1,3 @@
+# GroupSharing
+
+::: group.models.GroupSharing

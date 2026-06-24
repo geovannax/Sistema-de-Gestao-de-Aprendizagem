@@ -27,3 +27,8 @@
 .exercise_discursive {
     background: var(--gray-300) !important;
 }
+
+.active-exercise {
+    background: var(--blue-100) !important;
+    border-color: transparent !important;
+}

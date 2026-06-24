@@ -1,0 +1,3 @@
+# Constantes — activity
+
+::: activity.constants

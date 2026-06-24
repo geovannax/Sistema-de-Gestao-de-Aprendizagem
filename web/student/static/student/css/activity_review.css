@@ -1,0 +1,148 @@
+/* ============================================================
+   Activity Review — estilos dos cards de revisão (rv-*)
+   ============================================================ */
+
+.rv-card {
+    background: #fff;
+    border: 1px solid var(--gray-300);
+    border-radius: 14px;
+    overflow: hidden;
+    scroll-margin-top: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.rv-card.rv-unanswered { opacity: 0.65; }
+
+/* ── stripe ── */
+.rv-card-stripe { height: 3px; }
+.rv-stripe-code            { background: var(--blue-500); }
+.rv-stripe-complete_code   { background: var(--amber-600); }
+.rv-stripe-multiple_choice { background: var(--green-500); }
+.rv-stripe-discursive      { background: var(--gray-400); }
+.rv-stripe-unanswered      { background: var(--gray-300); }
+
+/* ── card inner ── */
+.rv-card-inner { padding: 1.1rem 1.25rem 1.25rem; }
+
+.rv-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+.rv-card-meta { display: flex; align-items: center; gap: 0.6rem; }
+
+/* ── num box ── */
+.rv-num-box {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 800; flex-shrink: 0;
+}
+.rv-num-code            { background: var(--blue-100);  color: var(--blue-700); }
+.rv-num-complete_code   { background: var(--amber-100); color: var(--amber-600); }
+.rv-num-multiple_choice { background: #dcfce7;          color: #15803d; }
+.rv-num-discursive      { background: var(--gray-200);  color: var(--gray-500); }
+.rv-num-unanswered      { background: var(--gray-200);  color: var(--gray-400); }
+
+.rv-card-label {
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--gray-500);
+}
+.rv-card-badges { display: flex; align-items: center; gap: 0.4rem; }
+
+/* ── pills ── */
+.rv-type-pill {
+    font-size: 0.68rem; font-weight: 700;
+    padding: 0.2rem 0.65rem; border-radius: 99px;
+}
+.rv-pill-code            { background: var(--blue-100);  color: var(--blue-700); }
+.rv-pill-complete_code   { background: var(--amber-100); color: var(--amber-600); }
+.rv-pill-multiple_choice { background: #dcfce7;          color: #15803d; }
+.rv-pill-discursive      { background: var(--gray-200);  color: var(--gray-500); }
+
+.rv-status-pill {
+    font-size: 0.68rem; font-weight: 700;
+    padding: 0.2rem 0.65rem; border-radius: 99px;
+}
+.rv-sp-ok   { background: #dcfce7; color: #15803d; }
+.rv-sp-miss { background: var(--gray-200); color: var(--gray-400); }
+
+/* ── statement ── */
+.rv-statement {
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--gray-700); line-height: 1.5;
+    margin-bottom: 0.85rem;
+}
+
+/* ── answer block ── */
+.rv-answer {
+    border: 1px solid var(--gray-300);
+    border-radius: 10px; overflow: hidden;
+}
+.rv-answer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.4rem 0.9rem;
+    background: var(--gray-100);
+    border-bottom: 1px solid var(--gray-200);
+}
+.rv-answer-lbl {
+    font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500);
+}
+.rv-answer-lang {
+    font-size: 0.68rem; font-weight: 600;
+    color: var(--blue-500); text-transform: capitalize;
+}
+.rv-answer-text {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.875rem; color: var(--gray-700); line-height: 1.6;
+    white-space: pre-wrap;
+}
+.rv-answer-code pre { margin: 0; }
+.rv-answer-code code.hljs {
+    border-radius: 0; font-size: 0.79rem;
+    padding: 0.85rem 1rem;
+    white-space: pre-wrap; word-break: break-all;
+}
+
+/* ── multiple choice ── */
+.rv-answer-mc-list {
+    padding: 0.5rem 0.75rem;
+    display: flex; flex-direction: column; gap: 0.3rem;
+}
+.rv-mc-option {
+    display: flex; align-items: center; gap: 0.65rem;
+    padding: 0.45rem 0.65rem; border-radius: 8px;
+    font-size: 0.875rem; color: var(--gray-600);
+    border: 1px solid transparent;
+}
+.rv-mc-option.rv-mc-selected {
+    background: #dcfce7; border-color: #86efac;
+    color: #14532d; font-weight: 600;
+}
+.rv-mc-radio {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--gray-400);
+    flex-shrink: 0;
+}
+.rv-mc-selected .rv-mc-radio {
+    border-color: #16a34a;
+    background: radial-gradient(circle, #16a34a 5px, transparent 5px);
+}
+
+/* ── empty / observation ── */
+.rv-answer-empty {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.82rem; color: var(--gray-500); font-style: italic;
+}
+.rv-obs {
+    display: flex; align-items: flex-start; gap: 0.4rem;
+    margin-top: 0.6rem; font-size: 0.78rem;
+    color: var(--gray-500); font-style: italic;
+}
+
+/* ── alert banner ── */
+.rv-alert {
+    display: flex; gap: 0.65rem; align-items: flex-start;
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 0.75rem 1rem;
+    font-size: 0.82rem; color: #78350f;
+}

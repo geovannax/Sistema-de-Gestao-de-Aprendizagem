@@ -1,0 +1,3 @@
+# ActivityArchived
+
+::: activity.models.ActivityArchived

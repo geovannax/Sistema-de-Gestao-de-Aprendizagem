@@ -1,0 +1,126 @@
+/* ============================================================
+   Teacher Grade — correção manual de submissões
+   ============================================================ */
+
+.grade-card {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.grade-card.auto-graded      { border-left: 4px solid var(--gray-300); }
+.grade-card.manual-correct   { border-left: 4px solid #10b981; }
+.grade-card.manual-incorrect { border-left: 4px solid #ef4444; }
+.grade-card.manual-pending   { border-left: 4px solid #f59e0b; }
+
+.exercise-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-400);
+    margin-bottom: 0.5rem;
+}
+
+.grade-card .exercise-statement {
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 1rem;
+}
+
+/* ── answer block ── */
+.answer-block {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.answer-block.correct-answer {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.answer-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-500);
+    margin-bottom: 0.4rem;
+}
+
+.answer-label.correct-label { color: #065f46; }
+
+/* ── grade buttons ── */
+.grade-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.grade-btn {
+    border: 2px solid transparent;
+    border-radius: 2rem;
+    padding: 0.35rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: none;
+    transition: all 0.15s;
+}
+
+.grade-btn.correct { border-color: #10b981; color: #10b981; }
+.grade-btn.correct:hover,
+.grade-btn.correct.active { background: #10b981; color: #fff; }
+
+.grade-btn.incorrect { border-color: #ef4444; color: #ef4444; }
+.grade-btn.incorrect:hover,
+.grade-btn.incorrect.active { background: #ef4444; color: #fff; }
+
+/* ── misc ── */
+.no-answer {
+    font-style: italic;
+    color: var(--gray-400);
+    font-size: 0.85rem;
+}
+
+pre.answer-code {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+}
+
+pre.answer-code.starter { background: #2d2d2d; }
+
+/* ── observations & feedback ── */
+.student-observation {
+    font-size: 0.82rem;
+    color: var(--gray-500);
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.teacher-feedback-block {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.teacher-feedback-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #1e40af;
+    margin-bottom: 0.25rem;
+}

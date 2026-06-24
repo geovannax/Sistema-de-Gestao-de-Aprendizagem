@@ -1,0 +1,3 @@
+# GroupStudent
+
+::: group.models.GroupStudent

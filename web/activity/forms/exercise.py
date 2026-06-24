@@ -1,3 +1,8 @@
+"""Formulários de criação e edição de exercícios.
+
+Contém o formulário base :class:`ExerciseForm`, os formulários específicos
+por tipo de exercício e o validador de sintaxe :class:`SyntaxValidator`.
+"""
 from activity.models import CodeExercise, CompleteCodeExercise, DiscursiveExercise, Exercise, ExerciseOption
 from django import forms
 import ast
@@ -5,21 +10,34 @@ import re
 
 
 class SyntaxValidator:
-    """Validador de sintaxe de código por linguagem"""
-    
+    """Valida a sintaxe de código-fonte por linguagem de programação."""
+
     @staticmethod
     def validate_python(code: str) -> bool:
-        """Valida sintaxe Python usando ast"""
+        """Verifica se o código Python é sintaticamente válido usando ``ast``.
+
+        Args:
+            code: Código-fonte Python a validar.
+
+        Returns:
+            ``True`` se a sintaxe for válida, ``False`` se levantar ``SyntaxError``.
+        """
         try:
             ast.parse(code)
             return True
         except SyntaxError:
             return False
-    
+
     @staticmethod
     def validate_javascript(code: str) -> bool:
-        """Validação básica de JavaScript"""
-        # Validação simples: check de braces balanceadas
+        """Verifica se chaves e parênteses do código JavaScript estão balanceados.
+
+        Args:
+            code: Código-fonte JavaScript a validar.
+
+        Returns:
+            ``True`` se chaves e parênteses estiverem balanceados.
+        """
         try:
             open_braces = code.count('{')
             close_braces = code.count('}')
@@ -28,30 +46,62 @@ class SyntaxValidator:
             return open_braces == close_braces and open_parens == close_parens
         except:  # pragma: no cover
             return False
-    
+
     @staticmethod
     def validate_java(code: str) -> bool:
-        """Validação básica de Java"""
+        """Verifica se o código Java contém a estrutura mínima esperada.
+
+        Exige declaração de classe e método ``main`` com modificadores de acesso.
+
+        Args:
+            code: Código-fonte Java a validar.
+
+        Returns:
+            ``True`` se ao menos um dos padrões obrigatórios for encontrado.
+        """
         required_patterns = [
             r'(public|private|protected)\s+class\s+\w+',
             r'(public|private)\s+static\s+void\s+main',
         ]
         return any(re.search(pattern, code) for pattern in required_patterns)
-    
+
     @staticmethod
     def validate_c(code: str) -> bool:
-        """Validação básica de C"""
-        # Check para main function e includes básicos
+        """Verifica se o código C contém a função ``main`` e chaves.
+
+        Args:
+            code: Código-fonte C a validar.
+
+        Returns:
+            ``True`` se ``main`` e chaves estiverem presentes.
+        """
         return 'main' in code and ('{' in code and '}' in code)
-    
+
     @staticmethod
     def validate_cpp(code: str) -> bool:
-        """Validação básica de C++"""
+        """Verifica se o código C++ contém a função ``main`` e chaves.
+
+        Args:
+            code: Código-fonte C++ a validar.
+
+        Returns:
+            ``True`` se ``main`` e chaves estiverem presentes.
+        """
         return 'main' in code and ('{' in code and '}' in code)
-    
+
     @classmethod
     def validate(cls, code: str, language: str) -> bool:
-        """Valida código na linguagem especificada"""
+        """Despacha a validação para o método específico da linguagem.
+
+        Args:
+            code: Código-fonte a validar.
+            language: Identificador da linguagem (``'python'``, ``'javascript'``,
+                ``'java'``, ``'c'`` ou ``'cpp'``).
+
+        Returns:
+            ``True`` se o código passar na validação da linguagem, ou ``True``
+            caso a linguagem não tenha validador registrado.
+        """
         validators = {
             'python': cls.validate_python,
             'javascript': cls.validate_javascript,
@@ -59,15 +109,20 @@ class SyntaxValidator:
             'c': cls.validate_c,
             'cpp': cls.validate_cpp,
         }
-        
+
         validator = validators.get(language)
         if not validator:
             return True
-        
+
         return validator(code)
-    
+
 
 class CodeExerciseForm(forms.ModelForm):
+    """Formulário para exercícios do tipo código.
+
+    Campos: linguagem de programação e output esperado para correção.
+    Remove a opção em branco do campo ``language`` (RadioSelect).
+    """
     class Meta:
         model = CodeExercise
         fields = ['language', 'expected_output']
@@ -86,6 +141,12 @@ class CodeExerciseForm(forms.ModelForm):
 
 
 class CompleteCodeExerciseForm(forms.ModelForm):
+    """Formulário para exercícios do tipo completar código.
+
+    Valida que ``starter_code`` contenha ``___`` (lacunas) e que
+    ``complete_code`` não as contenha e passe na validação de sintaxe
+    da linguagem selecionada via :class:`SyntaxValidator`.
+    """
     class Meta:
         model = CompleteCodeExercise
         fields = ['language', 'starter_code', 'complete_code']
@@ -104,20 +165,30 @@ class CompleteCodeExerciseForm(forms.ModelForm):
         ]
 
     def clean_starter_code(self):
+        """Valida que o código inicial contenha ao menos uma lacuna ``___``.
+
+        Raises:
+            ValidationError: Se ``___`` não estiver presente no código.
+        """
         starter_code = self.cleaned_data.get('starter_code', '')
-        
+
         if '___' not in starter_code:
             raise forms.ValidationError(
                 'O código inicial deve conter "___" para indicar as lacunas que o aluno deve preencher.'
             )
-        
+
         return starter_code
-    
+
     def clean_complete_code(self):
-        """Valida a sintaxe do código completo"""
+        """Valida a sintaxe e a integridade do código completo (gabarito).
+
+        Raises:
+            ValidationError: Se ``___`` estiver presente no gabarito ou se a
+                sintaxe for inválida para a linguagem selecionada.
+        """
         complete_code = self.cleaned_data.get('complete_code', '')
         language = self.cleaned_data.get('language', '')
-            
+
         # O complete_code NÃO deve conter '___'
         if '___' in complete_code:
             raise forms.ValidationError(
@@ -129,12 +200,15 @@ class CompleteCodeExerciseForm(forms.ModelForm):
                 raise forms.ValidationError(
                     f'O código contém erros de sintaxe para {language}. Verifique e tente novamente.'
                 )
-        
-        
+
         return complete_code
 
 
 class DiscursiveExerciseForm(forms.ModelForm):
+    """Formulário para exercícios discursivos.
+
+    Campos: quantidade mínima e máxima de palavras exigida na resposta.
+    """
     class Meta:
         model = DiscursiveExercise
         fields = ['min_words', 'max_words']
@@ -145,17 +219,23 @@ class DiscursiveExerciseForm(forms.ModelForm):
 
 
 class ExerciseForm(forms.ModelForm):
+    """Formulário base para criação e edição de exercícios.
+
+    Os campos ``activity_list`` e ``type`` são ocultos e preenchidos
+    automaticamente pelo mixin :class:`~activity.mixins.ExerciseBaseMixin`
+    via ``get_initial()``.
+    """
     class Meta:
         model = Exercise
         fields = ['activity_list', 'statement', 'points', 'type']
         widgets = {
-            'activity_list': forms.HiddenInput(),          
-            'type': forms.HiddenInput(),            
+            'activity_list': forms.HiddenInput(),
+            'type': forms.HiddenInput(),
             'statement': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Enunciado...'
-            }),  
+            }),
             'points': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
@@ -166,6 +246,11 @@ class ExerciseForm(forms.ModelForm):
 
 
 class ExerciseOptionForm(forms.ModelForm):
+    """Formulário para uma alternativa de exercício de múltipla escolha.
+
+    Usado dentro do formset :data:`~activity.forms.formsets.exercise_option.ExerciseOptionFormCreateSet`
+    e :data:`~activity.forms.formsets.exercise_option.ExerciseOptionFormUpdateSet`.
+    """
     class Meta:
         model = ExerciseOption
         fields = ['text', 'is_correct']

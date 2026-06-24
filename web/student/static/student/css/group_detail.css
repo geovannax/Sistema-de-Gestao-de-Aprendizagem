@@ -1,0 +1,91 @@
+/* ============================================================
+   Student Group Detail — lista de atividades da turma
+   ============================================================ */
+
+.activity-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+/* garante que o flex-child respeite os limites do pai */
+.activity-item .min-width-0 {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.activity-description {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.status-in-progress {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-submitted {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.activity-period {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+/* ── status badges ── */
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.status-open   { background: #d1fae5; color: #065f46; }
+.status-future { background: #dbeafe; color: #1e40af; }
+.status-closed { background: #f3f4f6; color: #6b7280; }
+
+/* ── section divider ── */
+.section-divider {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gray-500);
+    padding: 0.5rem 0 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+}

@@ -20,7 +20,7 @@
 
         {% block extra_head %} {% endblock extra_head %}
     </head>
-    <body >
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-boost="false">
         <!-- Header -->
         {% include 'global/partials/header.html' %}
 
@@ -40,6 +40,7 @@
         {% block modal %} {% endblock modal %}
 
         <script src="{% static 'global/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
         {% block extra_script %} {% endblock extra_script %}
         <script src="{% static 'global/js/notification.popup.js' %}"></script>
         <script type="text/javascript">

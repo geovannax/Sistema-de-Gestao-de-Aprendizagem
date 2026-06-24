@@ -1,0 +1,3 @@
+# GroupManageArchivingView
+
+::: group.views.GroupManageArchivingView

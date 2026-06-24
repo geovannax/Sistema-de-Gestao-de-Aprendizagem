@@ -1,0 +1,3 @@
+# ActivityUpdateView
+
+::: activity.views.ActivityUpdateView

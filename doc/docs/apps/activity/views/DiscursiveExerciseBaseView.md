@@ -1,0 +1,3 @@
+# DiscursiveExerciseBaseView
+
+::: activity.views.DiscursiveExerciseBaseView

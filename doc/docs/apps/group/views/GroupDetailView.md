@@ -1,0 +1,3 @@
+# GroupDetailView
+
+::: group.views.GroupDetailView

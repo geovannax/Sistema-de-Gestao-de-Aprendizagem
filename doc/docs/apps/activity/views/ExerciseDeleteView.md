@@ -1,0 +1,3 @@
+# ExerciseDeleteView
+
+::: activity.views.ExerciseDeleteView

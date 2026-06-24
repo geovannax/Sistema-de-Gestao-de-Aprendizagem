@@ -1,0 +1,272 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Revisão — {{ activity_link.activity_list.title }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/activity.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/activity_review.css' %}">
+    <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
+{% endblock extra_head %}
+
+
+{% block main_content %}
+
+    {% widthratio answered_count total_exercises 100 as answered_percent %}
+
+    <!-- Page Header -->
+    <div class="page-header pt-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3 page-header-content">
+                <div>
+                    <h2 class="fw-bold page-header-title">{{ activity_link.activity_list.title }}</h2>
+                    <p class="subtitle">
+                        <i class="bi bi-info-circle"></i>
+                        <span class="subtitle-text">{{ activity_link.group.name }}</span>
+                    </p>
+                </div>
+            </div>
+            <form id="submit-form" method="post" action="{% url 'student:activity_submit' activity_link.pk %}">
+                {% csrf_token %}
+            </form>
+            <button type="button" class="btn btn-outline-primary rounded-5 px-4 flex-shrink-0"
+                    data-bs-toggle="modal" data-bs-target="#confirmSubmitModal">
+                <i class="bi bi-check-lg me-2"></i>Confirmar entrega
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar + Cards -->
+    <div class="row g-4">
+
+        <!-- SIDEBAR (col-lg-3) -->
+        <div class="col-lg-3">
+            <div class="sidebar-sticky-wrapper">
+
+                {% include "global/partials/generic/create_or_update/_progress.html" with progress_label="Progresso" progress_percent=answered_percent %}
+
+                <div class="activity-sidebar progress-section p-3 rounded-3">
+                    <ul class="sidebar-exercise-list p-0 mb-0" style="list-style: none;">
+                        {% for exercise in exercises %}
+                            <li class="mb-2">
+                                <button type="button"
+                                        class="w-100 d-flex align-items-center gap-2 p-2 rounded-3 border bg-transparent"
+                                        onclick="document.getElementById('ex-{{ forloop.counter }}').scrollIntoView({behavior:'smooth',block:'start'})">
+
+                                    <div class="exercise_item exercise_{{ exercise.type }} flex-shrink-0">
+                                        {% if exercise.type == 'code' %}
+                                            <i class="bi bi-code-slash text-primary fs-5"></i>
+                                        {% elif exercise.type == 'complete_code' %}
+                                            <i class="bi bi-pencil-square text-warning fs-5"></i>
+                                        {% elif exercise.type == 'multiple_choice' %}
+                                            <i class="bi bi-list-check text-success fs-5"></i>
+                                        {% elif exercise.type == 'discursive' %}
+                                            <i class="bi bi-chat-left-text text-secondary fs-5"></i>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flex-grow-1 overflow-hidden text-start">
+                                        <p class="mb-0 small fw-semibold text-truncate">
+                                            {{ forloop.counter }}. {{ exercise.statement }}
+                                        </p>
+                                        <p class="mb-0 text-muted" style="font-size:.7rem">
+                                            {% if exercise.type == 'code' %}Código
+                                            {% elif exercise.type == 'complete_code' %}Completar Código
+                                            {% elif exercise.type == 'multiple_choice' %}Múltipla Escolha
+                                            {% elif exercise.type == 'discursive' %}Discursiva
+                                            {% endif %}
+                                            <span class="mx-1">•</span>
+                                            {{ exercise.points|floatformat:-2 }} pts
+                                        </p>
+                                    </div>
+
+                                    {% if exercise.answer %}
+                                        <span class="ex-item-status st-ok flex-shrink-0">&#10003;</span>
+                                    {% else %}
+                                        <span class="ex-item-status flex-shrink-0"></span>
+                                    {% endif %}
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- EXERCISE CARDS (col-lg-9) -->
+        <div class="col-lg-9">
+            <div class="d-flex flex-column gap-3 pb-4">
+
+                {% if unanswered_count > 0 %}
+                    <div class="rv-alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                        <div>
+                            <strong>{{ unanswered_count }} questão{{ unanswered_count|pluralize }} sem resposta.</strong>
+                            Você pode voltar e responder, ou confirmar assim mesmo — questões em branco serão marcadas como não respondidas.
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% for exercise in exercises %}
+                    <div class="rv-card {% if not exercise.answer %}rv-unanswered{% endif %}"
+                         id="ex-{{ forloop.counter }}">
+
+                        <!-- colored stripe -->
+                        {% if exercise.answer %}
+                            <div class="rv-card-stripe rv-stripe-{{ exercise.type }}"></div>
+                        {% else %}
+                            <div class="rv-card-stripe rv-stripe-unanswered"></div>
+                        {% endif %}
+
+                        <div class="rv-card-inner">
+                            <!-- head -->
+                            <div class="rv-card-head">
+                                <div class="rv-card-meta">
+                                    {% if exercise.answer %}
+                                        <span class="rv-num-box rv-num-{{ exercise.type }}">{{ forloop.counter }}</span>
+                                    {% else %}
+                                        <span class="rv-num-box rv-num-unanswered">{{ forloop.counter }}</span>
+                                    {% endif %}
+                                    <span class="rv-card-label">Questão {{ forloop.counter }}</span>
+                                </div>
+                                <div class="rv-card-badges">
+                                    <span class="rv-type-pill rv-pill-{{ exercise.type }}">
+                                        {% if exercise.type == 'code' %}<i class="bi bi-code-slash"></i> Código
+                                        {% elif exercise.type == 'complete_code' %}<i class="bi bi-pencil-square"></i> Completar Código
+                                        {% elif exercise.type == 'multiple_choice' %}<i class="bi bi-list-check"></i> Múltipla Escolha
+                                        {% elif exercise.type == 'discursive' %}<i class="bi bi-chat-left-text"></i> Discursiva
+                                        {% endif %}
+                                    </span>
+                                    {% if exercise.answer %}
+                                        <span class="rv-status-pill rv-sp-ok">&#10003; Respondida</span>
+                                    {% else %}
+                                        <span class="rv-status-pill rv-sp-miss">&#9675; Não respondida</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- statement -->
+                            <div class="rv-statement">{{ exercise.statement }}</div>
+
+                            <!-- answer -->
+                            <div class="rv-answer">
+                                <div class="rv-answer-header">
+                                    <span class="rv-answer-lbl">Sua resposta</span>
+                                    {% if exercise.type == 'code' and exercise.answer %}
+                                        <span class="rv-answer-lang">{{ exercise.code_exercise.language }}</span>
+                                    {% elif exercise.type == 'complete_code' and exercise.answer %}
+                                        <span class="rv-answer-lang">{{ exercise.complete_code_exercise.language }}</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if exercise.answer %}
+                                    {% if exercise.type == 'multiple_choice' %}
+                                        <div class="rv-answer-mc-list">
+                                            {% for option in exercise.multiple_choice_exercise.options.all %}
+                                                <div class="rv-mc-option {% if option.pk == exercise.answer.selected_option.pk %}rv-mc-selected{% endif %}">
+                                                    <span class="rv-mc-radio"></span>
+                                                    {{ option.text }}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% elif exercise.type == 'code' %}
+                                        <div class="rv-answer-code">
+                                            <pre><code class="language-{{ exercise.code_exercise.language }}">{{ exercise.answer.answer_text }}</code></pre>
+                                        </div>
+                                    {% elif exercise.type == 'complete_code' %}
+                                        <div class="rv-answer-code">
+                                            <pre><code class="language-{{ exercise.complete_code_exercise.language }}">{{ exercise.answer.answer_text }}</code></pre>
+                                        </div>
+                                    {% else %}
+                                        <div class="rv-answer-text">{{ exercise.answer.answer_text }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="rv-answer-empty">Nenhuma resposta registrada para esta questão.</div>
+                                {% endif %}
+                            </div>
+
+                            {% if exercise.answer and exercise.answer.student_observation %}
+                                <div class="rv-obs">
+                                    <i class="bi bi-chat-left-dots"></i>
+                                    <span>{{ exercise.answer.student_observation }}</span>
+                                </div>
+                            {% endif %}
+
+                            <div class="mt-3 text-end">
+                                <a href="{% url 'student:activity' activity_link.pk %}?exercise={{ exercise.pk }}"
+                                   class="btn btn-outline-secondary btn-sm rounded-pill">
+                                    <i class="bi bi-pencil me-1 p-1"></i>Voltar e editar
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+
+{% endblock main_content %}
+
+{% block modal %}
+<div class="modal fade" id="confirmSubmitModal" tabindex="-1" aria-labelledby="confirmSubmitLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div class="d-flex mb-0 gap-2">
+                    <div class="d-flex align-items-center justify-content-center fs-5">
+                        <i class="bi bi-send-check me-2"></i>
+                    </div>
+                    <div>
+                        <h1 class="modal-title" id="confirmSubmitLabel">Confirmar entrega</h1>
+                        <p class="modal-subtitle text-sm mb-0">Revise antes de finalizar</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body">
+                {% if unanswered_count > 0 %}
+                    <div class="alert alert-warning d-flex gap-2 align-items-center py-2 rounded-3 mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                        <span><strong>{{ unanswered_count }} questão{{ unanswered_count|pluralize }} sem resposta.</strong> Questões em branco serão marcadas como não respondidas.</span>
+                    </div>
+                {% endif %}
+                <p class="text-muted mb-3" style="font-size: 0.92rem;">
+                    Após confirmar, sua entrega não poderá ser editada.
+                    <br/>
+                    Tem certeza que deseja continuar?
+                </p>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary rounded-5"
+                            data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-outline-primary rounded-5"
+                            onclick="document.getElementById('submit-form').submit()">
+                        <i class="bi bi-check-circle me-1"></i> Confirmar entrega
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock modal %}
+
+{% block extra_script %}
+    <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
+    <script>
+        document.querySelectorAll('.rv-answer-code code').forEach(function (el) {
+            hljs.highlightElement(el);
+        });
+    </script>
+{% endblock extra_script %}

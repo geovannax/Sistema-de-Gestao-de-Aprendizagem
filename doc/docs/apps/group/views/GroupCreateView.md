@@ -1,0 +1,3 @@
+# GroupCreateView
+
+::: group.views.GroupCreateView

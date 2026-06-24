@@ -1,3 +1,9 @@
+"""Modelos do app activity.
+
+Define a estrutura de dados para listas de atividades e exercícios
+polimórficos. Cada tipo de exercício possui um modelo OneToOne próprio
+vinculado ao modelo base :class:`Exercise`.
+"""
 from activity.constants import EXERCISE_TYPE_CHOICES, LANGUAGE_CHOICES
 from django.db import models
 from django.contrib.auth.models import User
@@ -6,6 +12,19 @@ from group.models import Group
 
 
 class ActivityList(models.Model):
+    """Lista de exercícios criada por um professor.
+
+    Representa uma atividade publicável composta por um ou mais exercícios.
+    Suporta soft delete via ``deleted_at``; todo queryset deve filtrar
+    ``deleted_at__isnull=True``.
+
+    Attributes:
+        title: Título da atividade.
+        description: Descrição e objetivos da atividade.
+        created_by: Professor que criou a atividade.
+        is_published: Indica se a atividade está visível para os alunos.
+        deleted_at: Preenchido no soft delete; ``None`` enquanto ativa.
+    """
     title = models.CharField(
         max_length=200,
         verbose_name='Título',
@@ -22,7 +41,7 @@ class ActivityList(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
     deleted_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='Deletado em')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
     class Meta:
@@ -31,6 +50,12 @@ class ActivityList(models.Model):
 
 
 class ActivityArchived(models.Model):
+    """Registro de arquivamento de uma atividade por um usuário.
+
+    Permite que cada professor arquive atividades de forma independente,
+    sem afetar outros usuários. O flag ``is_archived`` pode ser alternado
+    via toggle.
+    """
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='archived_activities')
     activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='archived_activities')
     is_archived = models.BooleanField(db_index=True, default=True, verbose_name='Arquivado')
@@ -47,6 +72,12 @@ class ActivityArchived(models.Model):
 
 
 class ActivityListGroup(models.Model):
+    """Vínculo entre uma lista de atividades e uma turma.
+
+    Registra o compartilhamento de uma atividade com uma turma, com período
+    de disponibilidade opcional. ``due_date`` é mantido igual a ``ends_at``
+    como atalho de consulta.
+    """
     activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='list_groups')
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='activity_list_groups')
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name='Vinculado em')
@@ -61,6 +92,23 @@ class ActivityListGroup(models.Model):
 
 
 class Exercise(models.Model):
+    """Exercício base de uma lista de atividades.
+
+    Armazena os dados comuns a todos os tipos de exercício. O conteúdo
+    específico de cada tipo fica em um modelo relacionado via OneToOne:
+
+    - ``code`` → :class:`CodeExercise`
+    - ``complete_code`` → :class:`CompleteCodeExercise`
+    - ``multiple_choice`` → :class:`MultipleChoiceExercise`
+    - ``discursive`` → :class:`DiscursiveExercise`
+
+    Attributes:
+        activity_list: Lista à qual este exercício pertence.
+        type: Tipo do exercício (chave de ``EXERCISE_TYPE_CHOICES``).
+        statement: Enunciado do exercício.
+        points: Pontuação na composição da atividade.
+        order: Posição do exercício dentro da lista.
+    """
     activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='exercises', verbose_name='Lista')
     type = models.CharField(
         max_length=20,
@@ -92,6 +140,11 @@ class Exercise(models.Model):
 
 
 class CodeExercise(models.Model):
+    """Dados específicos de um exercício do tipo código.
+
+    O aluno submete código na linguagem informada; o output gerado é
+    comparado com ``expected_output`` para correção automática.
+    """
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='code_exercise')
     language = models.CharField(
         max_length=20,
@@ -107,6 +160,11 @@ class CodeExercise(models.Model):
 
 
 class CompleteCodeExercise(models.Model):
+    """Dados específicos de um exercício do tipo completar código.
+
+    O aluno preenche as lacunas marcadas com ``___`` no ``starter_code``.
+    O ``complete_code`` serve como gabarito; não deve conter ``___``.
+    """
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='complete_code_exercise')
     language = models.CharField(
         max_length=20,
@@ -125,10 +183,23 @@ class CompleteCodeExercise(models.Model):
 
 
 class MultipleChoiceExercise(models.Model):
+    """Dados específicos de um exercício de múltipla escolha.
+
+    As alternativas ficam em :class:`ExerciseOption` (FK via ``options``).
+    A validação no formset garante que exatamente uma opção seja correta.
+    """
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='multiple_choice_exercise')
 
 
 class ExerciseOption(models.Model):
+    """Alternativa de um exercício de múltipla escolha.
+
+    Attributes:
+        exercise: Exercício de múltipla escolha ao qual esta opção pertence.
+        text: Texto da alternativa exibido ao aluno.
+        is_correct: Indica se esta é a alternativa correta. Deve ser ``True``
+            em exatamente uma opção por exercício.
+    """
     exercise = models.ForeignKey(MultipleChoiceExercise, on_delete=models.CASCADE, related_name='options')
     text = models.TextField(verbose_name='Texto da Opção')
     is_correct = models.BooleanField(default=False, verbose_name='É Correta')
@@ -138,14 +209,23 @@ class ExerciseOption(models.Model):
 
 
 class DiscursiveExercise(models.Model):
+    """Dados específicos de um exercício discursivo.
+
+    O aluno responde com texto livre. A resposta é validada por contagem
+    de palavras entre ``min_words`` e ``max_words`` (quando definido).
+
+    Attributes:
+        min_words: Número mínimo de palavras exigido na resposta.
+        max_words: Número máximo de palavras permitido (opcional).
+    """
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='discursive_exercise')
-    
+
     min_words = models.PositiveIntegerField(
         default=10,
         verbose_name='Mínimo de Palavras',
         help_text='Número mínimo de palavras que a resposta deve conter.'
     )
-    
+
     max_words = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -157,6 +237,5 @@ class DiscursiveExercise(models.Model):
         verbose_name = 'Exercício Discursivo'
         verbose_name_plural = 'Exercícios Discursivos'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Discursivo: {self.exercise.statement[:50]}"
-

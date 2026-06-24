@@ -1,0 +1,108 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}{{ activity_link.activity_list.title }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/activity.css' %}">
+    <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
+    <link rel="stylesheet" href="{% static 'global/codemirror/codemirror.min.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- Page Header -->
+    <div class="page-header pt-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3 page-header-content">
+                <div>
+                    <h2 class="fw-bold page-header-title">{{ activity_link.activity_list.title }}</h2>
+                    <p class="subtitle">
+                        <i class="bi bi-info-circle"></i>
+                        <span class="subtitle-text">{{ activity_link.group.name }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <button class="btn btn-outline-primary rounded-5 px-4 flex-shrink-0"
+                    hx-post="{% url 'student:activity' activity_link.pk %}"
+                    hx-include="#answer-fields"
+                    hx-vals='{"go_review": "1"}'
+                    hx-target="body">
+                <i class="bi bi-eye me-2"></i>Revisar e Entregar
+            </button>
+        </div>
+    </div>
+
+    <!-- Swappable content area (sidebar + exercise) -->
+    <div id="main-row" class="row g-4">
+        {% include "student/partials/_activity_main.html" %}
+    </div>
+
+    <script>
+        (function () {
+            // Delegation in capture phase — fires before element handlers, survives HTMX swaps
+            ['paste', 'copy', 'cut', 'drop', 'contextmenu'].forEach(function (evt) {
+                document.addEventListener(evt, function (e) {
+                    if (e.target.closest('#answer-fields')) e.preventDefault();
+                }, true);
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.target.closest('#answer-fields') &&
+                    (e.ctrlKey || e.metaKey) && ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                }
+            }, true);
+            function highlightCode() {
+                document.querySelectorAll('pre.starter-code code').forEach(function (el) {
+                    hljs.highlightElement(el);
+                    el.innerHTML = el.innerHTML.replace(/___/g, '<span class="code-placeholder">___</span>');
+                });
+            }
+            document.addEventListener('DOMContentLoaded', highlightCode);
+            document.addEventListener('htmx:afterSwap', highlightCode);
+
+            const LANG_MAP = {
+                python: 'python',
+                javascript: 'javascript',
+                java: 'text/x-java',
+                c: 'text/x-csrc',
+                cpp: 'text/x-c++src',
+            };
+            let cmEditor = null;
+
+            function initCodeEditor() {
+                const textarea = document.querySelector('textarea.code-editor');
+                if (cmEditor) { try { cmEditor.toTextArea(); } catch (e) {} cmEditor = null; }
+                if (!textarea) return;
+                cmEditor = CodeMirror.fromTextArea(textarea, {
+                    lineNumbers: true,
+                    mode: LANG_MAP[textarea.dataset.language] || 'python',
+                    theme: 'atom-one-dark',
+                    indentUnit: 4,
+                    tabSize: 4,
+                    lineWrapping: true,
+                });
+
+            }
+
+            document.addEventListener('htmx:configRequest', function (e) {
+                if (cmEditor) e.detail.parameters['answer_text'] = cmEditor.getValue();
+            });
+            document.addEventListener('DOMContentLoaded', initCodeEditor);
+            document.addEventListener('htmx:afterSwap', initCodeEditor);
+        })();
+    </script>
+
+{% endblock main_content %}
+
+{% block extra_script %}
+    <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
+    <script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+{% endblock extra_script %}

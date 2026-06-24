@@ -1,0 +1,3 @@
+# ActivityDetailView
+
+::: activity.views.ActivityDetailView

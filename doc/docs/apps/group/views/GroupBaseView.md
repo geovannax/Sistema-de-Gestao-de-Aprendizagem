@@ -1,0 +1,3 @@
+# GroupBaseView
+
+::: group.views.GroupBaseView

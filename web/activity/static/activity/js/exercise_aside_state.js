@@ -41,13 +41,30 @@ function updateAsideState() {
     updateTotalPoints();
 }
 
+function markActiveExercise(path) {
+    document.querySelectorAll('#page-aside li > .d-flex').forEach(function (el) {
+        el.classList.remove('active-exercise');
+    });
+
+    if (!path) return;
+    const match = path.match(/\/update\/(\d+)\/?$/);
+    if (!match) return;
+
+    const li = document.getElementById('exercise-' + match[1]);
+    if (li) li.querySelector('.d-flex').classList.add('active-exercise');
+}
+
 document.addEventListener('DOMContentLoaded', updateAsideState);
 
 document.body.addEventListener('htmx:oobAfterSwap', () => {
     requestAnimationFrame(updateAsideState);
 });
 
-document.body.addEventListener('htmx:afterSwap', () => {
+document.body.addEventListener('htmx:afterSwap', (e) => {
+    if (e.detail.target && e.detail.target.id === 'main-content') {
+        const path = e.detail.requestConfig && e.detail.requestConfig.path;
+        markActiveExercise(path);
+    }
     requestAnimationFrame(updateAsideState);
 });
 

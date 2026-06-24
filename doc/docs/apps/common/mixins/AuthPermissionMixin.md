@@ -1,0 +1,3 @@
+# AuthPermissionMixin
+
+::: common.mixins.AuthPermissionMixin

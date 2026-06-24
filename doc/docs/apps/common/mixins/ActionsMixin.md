@@ -1,0 +1,3 @@
+# ActionsMixin
+
+::: common.mixins.ActionsMixin

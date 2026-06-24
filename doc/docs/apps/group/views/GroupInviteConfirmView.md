@@ -1,0 +1,3 @@
+# GroupInviteConfirmView
+
+::: group.views.GroupInviteConfirmView

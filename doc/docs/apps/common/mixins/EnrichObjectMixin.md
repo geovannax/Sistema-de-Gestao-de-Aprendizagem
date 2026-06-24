@@ -1,0 +1,3 @@
+# EnrichObjectMixin
+
+::: common.mixins.EnrichObjectMixin

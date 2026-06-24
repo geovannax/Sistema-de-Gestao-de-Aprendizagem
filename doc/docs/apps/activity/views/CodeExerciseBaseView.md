@@ -1,0 +1,3 @@
+# CodeExerciseBaseView
+
+::: activity.views.CodeExerciseBaseView

@@ -32,7 +32,7 @@ ALLOWED_HOSTS = os.getenv(
 ).split(',')
 CSRF_TRUSTED_ORIGINS = os.getenv(
     'WEB_CSRF_TRUSTED_ORIGINS',
-    'http://localhost'
+    'http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1',
 ).split(',')
 
 # Application definition
@@ -152,7 +152,9 @@ if not DEBUG:  # pragma: no cover
     SELECT2_CACHE_BACKEND = "select2"
 
 # Session Configuration
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# cached_db: grava no Redis (rápido) + PostgreSQL (fallback). Resiliente a
+# falhas do Redis e ao IGNORE_EXCEPTIONS do cache.
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
 
 # Password validation

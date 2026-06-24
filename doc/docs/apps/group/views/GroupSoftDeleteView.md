@@ -1,0 +1,3 @@
+# GroupSoftDeleteView
+
+::: group.views.GroupSoftDeleteView

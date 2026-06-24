@@ -1,0 +1,3 @@
+# ActivityDeleteView
+
+::: activity.views.ActivityDeleteView

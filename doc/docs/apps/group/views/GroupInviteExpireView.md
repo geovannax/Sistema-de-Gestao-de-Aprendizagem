@@ -1,0 +1,3 @@
+# GroupInviteExpireView
+
+::: group.views.GroupInviteExpireView

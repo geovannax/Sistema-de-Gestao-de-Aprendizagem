@@ -1,0 +1,3 @@
+# ActivityArchivedListView
+
+::: activity.views.ActivityArchivedListView

@@ -1,0 +1,3 @@
+# StudentActivityView
+
+::: student.views.StudentActivityView

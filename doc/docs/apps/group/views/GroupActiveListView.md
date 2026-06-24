@@ -1,0 +1,3 @@
+# GroupActiveListView
+
+::: group.views.GroupActiveListView

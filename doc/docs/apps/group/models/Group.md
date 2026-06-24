@@ -1,0 +1,3 @@
+# Group
+
+::: group.models.Group

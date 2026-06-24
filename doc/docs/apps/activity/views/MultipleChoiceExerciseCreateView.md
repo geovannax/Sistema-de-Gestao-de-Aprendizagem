@@ -1,0 +1,3 @@
+# MultipleChoiceExerciseCreateView
+
+::: activity.views.MultipleChoiceExerciseCreateView

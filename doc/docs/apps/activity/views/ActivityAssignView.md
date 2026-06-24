@@ -1,0 +1,3 @@
+# ActivityAssignView
+
+::: activity.views.ActivityAssignView

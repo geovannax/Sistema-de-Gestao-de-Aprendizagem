@@ -1,0 +1,3 @@
+# GroupArchived
+
+::: group.models.GroupArchived

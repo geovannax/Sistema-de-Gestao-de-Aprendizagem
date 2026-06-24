@@ -1,0 +1,3 @@
+# StudentGroupDetailView
+
+::: student.views.StudentGroupDetailView

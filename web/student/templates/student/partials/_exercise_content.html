@@ -1,0 +1,150 @@
+{% if current_exercise %}
+
+<div class="form-card p-3 rounded-3 mb-3">
+
+    <!-- Header -->
+    <div class="form-card-header d-flex align-items-start justify-content-between mb-0">
+        <div>
+            <div class="form-card-title mb-0">Questão {{ current_index }} de {{ total_exercises }}</div>
+        </div>
+        <span class="exercise-type-badge exercise-type-{{ current_exercise.type }}">
+            {% if current_exercise.type == 'multiple_choice' %}
+                <i class="bi bi-list-check m-1"></i> Múltipla Escolha
+            {% elif current_exercise.type == 'discursive' %}
+                <i class="bi bi-chat-left-text m-1"></i> Discursiva
+            {% elif current_exercise.type == 'code' %}
+                <i class="bi bi-code-slash m-1"></i> Código
+            {% elif current_exercise.type == 'complete_code' %}
+                <i class="bi bi-pencil-square m-1"></i> Completar Código
+            {% endif %}
+        </span>
+    </div>
+
+    <hr>
+
+    <!-- Statement -->
+    <div class="exercise-statement">
+        {{ current_exercise.statement|linebreaksbr }}
+    </div>
+
+    <!-- Extra info for code exercises -->
+    {% if current_exercise.type == 'code' %}
+        <div class="code-info-bar mb-3">
+            <i class="bi bi-code-slash me-1"></i>
+            Linguagem: <strong>{{ current_exercise.code_exercise.get_language_display }}</strong>
+            <span class="ms-3 text-muted">· Escreva o código que produza o output esperado</span>
+        </div>
+    {% elif current_exercise.type == 'complete_code' %}
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small text-uppercase">
+                <i class="bi bi-code me-1"></i>Código base ({{ current_exercise.complete_code_exercise.get_language_display }})
+            </label>
+            <pre class="starter-code"><code class="language-{{ current_exercise.complete_code_exercise.language }}">{{ current_exercise.complete_code_exercise.starter_code }}</code></pre>
+        </div>
+    {% endif %}
+
+    <!-- Answer fields (included by sidebar & nav buttons via hx-include) -->
+    <div id="answer-fields">
+        <input type="hidden" name="current_exercise_pk" value="{{ current_exercise.pk }}">
+
+        {% if current_exercise.type == 'multiple_choice' %}
+            <div class="form-group">
+                <label>Selecione uma alternativa:</label>
+                <div class="options-list">
+                    {% for option in current_exercise.multiple_choice_exercise.options.all %}
+                        <label class="option-label {% if current_answer.selected_option_id == option.pk %}selected{% endif %}">
+                            <input type="radio" name="selected_option" value="{{ option.pk }}"
+                                   {% if current_answer.selected_option_id == option.pk %}checked{% endif %}>
+                            <span>{{ option.text }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% elif current_exercise.type == 'discursive' %}
+            <div class="form-group">
+                <label>Sua resposta:</label>
+                <textarea name="answer_text" class="form-control" rows="8"
+                          placeholder="Digite sua resposta aqui...">{{ current_answer.answer_text|default:'' }}</textarea>
+                {% if current_exercise.discursive_exercise.min_words %}
+                    <div class="field-hint mb-3">
+                        Mínimo de {{ current_exercise.discursive_exercise.min_words }} palavras{% if current_exercise.discursive_exercise.max_words %} · máximo de {{ current_exercise.discursive_exercise.max_words }}{% endif %}.
+                    </div>
+                {% endif %}
+            </div>
+
+        {% elif current_exercise.type == 'code' %}
+            <div class="form-group">
+                <label>Seu código:</label>
+                <textarea name="answer_text" class="form-control code-editor" rows="10"
+                          data-language="{{ current_exercise.code_exercise.language }}"
+                          placeholder="# Digite seu código aqui...">{{ current_answer.answer_text|default:'' }}</textarea>
+                <div class="field-hint mb-3">Escreva o código que produza o output esperado em {{ current_exercise.code_exercise.get_language_display }}.</div>
+            </div>
+
+        {% elif current_exercise.type == 'complete_code' %}
+            <div class="form-group">
+                <label>Código completo:</label>
+                <textarea name="answer_text" class="form-control code-editor" rows="10"
+                          data-language="{{ current_exercise.complete_code_exercise.language }}"
+                          placeholder="# Complete o código aqui...">{{ current_answer.answer_text|default:'' }}</textarea>
+                <div class="field-hint mb-3">Preencha todas as lacunas marcadas com <code>___</code> no código base acima.</div>
+            </div>
+        {% endif %}
+
+        <!-- Student observation (optional) -->
+        <div class="form-group mt-3">
+            <label><i class="bi bi-chat-left-dots me-1"></i>Observação <span class="fw-normal text-muted">(opcional)</span></label>
+            <textarea name="student_observation" class="form-control form-control-sm" rows="2"
+                      placeholder="Ex: tive dificuldade em entender o enunciado...">{{ current_answer.student_observation|default:'' }}</textarea>
+            <div class="field-hint mb-3">Registre aqui dificuldades ou dúvidas sobre esta questão.</div>
+        </div>
+    </div>
+
+    <hr class="mt-0">
+
+    <!-- Navigation -->
+    <div class="d-flex align-items-center justify-content-between gap-2">
+        {% if prev_exercise %}
+            <button class="btn btn-outline-secondary rounded-5 px-4"
+                    hx-post="{% url 'student:activity' activity_link.pk %}"
+                    hx-include="#answer-fields"
+                    hx-vals='{"navigate_to_pk": "{{ prev_exercise.pk }}"}'
+                    hx-target="#main-row"
+                    hx-swap="innerHTML"
+                    hx-indicator=".htmx-loading">
+                <i class="bi bi-arrow-left me-2"></i>Anterior
+            </button>
+        {% else %}
+            <div></div>
+        {% endif %}
+
+        {% if next_exercise %}
+            <button class="btn btn-outline-primary rounded-5 px-4"
+                    hx-post="{% url 'student:activity' activity_link.pk %}"
+                    hx-include="#answer-fields"
+                    hx-vals='{"navigate_to_pk": "{{ next_exercise.pk }}"}'
+                    hx-target="#main-row"
+                    hx-swap="innerHTML"
+                    hx-indicator=".htmx-loading">
+                Próxima<i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        {% else %}
+            <button class="btn btn-outline-primary rounded-5 px-4"
+                    hx-post="{% url 'student:activity' activity_link.pk %}"
+                    hx-include="#answer-fields"
+                    hx-vals='{"go_review": "1"}'
+                    hx-target="body">
+                <i class="bi bi-eye me-2"></i>Revisar
+            </button>
+        {% endif %}
+    </div>
+
+</div>
+
+{% else %}
+    <div class="empty-state mt-3 d-flex flex-column align-items-center py-4">
+        <i class="bi bi-inbox empty-state-icon"></i>
+        <p class="empty-state-text mb-0">Esta atividade não possui exercícios cadastrados.</p>
+    </div>
+{% endif %}

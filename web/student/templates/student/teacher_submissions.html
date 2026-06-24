@@ -1,0 +1,139 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Submissões — {{ activity_link.activity_list.title }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/teacher_submissions.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <div class="d-flex align-items-center gap-3 mb-4 pt-5">
+        <a href="{% url 'group:detail' activity_link.group.pk %}"
+           class="btn btn-sm btn-outline-secondary rounded-circle" title="Voltar para a turma">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h5 class="mb-0 fw-semibold">{{ activity_link.activity_list.title }}</h5>
+            <small class="text-muted">{{ activity_link.group.name }} · Submissões dos alunos</small>
+        </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="stat-row">
+        <div class="stat-box">
+            <div class="stat-value">{{ total_enrolled }}</div>
+            <div class="stat-label">Matriculados</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value text-success">{{ submissions|length }}</div>
+            <div class="stat-label">Entregues</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value text-warning">{{ pending_enrollments|length }}</div>
+            <div class="stat-label">Pendentes</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ total_exercises }}</div>
+            <div class="stat-label">Exercícios</div>
+        </div>
+    </div>
+
+    <!-- Seção: Concluíram -->
+    <div class="mb-2">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="section-header-label">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>Concluíram ({{ submissions|length }})
+            </span>
+        </div>
+
+        {% if submissions %}
+            {% for sub in submissions %}
+                <div class="sub-card">
+                    <div class="d-flex align-items-center gap-3 min-width-0">
+                        <div class="sub-avatar">
+                            {{ sub.student.get_full_name|default:sub.student.username|slice:":2"|upper }}
+                        </div>
+                        <div class="min-width-0">
+                            <div class="sub-name">
+                                {{ sub.student.get_full_name|default:sub.student.username }}
+                            </div>
+                            <div class="sub-meta">
+                                <i class="bi bi-send-check me-1"></i>{{ sub.submitted_at|date:"d/m/Y \à\s H:i" }}
+                                &nbsp;·&nbsp;
+                                {{ sub.answered_count }}/{{ total_exercises }} respondidas
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        {% if sub.pending_count > 0 %}
+                            <span class="badge-pending">
+                                <i class="bi bi-clock me-1"></i>{{ sub.pending_count }} pendente{{ sub.pending_count|pluralize }}
+                            </span>
+                        {% else %}
+                            <span class="badge-done">
+                                <i class="bi bi-check-lg me-1"></i>Corrigida
+                            </span>
+                        {% endif %}
+                        <a href="{% url 'student:activity_grade' activity_link.pk sub.pk %}"
+                           class="btn btn-sm btn-primary rounded-5">
+                            <i class="bi bi-pencil-square me-1"></i>Corrigir
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-muted small ps-1 mb-3">Nenhum aluno entregou esta atividade ainda.</div>
+        {% endif %}
+    </div>
+
+    <!-- Seção: Pendentes -->
+    <div class="mt-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="section-header-label">
+                <i class="bi bi-hourglass-split text-warning me-1"></i>Pendentes ({{ pending_enrollments|length }})
+            </span>
+        </div>
+
+        {% if pending_enrollments %}
+            {% for enrollment in pending_enrollments %}
+                <div class="sub-card">
+                    <div class="d-flex align-items-center gap-3 min-width-0">
+                        <div class="sub-avatar" style="background: var(--gray-400);">
+                            {{ enrollment.student.get_full_name|default:enrollment.student.username|slice:":2"|upper }}
+                        </div>
+                        <div class="min-width-0">
+                            <div class="sub-name">
+                                {{ enrollment.student.get_full_name|default:enrollment.student.username }}
+                            </div>
+                            <div class="sub-meta">
+                                {% if enrollment.in_progress %}
+                                    <i class="bi bi-pencil me-1"></i>Em andamento
+                                {% else %}
+                                    <i class="bi bi-circle me-1"></i>Não iniciou
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% if enrollment.in_progress %}
+                            <span class="badge-pending"><i class="bi bi-clock me-1"></i>Em andamento</span>
+                        {% else %}
+                            <span class="badge-not-started">
+                                <i class="bi bi-dash me-1"></i>Não iniciou
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-muted small ps-1">Todos os alunos já entregaram.</div>
+        {% endif %}
+    </div>
+
+{% endblock main_content %}

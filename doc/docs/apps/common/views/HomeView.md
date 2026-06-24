@@ -1,0 +1,3 @@
+# HomeView
+
+::: common.views.HomeView

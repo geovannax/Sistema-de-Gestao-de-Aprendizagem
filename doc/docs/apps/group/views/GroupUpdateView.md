@@ -1,0 +1,3 @@
+# GroupUpdateView
+
+::: group.views.GroupUpdateView

@@ -1,0 +1,3 @@
+# ActivityArchiveView
+
+::: activity.views.ActivityArchiveView

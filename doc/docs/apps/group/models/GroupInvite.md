@@ -1,0 +1,3 @@
+# GroupInvite
+
+::: group.models.GroupInvite

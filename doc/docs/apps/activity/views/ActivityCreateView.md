@@ -1,0 +1,3 @@
+# ActivityCreateView
+
+::: activity.views.ActivityCreateView

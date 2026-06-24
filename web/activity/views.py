@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any
 from activity.constants import EXERCISE_TYPES
 from activity.forms.activity import ActivityAssignForm, ActivityListForm, ActivityListGroupPeriodForm
 from activity.forms.exercise import CodeExerciseForm, CompleteCodeExerciseForm, DiscursiveExerciseForm, ExerciseOptionForm
@@ -32,7 +34,9 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Prefetch, Count, Exists, OuterRef, Q
+from django.db.models import Prefetch, Count, Exists, OuterRef, Q, QuerySet
+from django.forms import BaseModelForm
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -41,22 +45,28 @@ from django.views.generic.edit import FormMixin
 
 
 class ActivityListBaseView(EnhancedListView):
+    """Classe base para listagens de atividades.
+
+    Compartilha lógica de enriquecimento de ações, filtro de arquivadas
+    e configuração das abas de navegação entre
+    :class:`ActivityListView` e :class:`ActivityArchivedListView`.
+    """
     allowed_fields = ['title', 'description', 'created_at']
     detail_url = 'activity:detail'
     model = ActivityList
     page_description = 'Organize, acompanhe e compartilhe suas atividades com facilidade.'
 
-    def get_archived_activity_ids(self):
+    def get_archived_activity_ids(self) -> QuerySet:
         return ActivityArchived.objects.filter(
             activity_list=OuterRef('pk'),
             user=self.request.user,
             is_archived=True
         )
 
-    def has_object_enrich_actions(self, user, obj):
+    def has_object_enrich_actions(self, user: User, obj: ActivityList) -> bool:
         return obj.created_by == user
-    
-    def enrich_actions(self, user, obj):
+
+    def enrich_actions(self, user: User, obj: ActivityList) -> list:
         if self.has_object_enrich_actions(user, obj):
             return get_btn_action(
                 ['update', 'archive', 'delete'],
@@ -68,7 +78,7 @@ class ActivityListBaseView(EnhancedListView):
                 self.request.resolver_match.app_name
             )
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[ActivityList]:
         """Retorna as atividades ativas do usuario"""
         qs_archived = self.get_archived_activity_ids()
 
@@ -79,7 +89,7 @@ class ActivityListBaseView(EnhancedListView):
             Exists(qs_archived)
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         context.update({
             'nav_tabs': self.set_nav_tabs(),
@@ -89,7 +99,7 @@ class ActivityListBaseView(EnhancedListView):
         })
         return context
 
-    def set_nav_tabs(self):
+    def set_nav_tabs(self) -> list:
         """Configura as abas de navegação"""
         return [
             {
@@ -127,6 +137,13 @@ class ActivityArchivedListView(AuthPermissionMixin, ActivityListBaseView):
 
 ##### INICIO VIEW DE CRIAÇÃO/ATUALIZAÇÃO DE ATIVIDADE #####
 class ActivityCreateOrUpdateView:
+    """Mixin compartilhado entre criação e edição de listas de atividades.
+
+    Centraliza a lógica de renderização do builder de exercícios, exibição
+    de exercícios existentes e o fluxo de ``form_valid``/``form_invalid``.
+    Deve ser combinado com :class:`~django.views.generic.CreateView` ou
+    :class:`~django.views.generic.UpdateView`.
+    """
     template_name = 'activity/create.html'
     form_class = ActivityListForm
     is_update_flow = False
@@ -135,7 +152,13 @@ class ActivityCreateOrUpdateView:
     page_title = None
     page_description = None
 
-    def get_exercises(self):
+    def get_exercises(self) -> list:
+        """Retorna os exercícios da atividade com related models carregados.
+
+        Returns:
+            QuerySet de :class:`~activity.models.Exercise` ordenado por ``order``,
+            ou lista vazia se ``self.object`` ainda não existir (fluxo de criação).
+        """
         if not getattr(self, 'object', None):
             return []
 
@@ -155,7 +178,12 @@ class ActivityCreateOrUpdateView:
 
         return exercises
 
-    def render_activity_builder(self):
+    def render_activity_builder(self) -> HttpResponse:
+        """Renderiza o partial HTMX do seletor de tipos de exercício.
+
+        Returns:
+            HttpResponse com o template ``activity/_exercise_type_selector.html``.
+        """
         return render(
             self.request,
             'activity/_exercise_type_selector.html',
@@ -168,7 +196,7 @@ class ActivityCreateOrUpdateView:
             }
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         context.update({
             'form_title': self.form_title,
@@ -183,7 +211,7 @@ class ActivityCreateOrUpdateView:
         })
         return context
     
-    def form_valid(self, form):
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         # Salva automaticamente com CreateView
         self.object = form.save(commit=False)
         self.object.created_by = self.request.user
@@ -192,7 +220,7 @@ class ActivityCreateOrUpdateView:
 
         return self.render_activity_builder()
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: BaseModelForm) -> HttpResponse:
         return render(
             self.request,
             self.template_name,
@@ -223,20 +251,20 @@ class ActivityUpdateView(
     page_title = 'Editar Atividade'
     page_description = 'Revise as informações da atividade e mantenha seus exercícios organizados.'
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[ActivityList]:
         return (
             ActivityList.objects
             .filter(created_by=self.request.user, deleted_at__isnull=True)
             .prefetch_related('exercises')
         )
 
-    def has_object_access(self, user, obj):
+    def has_object_access(self, user: User, obj: ActivityList) -> bool:
         return obj.created_by == user
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         return super().get(request, *args, **kwargs)
 
-    def form_valid(self, form):
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         self.object = form.save()
 
         return self.render_activity_builder()
@@ -249,13 +277,13 @@ class ExerciseCancelView(
     View
 ):
     
-    def has_object_access(self, user, obj):
+    def has_object_access(self, user: User, obj: ActivityList | None) -> bool:
         """
         Verifica se o usuário tem acesso ao objeto de lista de atividades (ActivityList) relacionado ao exercício.
         """
         return False if not obj else obj.created_by == user
 
-    def get_object(self):
+    def get_object(self) -> ActivityList | None:
         """
         Obtem a instância de ActivityList com base no ID fornecido na URL, garantindo que o usuário tenha acesso a ela.
         Retorna None se a instância não for encontrada ou se o usuário não tiver acesso.
@@ -265,7 +293,7 @@ class ExerciseCancelView(
             deleted_at__isnull=True
         ).first()
 
-    def get(self, request, pk, *args, **kwargs):
+    def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
         return render(
             request,
             'activity/_exercise_type_selector.html',
@@ -311,12 +339,12 @@ class ExerciseDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
         """
         return self.object.activity_list.id
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         context.update({'activity_list': self.get_activity_list_id()})
         return context
 
-    def form_valid(self, form):
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         # Salva o ID do exercício antes de deletar para usar na resposta HTMX
         is_deleted = self.object.pk
         self.object.delete()
@@ -350,7 +378,7 @@ class MultipleChoiceExerciseUpdateView(MultipleChoiceExerciseBaseView, UpdateVie
 class MultipleChoiceExerciseAddOptionView(HTMXLoginRequiredMixin, View):
     template_name = "activity/types/multiple_choice/_options.html"
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         total_forms = int(request.POST.get('total_forms', 0))
         
         # Criar formulário com o prefix correto
@@ -418,21 +446,19 @@ class DiscursiveExerciseUpdateView(DiscursiveExerciseBaseView, UpdateView):
 
 ############ Não Implementado ############
 class ActivityDetailBaseView:
-    """
-    View para exibir detalhes de uma atividade e seus exercícios.
-    
-    Mostra:
-    - Informações da atividade (título, descrição)
-    - Estatísticas (total de exercícios, status de publicação)
-    - Lista de exercícios organizados por tipo
-    - Ações disponíveis (editar, deletar, publicar) para o criador
+    """Classe base para as views de detalhe e vinculação de atividades.
+
+    Compartilha a lógica de carregamento otimizado via ``select_related``
+    e ``prefetch_related``, contagem de exercícios por tipo, cálculo de
+    pontuação total e configuração das abas de navegação entre
+    :class:`ActivityDetailView` e :class:`ActivityAssignView`.
     """
     model = ActivityList
     template_name = 'activity/detail.html'
     context_object_name = 'activity'
     allowed_fields = None
     
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[ActivityList]:
         """Otimiza queries com select_related e prefetch_related"""
         return super().get_queryset().filter(
             deleted_at__isnull=True
@@ -455,7 +481,7 @@ class ActivityDetailBaseView:
             total_exercises=Count('exercises')
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         activity = self.object
 
@@ -497,7 +523,7 @@ class ActivityDetailBaseView:
         """Permite acesso apenas para o criador da atividade"""
         return obj.created_by == user
 
-    def set_nav_tabs(self):
+    def set_nav_tabs(self) -> list:
         """Configura as abas de navegação"""
         return [{
                 'title': 'Resumo',
@@ -514,7 +540,7 @@ class ActivityDetailBaseView:
             }
         ]
 
-    def init_exercise_info(self):
+    def init_exercise_info(self) -> dict:
         return {
             'discursive': {
                 'label': EXERCISE_TYPES['discursive']['label'],
@@ -564,7 +590,7 @@ class ActivityAssignView(
         "ends_at": "ends_at__icontains",
     }
 
-    def get_sharings_queryset(self):
+    def get_sharings_queryset(self) -> QuerySet[ActivityListGroup]:
         qs = (
             ActivityListGroup.objects
             .filter(activity_list=self.object)
@@ -581,19 +607,19 @@ class ActivityAssignView(
 
         return qs
 
-    def has_object_enrich_actions(self, user, obj):
+    def has_object_enrich_actions(self, user: User, obj: ActivityListGroup) -> bool:
         return obj.activity_list.created_by == user
 
-    def enrich_actions(self, user, obj):
+    def enrich_actions(self, user: User, obj: ActivityListGroup) -> list:
         if self.has_object_enrich_actions(user, obj):
             return get_btn_action(
                 ['assign_update', 'unshare'],
                 self.request.resolver_match.app_name
             )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        
+
         sharings_qs = self.get_sharings_queryset()
 
         pagination = self.paginate_queryset(sharings_qs)
@@ -619,7 +645,7 @@ class ActivityAssignView(
         return kwargs
 
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         # Garantir que self.object esteja definido para o form_valid
         self.object = self.get_object()
 
@@ -635,7 +661,7 @@ class ActivityAssignView(
 
 
     @transaction.atomic
-    def form_valid(self, form):
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         bind_all_groups = form.cleaned_data.get('bind_all_groups')
         groups = (
             form.get_available_groups(self.request.user)
@@ -700,7 +726,7 @@ class ActivityAssignUpdateView(AuthPermissionMixin, ObjectAccessRequiredMixin, U
         },
     ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[ActivityListGroup]:
         return (
             ActivityListGroup.objects
             .select_related('activity_list', 'group')
@@ -711,10 +737,10 @@ class ActivityAssignUpdateView(AuthPermissionMixin, ObjectAccessRequiredMixin, U
             )
         )
 
-    def has_object_access(self, user, obj):
+    def has_object_access(self, user: User, obj: ActivityListGroup | None) -> bool:
         return obj and obj.activity_list.created_by == user
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         context.update({
             'page_title': self.page_title,
@@ -727,7 +753,7 @@ class ActivityAssignUpdateView(AuthPermissionMixin, ObjectAccessRequiredMixin, U
         })
         return context
 
-    def form_valid(self, form):
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
         self.object = form.save(commit=False)
         self.object.due_date = self.object.ends_at
         self.object.save(update_fields=['starts_at', 'ends_at', 'due_date'])
@@ -744,17 +770,17 @@ class ActivityAssignUpdateView(AuthPermissionMixin, ObjectAccessRequiredMixin, U
 
 
 class ActivityArchiveView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
-    def get_object(self):
+    def get_object(self) -> ActivityList | None:
         return ActivityList.objects.filter(
             pk=self.kwargs['pk'],
             created_by=self.request.user,
             deleted_at__isnull=True
         ).first()
 
-    def has_object_access(self, user, obj):
+    def has_object_access(self, user: User, obj: ActivityList | None) -> bool:
         return obj and obj.created_by == user
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity = self.get_object()
 
         archived, created = ActivityArchived.objects.get_or_create(
@@ -780,23 +806,42 @@ class ActivityDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
     template_name = 'global/partials/generic/delete/view.html'
     context_object_name = 'delete'
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[ActivityList]:
         return ActivityList.objects.filter(
             created_by=self.request.user,
             deleted_at__isnull=True,
         )
 
-    def has_object_access(self, user, obj):
+    def has_object_access(self, user: User, obj: ActivityList) -> bool:
         return obj.created_by == user
 
-    def has_open_group_period(self, obj):
+    def has_open_group_period(self, obj: ActivityList) -> bool:
+        """Verifica se a atividade possui algum vínculo com período em aberto.
+
+        Args:
+            obj: Instância de :class:`~activity.models.ActivityList`.
+
+        Returns:
+            ``True`` se existir ao menos um vínculo sem data de fim ou com
+            data de fim no futuro.
+        """
         now = timezone.now()
         return obj.list_groups.filter(
             Q(ends_at__isnull=True) |
             Q(ends_at__gte=now)
         ).exists()
 
-    def redirect_if_has_open_group_period(self, request, obj):
+    def redirect_if_has_open_group_period(self, request: HttpRequest, obj: ActivityList) -> HttpResponse | None:
+        """Redireciona para o detalhe da atividade se houver período em aberto.
+
+        Args:
+            request: Requisição HTTP atual.
+            obj: Instância de :class:`~activity.models.ActivityList`.
+
+        Returns:
+            ``HttpResponseRedirect`` para o detalhe da atividade com mensagem
+            de erro, ou ``None`` se não houver período em aberto.
+        """
         if not self.has_open_group_period(obj):
             return None
 
@@ -806,7 +851,7 @@ class ActivityDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
         )
         return redirect('activity:detail', pk=obj.pk)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         self.object.name = self.object.title
         context.update({
@@ -817,7 +862,7 @@ class ActivityDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
         })
         return context
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         obj = self.get_object()
 
         redirect_response = self.redirect_if_has_open_group_period(request, obj)
@@ -826,7 +871,7 @@ class ActivityDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
 
         return super().get(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         obj = self.get_object()
 
         redirect_response = self.redirect_if_has_open_group_period(request, obj)
@@ -845,7 +890,7 @@ class ActivityDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
 
 
 class ActivityUnshareView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
-    def get_object(self):
+    def get_object(self) -> ActivityListGroup | None:
         if hasattr(self, 'object'):
             return self.object
 
@@ -857,10 +902,10 @@ class ActivityUnshareView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
         )
         return self.object
 
-    def has_object_access(self, user, obj):
+    def has_object_access(self, user: User, obj: ActivityListGroup | None) -> bool:
         return obj and obj.activity_list.created_by == user
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         obj = self.get_object()
         activity_list_pk = obj.activity_list.pk
         group_name = obj.group.name

@@ -10,6 +10,7 @@ from group.views import (
     GroupInviteCreateView,
     GroupInviteExpireView,
     GroupManageArchivingView,
+    GroupReviewView,
     GroupSharedListView,
     GroupShareView,
     GroupSoftDeleteView,
@@ -33,6 +34,7 @@ urlpatterns = [
     path('<int:pk>/invite/<int:invite_pk>/expire/', GroupInviteExpireView.as_view(), name='invite_expire'),
     path('<int:pk>/share/', GroupShareView.as_view(), name='share'),
     path('<int:pk>/unshare/', GroupUnshareView.as_view(), name='unshare'),
+    path('<int:pk>/review/', GroupReviewView.as_view(), name='review'),
     path('<int:pk>/update/', GroupUpdateView.as_view(), name='update'),
 
 ]

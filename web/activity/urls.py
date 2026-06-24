@@ -57,7 +57,7 @@ urlpatterns = [
  
     # Não implementado
     path('create/', ActivityCreateView.as_view(), name='create'),  
-    path('detail/<int:pk>/', ActivityDetailView.as_view(), name='detail'), 
+    path('detail/<int:pk>/', ActivityDetailView.as_view(), name='detail'),
     path('update/<int:pk>/', ActivityUpdateView.as_view(), name='update'),
     path('archive/<int:pk>/', ActivityArchiveView.as_view(), name='archive'),
     path('delete/<int:pk>/', ActivityDeleteView.as_view(), name='delete'),

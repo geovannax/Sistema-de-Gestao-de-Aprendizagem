@@ -1,0 +1,169 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Correção — {{ submission.student.get_full_name|default:submission.student.username }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'student/css/activity.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/teacher_grade.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <div class="d-flex align-items-center gap-3 mb-4 pt-5">
+        <a href="{% url 'student:activity_submissions' activity_link.pk %}"
+           class="btn btn-sm btn-outline-secondary rounded-circle" title="Voltar às submissões">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h5 class="mb-0 fw-semibold">
+                {{ submission.student.get_full_name|default:submission.student.username }}
+            </h5>
+            <small class="text-muted">
+                {{ activity_link.activity_list.title }} · Entregue em {{ submission.submitted_at|date:"d/m/Y \à\s H:i" }}
+            </small>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% for exercise in exercises %}
+            {% with answer=exercise.answer %}
+                {% if exercise.type == 'multiple_choice' %}
+                    <div class="grade-card auto-graded">
+                        <div class="exercise-num">Questão {{ forloop.counter }} · Múltipla Escolha · Auto-corrigida</div>
+                        <div class="exercise-statement">{{ exercise.statement }}</div>
+
+                        {% if answer %}
+                            <div class="answer-block">
+                                <div class="answer-label">Resposta do aluno</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if answer.is_correct %}
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                    {% endif %}
+                                    {{ answer.selected_option.text|default:"—" }}
+                                </div>
+                            </div>
+                            {% if not answer.is_correct %}
+                                <div class="answer-block correct-answer">
+                                    <div class="answer-label correct-label">Resposta correta</div>
+                                    {% for option in exercise.multiple_choice_exercise.options.all %}
+                                        {% if option.is_correct %}
+                                            <div>{{ option.text }}</div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if answer.student_observation %}
+                                <div class="student-observation">
+                                    <i class="bi bi-chat-left-dots me-1"></i><strong>Observação do aluno:</strong> {{ answer.student_observation }}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="no-answer">Aluno não respondeu esta questão.</p>
+                        {% endif %}
+                    </div>
+
+                {% else %}
+                    {# Discursiva, Código ou Completar Código — correção manual #}
+                    <div class="grade-card {% if answer.is_correct %}manual-correct{% elif answer.is_correct == False %}manual-incorrect{% else %}manual-pending{% endif %}">
+                        <div class="exercise-num">
+                            Questão {{ forloop.counter }} ·
+                            {% if exercise.type == 'discursive' %}Discursiva
+                            {% elif exercise.type == 'code' %}Código
+                            {% elif exercise.type == 'complete_code' %}Completar Código
+                            {% endif %}
+                            · Correção manual
+                        </div>
+                        <div class="exercise-statement">{{ exercise.statement }}</div>
+
+                        {% if exercise.type == 'complete_code' and exercise.complete_code_exercise.starter_code %}
+                            <div class="answer-block mb-2">
+                                <div class="answer-label">Código base</div>
+                                <pre class="answer-code starter">{{ exercise.complete_code_exercise.starter_code }}</pre>
+                            </div>
+                        {% endif %}
+
+                        {% if answer %}
+                            <div class="answer-block">
+                                <div class="answer-label">Resposta do aluno</div>
+                                {% if exercise.type == 'code' or exercise.type == 'complete_code' %}
+                                    <pre class="answer-code">{{ answer.answer_text }}</pre>
+                                {% else %}
+                                    <div style="white-space: pre-wrap;">{{ answer.answer_text }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="grade-buttons">
+                                <label>
+                                    <input type="radio" name="grade_{{ answer.pk }}" value="correct"
+                                           {% if answer.is_correct %}checked{% endif %} class="d-none grade-radio">
+                                    <span class="grade-btn correct {% if answer.is_correct %}active{% endif %}">
+                                        <i class="bi bi-check-lg me-1"></i>Correta
+                                    </span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="grade_{{ answer.pk }}" value="incorrect"
+                                           {% if answer.is_correct == False %}checked{% endif %} class="d-none grade-radio">
+                                    <span class="grade-btn incorrect {% if answer.is_correct == False %}active{% endif %}">
+                                        <i class="bi bi-x-lg me-1"></i>Incorreta
+                                    </span>
+                                </label>
+                            </div>
+
+                            {% if answer.student_observation %}
+                                <div class="student-observation">
+                                    <i class="bi bi-chat-left-dots me-1"></i><strong>Observação do aluno:</strong> {{ answer.student_observation }}
+                                </div>
+                            {% endif %}
+
+                            <div class="mt-3">
+                                <div class="answer-label">Feedback para o aluno <span style="font-weight:400;">(opcional)</span></div>
+                                <textarea name="comment_answer_{{ answer.pk }}" class="form-control form-control-sm" rows="2"
+                                          placeholder="Deixe um comentário para o aluno sobre esta resposta...">{{ answer.teacher_comment }}</textarea>
+                            </div>
+                        {% else %}
+                            <p class="no-answer">Aluno não respondeu esta questão.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+
+        <!-- Comentário geral da atividade -->
+        <div class="grade-card mt-4">
+            <div class="exercise-num"><i class="bi bi-chat-quote me-1"></i>Comentário geral da atividade</div>
+            <div class="answer-label mb-1">Feedback geral para o aluno <span style="font-weight:400;">(opcional)</span></div>
+            <textarea name="teacher_comment" class="form-control" rows="3"
+                      placeholder="Deixe um comentário geral sobre o desempenho do aluno nesta atividade...">{{ submission.teacher_comment }}</textarea>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <a href="{% url 'student:activity_submissions' activity_link.pk %}"
+               class="btn btn-outline-secondary rounded-5 px-4">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+            <button type="submit" class="btn btn-success rounded-5 px-5">
+                <i class="bi bi-floppy me-2"></i>Salvar Correções
+            </button>
+        </div>
+    </form>
+
+    <script>
+        document.querySelectorAll('.grade-radio').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                const group = document.querySelectorAll('input[name="' + this.name + '"]');
+                group.forEach(function(r) {
+                    r.nextElementSibling.classList.remove('active');
+                });
+                if (this.checked) {
+                    this.nextElementSibling.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+{% endblock main_content %}

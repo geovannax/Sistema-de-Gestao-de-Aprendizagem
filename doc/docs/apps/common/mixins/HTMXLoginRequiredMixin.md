@@ -1,0 +1,3 @@
+# HTMXLoginRequiredMixin
+
+::: common.mixins.HTMXLoginRequiredMixin

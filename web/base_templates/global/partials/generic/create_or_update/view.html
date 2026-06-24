@@ -22,15 +22,7 @@
             <div class="col-lg-4">
 
                 <!-- PROGRESS -->
-                <div class="col-12 progress-section p-3 mb-3 rounded-3">
-                    <div class="progress-label">Progresso do Formulário</div>
-                    <div class="progress" role="progressbar" aria-label="Formulario Grupos" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-text">
-                        <span id="progressText">0%</span>
-                    </div>
-                </div>
+                {% include "global/partials/generic/create_or_update/_progress.html" %}
 
                 <!-- TIPS -->
                 {% if tip_card_content %}

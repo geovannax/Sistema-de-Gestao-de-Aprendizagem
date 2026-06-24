@@ -1,0 +1,3 @@
+# StudentSubmitView
+
+::: student.views.StudentSubmitView

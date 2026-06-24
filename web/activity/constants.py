@@ -1,4 +1,9 @@
-# Constantes de UI e configuração da aplicação activity
+"""Constantes de configuração e UI do app activity.
+
+Define os tipos de exercício suportados, seus metadados de exibição (label,
+ícone, cor, URLs de criação/edição) e as choices de linguagem de programação
+usadas pelos modelos e formulários.
+"""
 
 EXERCISE_TYPES = {
     'discursive': {

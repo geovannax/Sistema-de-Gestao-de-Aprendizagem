@@ -1,0 +1,3 @@
+# GroupShareView
+
+::: group.views.GroupShareView
