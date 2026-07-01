@@ -29,6 +29,7 @@ from common.mixins import (
     EnrichObjectMixin,
 )
 from common.utils import get_btn_action
+from student.models import Submission
 from common.view.generic import EnhancedListView
 from decimal import Decimal
 from django.contrib import messages
@@ -261,12 +262,28 @@ class ActivityUpdateView(
     def has_object_access(self, user: User, obj: ActivityList) -> bool:
         return obj.created_by == user
 
+    def _has_submissions(self) -> bool:
+        return Submission.objects.filter(
+            activity_link__activity_list=self.get_object()
+        ).exists()
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if self._has_submissions():
+            messages.error(
+                request,
+                'Não é possível editar esta atividade: um ou mais alunos já a responderam.'
+            )
+            return redirect('activity:list')
         return super().get(request, *args, **kwargs)
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        if self._has_submissions():
+            messages.error(
+                self.request,
+                'Não é possível editar esta atividade: um ou mais alunos já a responderam.'
+            )
+            return redirect('activity:list')
         self.object = form.save()
-
         return self.render_activity_builder()
 
 
@@ -910,11 +927,18 @@ class ActivityUnshareView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
         activity_list_pk = obj.activity_list.pk
         group_name = obj.group.name
 
+        if Submission.objects.filter(activity_link=obj).exists():
+            messages.error(
+                request,
+                f'Não é possível desvincular "{group_name}": um ou mais alunos já responderam esta atividade.'
+            )
+            return redirect('activity:assign', pk=activity_list_pk)
+
         obj.delete()
 
         messages.success(
             request,
-            f'Vinculo com a turma "{group_name}" removido com sucesso!'
+            f'Vínculo com a turma "{group_name}" removido com sucesso!'
         )
 
         return redirect('activity:assign', pk=activity_list_pk)
