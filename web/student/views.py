@@ -738,6 +738,7 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
             1 for a in answers.values() if a.is_correct is not None
         )
         pending_review = answered_count - auto_graded
+        score_pct = round(earned_points / total_points * 100) if total_points else 0
 
         context.update({
             'activity_link': activity_link,
@@ -749,5 +750,6 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
             'total_exercises': len(exercises),
             'auto_graded': auto_graded,
             'pending_review': pending_review,
+            'score_pct': score_pct,
         })
         return context
