@@ -1,0 +1,11 @@
+<div id="add-exercise-slot">
+    <div class="text-center py-3">
+        <button type="button"
+                class="btn btn-outline-secondary rounded-5 px-4"
+                hx-get="{% url 'activity:exercise_type_selector' pk=activity_list_id %}"
+                hx-target="#add-exercise-slot"
+                hx-swap="outerHTML">
+            <i class="bi bi-plus-circle me-2"></i>Adicionar Exercício
+        </button>
+    </div>
+</div>

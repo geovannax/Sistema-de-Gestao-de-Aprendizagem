@@ -140,8 +140,8 @@
                                             <tbody>
                                                 {% for tc in test_cases %}
                                                 <tr {% if not forloop.first %}style="border-top:1px solid #3e4451"{% endif %}>
-                                                    <td class="p-0" style="border:none"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ lang }}">{{ tc.input|default:"(sem entrada)" }}</code></pre></td>
-                                                    <td class="p-0" style="border:none;border-left:1px solid #3e4451"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ lang }}">{{ tc.expected_output }}</code></pre></td>
+                                                    <td class="p-0" style="border:none;background:#282c34"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ lang }}">{{ tc.input|default:"(sem entrada)" }}</code></pre></td>
+                                                    <td class="p-0" style="border:none;border-left:1px solid #3e4451;background:#282c34"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ lang }}">{{ tc.expected_output }}</code></pre></td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -152,15 +152,31 @@
                                 {% endwith %}
 
                             {% elif exercise.type == 'complete_code' %}
+                                {% with cc=exercise.complete_code_exercise %}
                                 <div class="mt-2" style="font-size:.82rem;color:var(--gray-500)">
-                                    <i class="bi bi-code me-1"></i>Linguagem: <strong>{{ exercise.complete_code_exercise.get_language_display }}</strong>
+                                    <i class="bi bi-code me-1"></i>Linguagem: <strong>{{ cc.get_language_display }}</strong>
                                 </div>
-                                {% if exercise.complete_code_exercise.starter_code %}
-                                <div class="rv-answer-code mt-2">
-                                    <div class="mb-1" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)">Código base</div>
-                                    <pre><code class="language-{{ exercise.complete_code_exercise.language }}">{{ exercise.complete_code_exercise.starter_code }}</code></pre>
+                                {% if cc.starter_code or cc.complete_code %}
+                                <div class="mt-2">
+                                    <div class="rounded-3 overflow-hidden" style="border:1px solid #3e4451">
+                                        <table class="table table-sm mb-0" style="font-size:.82rem;background:#282c34;border-collapse:collapse">
+                                            <thead>
+                                                <tr style="background:#21252b;border-bottom:1px solid #3e4451">
+                                                    <th style="width:50%;padding:.45rem .75rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#636d83;border:none">Código Incompleto</th>
+                                                    <th style="width:50%;padding:.45rem .75rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#636d83;border:none;border-left:1px solid #3e4451">Código Completo (Gabarito)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="p-0" style="border:none;background:#282c34"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ cc.language }}">{{ cc.starter_code }}</code></pre></td>
+                                                    <td class="p-0" style="border:none;border-left:1px solid #3e4451;background:#282c34"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ cc.language }}">{{ cc.complete_code }}</code></pre></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                                 {% endif %}
+                                {% endwith %}
 
                             {% elif exercise.type == 'discursive' %}
                                 {% if exercise.discursive_exercise.min_words or exercise.discursive_exercise.max_words %}

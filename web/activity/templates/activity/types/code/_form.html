@@ -1,78 +1,110 @@
-<!-- PAGE HEADER -->
-<div id="form-header" hx-swap-oob="innerHTML">
-    <div>
-        <div class="form-card-title mb-0"> Código </div>
-        <div class="form-card-subtitle"> Defina os casos de teste que o aluno deve implementar. </div>
+{% if is_update %}
+<div class="exercise-create-card" id="exercise-card-{{ object.pk }}">
+{% else %}
+<div class="exercise-create-card exercise-card-new" id="add-exercise-slot">
+{% endif %}
+    <div class="form-card p-3 rounded-3 mb-0">
+
+        <div class="form-card-header d-flex mb-0">
+            <div>
+                {% if type_exercise == 'code' or not type_exercise %}
+                <div class="form-card-title mb-0">Código</div>
+                <div class="form-card-subtitle">Defina os casos de teste que o aluno deve implementar.</div>
+                {% elif type_exercise == 'complete_code' %}
+                <div class="form-card-title mb-0">Completar Código</div>
+                <div class="form-card-subtitle">Forneça o código base que o aluno deve completar.</div>
+                {% elif type_exercise == 'discursive' %}
+                <div class="form-card-title mb-0">Discursiva</div>
+                <div class="form-card-subtitle">O aluno responderá com um texto livre.</div>
+                {% endif %}
+            </div>
+        </div>
+        <hr>
+
+        <form
+            hx-post="{{ request.path }}"
+            hx-target="closest .exercise-create-card"
+            hx-swap="outerHTML">
+            {% csrf_token %}
+
+            <!-- FORM PRINCIPAL -->
+            {% include "global/partials/generic/create_or_update/_form.html" %}
+
+            <!-- FORM SECUNDÁRIO (linguagem, etc.) -->
+            {% if secondary_form %}
+            {% if type_exercise == 'complete_code' %}
+                {% include "activity/types/complete_code/_secondary_form.html" %}
+            {% else %}
+            {% with form=secondary_form %}
+                {% include "global/partials/generic/create_or_update/_form.html" %}
+            {% endwith %}
+            {% endif %}
+            {% endif %}
+
+            <!-- CASOS DE TESTE (somente code) -->
+            {% if test_case_formset %}
+            <div class="mt-3">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-600)">
+                        <i class="bi bi-list-check me-1"></i>Casos de teste
+                    </div>
+                    <small class="text-muted">Entrada e saída esperada para cada caso</small>
+                </div>
+
+                {{ test_case_formset.management_form }}
+
+                {% if test_case_formset.non_form_errors %}
+                    <div class="alert alert-danger py-2 mb-2" style="font-size:.85rem">
+                        {% for error in test_case_formset.non_form_errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+
+                <div id="test-cases-container">
+                    {% for tc_form in test_case_formset %}
+                        {% include "activity/types/code/_test_case.html" %}
+                    {% endfor %}
+                </div>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary rounded-5 mt-2"
+                        onclick="addTestCase()">
+                    <i class="bi bi-plus-circle me-1"></i>Adicionar caso de teste
+                </button>
+            </div>
+            {% endif %}
+
+            <hr class="mt-3">
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-end align-items-center gap-2">
+                {% if is_update %}
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary rounded-5"
+                    hx-get="{% url 'activity:exercise_cancel_update' pk=object.pk %}"
+                    hx-target="closest .exercise-create-card"
+                    hx-swap="outerHTML">
+                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                </button>
+                {% else %}
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary rounded-5"
+                    hx-get="{% url 'activity:exercise_cancel' pk=activity_list %}"
+                    hx-target="closest .exercise-create-card"
+                    hx-swap="outerHTML">
+                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                </button>
+                {% endif %}
+                <button type="submit" class="btn btn-outline-primary rounded-5" id="btnSubmit">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {{ submit_title|default:"Salvar" }}
+                </button>
+            </div>
+        </form>
+
     </div>
 </div>
-
-<form
-    hx-post="{{ request.path }}"
-    hx-target="#main-content"
-    hx-swap="innerHTML">
-    {% csrf_token %}
-
-    <!-- FORM PRINCIPAL -->
-    {% include "global/partials/generic/create_or_update/_form.html" %}
-
-    <!-- FORM SECUNDÁRIO (linguagem) -->
-    {% with form=secondary_form %}
-        {% include "global/partials/generic/create_or_update/_form.html" %}
-    {% endwith %}
-
-    <!-- CASOS DE TESTE -->
-    {% if test_case_formset %}
-    <div class="mt-3">
-        <div class="d-flex align-items-center justify-content-between mb-1">
-            <div style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-600)">
-                <i class="bi bi-list-check me-1"></i>Casos de teste
-            </div>
-            <small class="text-muted">Entrada e saída esperada para cada caso</small>
-        </div>
-
-        {{ test_case_formset.management_form }}
-
-        {% if test_case_formset.non_form_errors %}
-            <div class="alert alert-danger py-2 mb-2" style="font-size:.85rem">
-                {% for error in test_case_formset.non_form_errors %}{{ error }}{% endfor %}
-            </div>
-        {% endif %}
-
-        <div id="test-cases-container">
-            {% for tc_form in test_case_formset %}
-                {% include "activity/types/code/_test_case.html" %}
-            {% endfor %}
-        </div>
-
-        <button type="button"
-                class="btn btn-sm btn-outline-secondary rounded-5 mt-2"
-                onclick="addTestCase()">
-            <i class="bi bi-plus-circle me-1"></i>Adicionar caso de teste
-        </button>
-    </div>
-    {% endif %}
-
-    <hr class="mt-3">
-
-    <!-- Actions -->
-    <div class="d-flex justify-content-end align-items-center gap-2">
-        <div>
-            <button
-                hx-get="{% url 'activity:exercise_cancel' pk=activity_list %}"
-                hx-target="#main-content"
-                hx-swap="innerHTML"
-                type="button"
-                class="btn btn-outline-secondary rounded-5">
-                <i class="bi bi-x-circle me-1"></i>
-                Cancelar
-            </button>
-            <button type="submit" class="btn btn-outline-primary rounded-5" id="btnSubmit">
-                <i class="bi bi-check-circle me-1"></i>
-                {{ submit_title|default:"Salvar" }}
-            </button>
-        </div>
-    </div>
-</form>
 
 {% if test_case_formset %}
 <script>

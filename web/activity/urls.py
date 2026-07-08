@@ -20,7 +20,10 @@ from activity.views import (
 
 
     ExerciseCancelView,
+    ExerciseCancelUpdateView,
+    ExerciseTypeSelectorCardView,
     ExerciseDeleteView,
+    ExerciseAnnulView,
 
     CodeExerciseCreateView,
     CodeExerciseUpdateView,
@@ -40,7 +43,10 @@ urlpatterns = [
     path('list/', ActivityListView.as_view(), name='list'),
     path('archived/', ActivityArchivedListView.as_view(), name='archived'),
     path('exercise/cancel/<int:pk>/', ExerciseCancelView.as_view(), name='exercise_cancel'),
+    path('exercise/cancel/update/<int:pk>/', ExerciseCancelUpdateView.as_view(), name='exercise_cancel_update'),
+    path('exercise/type-selector/<int:pk>/', ExerciseTypeSelectorCardView.as_view(), name='exercise_type_selector'),
     path('exercise/delete/<int:pk>/', ExerciseDeleteView.as_view(), name='exercise_delete'),
+    path('exercise/annul/<int:pk>/', ExerciseAnnulView.as_view(), name='exercise_annul'),
 
     path('exercise/code/create/<int:pk>/', CodeExerciseCreateView.as_view(), name='code_exercise_create'),
     path('exercise/code/update/<int:pk>/', CodeExerciseUpdateView.as_view(), name='code_exercise_update'),

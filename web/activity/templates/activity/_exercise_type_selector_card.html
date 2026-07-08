@@ -1,0 +1,23 @@
+<div class="exercise-create-card exercise-card-new" id="add-exercise-slot">
+    <div class="form-card p-3 rounded-3 mb-0">
+        <div class="form-card-header d-flex mb-0">
+            <div>
+                <div class="form-card-title mb-0">Adicionar Exercício</div>
+                <div class="form-card-subtitle">Selecione o tipo de exercício que deseja adicionar.</div>
+            </div>
+        </div>
+        <hr>
+
+        {% include "activity/_exercise_types.html" %}
+
+        <div class="d-flex justify-content-end">
+            <button type="button"
+                    class="btn btn-outline-secondary rounded-5"
+                    hx-get="{% url 'activity:exercise_cancel' pk=activity_list_id %}"
+                    hx-target="closest .exercise-create-card"
+                    hx-swap="outerHTML">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </button>
+        </div>
+    </div>
+</div>

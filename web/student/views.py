@@ -244,6 +244,7 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
     ) -> list[Exercise]:
         return list(
             activity_link.activity_list.exercises
+            .filter(is_annulled=False)
             .select_related(
                 'code_exercise',
                 'complete_code_exercise',
@@ -450,6 +451,7 @@ class StudentActivityReviewView(_ActivityAccessMixin, TemplateView):
 
         exercises = list(
             activity_link.activity_list.exercises
+            .filter(is_annulled=False)
             .select_related(
                 'code_exercise',
                 'complete_code_exercise',
@@ -555,9 +557,14 @@ class TeacherSubmissionsView(_TeacherAccessMixin, TemplateView):
         for enrollment in pending_enrollments:
             enrollment.in_progress = enrollment.student_id in in_progress_ids
 
+        submissions_to_grade = [s for s in submitted if s.pending_count > 0]
+        submissions_graded = [s for s in submitted if s.pending_count == 0]
+
         context.update({
             'activity_link': activity_link,
             'submissions': submitted,
+            'submissions_to_grade': submissions_to_grade,
+            'submissions_graded': submissions_graded,
             'pending_enrollments': pending_enrollments,
             'total_exercises': total_exercises,
             'total_enrolled': len(submitted) + len(pending_enrollments),
@@ -590,6 +597,7 @@ class TeacherGradeView(_TeacherAccessMixin, View):
     def _build_context(self, activity_link: ActivityListGroup, submission: Submission) -> dict:
         exercises = list(
             activity_link.activity_list.exercises
+            .filter(is_annulled=False)
             .select_related(
                 'code_exercise',
                 'complete_code_exercise',
@@ -753,6 +761,7 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
 
         exercises = list(
             activity_link.activity_list.exercises
+            .filter(is_annulled=False)
             .select_related(
                 'code_exercise',
                 'complete_code_exercise',
@@ -770,11 +779,11 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
         for ex in exercises:
             ex.answer = answers.get(ex.pk)
 
-        total_points = sum(float(ex.points) for ex in exercises)
+        total_points = sum(float(ex.points) for ex in exercises if not ex.is_annulled)
         earned_points = sum(
             float(ex.points)
             for ex in exercises
-            if (a := answers.get(ex.pk)) and a.is_correct
+            if not ex.is_annulled and (a := answers.get(ex.pk)) and a.is_correct
         )
         answered_count = len(answers)
         auto_graded = sum(

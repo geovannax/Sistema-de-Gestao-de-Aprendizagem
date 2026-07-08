@@ -1,14 +1,14 @@
 {% extends "global/partials/base.html" %}
 {% load static %}
 
-{% block title %} {{ page_title }} {% endblock title %}
+{% block title %}{{ page_title }}{% endblock title %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
-    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
-    <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/activity_review.css' %}">
+    <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
     <link rel="stylesheet" href="{% static 'global/codemirror/codemirror.min.css' %}">
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 {% endblock extra_head %}
@@ -16,184 +16,259 @@
 
 {% block main_content %}
 
-    <!-- PAGE HEADER -->
-    <div id="page-header">
-        {% include "global/partials/_page_header.html" %}
-    </div>
-    
-    <!-- FORM GRID -->
-    <div class="container-fluid mt-2">
-        <div class="row">            
-
-            <!-- RIGHT: SIDE PANEL -->
-            <div class="col-4 p-0 pe-2 mb-3">
-
-                <!-- ASIDE -->
-                <div class="col-12 progress-section p-3 rounded-3">
-                    <div class="progress-label">Exercícios</div>
-                    <div id="exercise-total-summary" class="d-none small text-muted mb-2">
-                        Total: <span id="exercise-total-points">0</span> pts
-                    </div>
-                    <ul id="page-aside" class="p-0">
-                        {% for exercise in exercises %}
-                            {% include "activity/_exercise_list_item.html" %}
-                        {% endfor %}
-                    </ul>
-                    <div id="empty-state-aside">    
-                        <div class="empty-state-card mt-4">
-                            <i class="bi bi-inbox empty-state-icon"></i>
-                            <h5 class="empty-state-title">Nenhum Exercício Encontrado</h5>
-                            <p class="empty-state-text">
-                                Parece que você ainda não adicionou nenhum exercício.
-                            </p>
-                        </div>
-                    </div>
-                    <div id="finish-activity-action" class="{% if not has_exercises %}d-none {% endif %}d-flex justify-content-end flex-wrap gap-2 mt-3">
-                        {% if object %}
-                            {% include "activity/_finish_activity_actions.html" %}
-                        {% endif %}
-                    </div>
+<!-- PAGE HEADER -->
+<div id="page-header">
+    <div class="page-header pt-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                {% if is_update_flow %}
+                <a href="{% url 'activity:list' %}"
+                   class="btn btn-sm btn-outline-secondary rounded-circle flex-shrink-0" title="Voltar">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                {% endif %}
+                <div>
+                    <h2 class="fw-bold page-header-title">{{ page_title }}</h2>
+                    {% if object %}
+                    <p class="subtitle">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="subtitle-text">{{ object.created_by.get_full_name }}</span>
+                    </p>
+                    {% endif %}
                 </div>
-
             </div>
-
-            <!-- LEFT: FORM -->
-            <div class="form-card col-8 p-3 rounded-3 mb-3">
-
-                <!-- Header -->
-                <div class="form-card-header d-flex mb-0" id="form-header">
-                    <div>
-                        <div class="form-card-title mb-0"> {{ form_title }} </div>
-                        <div class="form-card-subtitle"> {{ form_subtitle }} </div>
-                    </div>
-                </div>
-
-                <hr>
-
-                <!-- BODY -->
-                <div class="container-fluid px-0" id="main-content">
-                    <form 
-                        hx-post="{{ request.path }}"
-                        hx-target="#main-content"
-                        hx-swap="innerHTML">
-                        {% csrf_token %}
-                
-                        {% include "global/partials/generic/create_or_update/_form.html" %}
-
-                        <hr class="mt-0">
-
-                        <!-- Actions -->
-                        <div class="d-flex justify-content-between align-items-center gap-2">
-
-                            <label class="terms-card d-flex gap-2 align-items-center px-3 py-2 rounded-2">
-                                <input type="checkbox" name="invalidCheck" id="invalidCheck" required />
-                                <div class="text">
-                                    <strong>Termo de aceite</strong>
-                                    <p>Confirmo que estou ciente de que todas as informações serão visíveis para os alunos vinculados.</p>
-                                </div>
-                            </label>
-
-                            <div>
-                                <button type="button" class="btn btn-outline-secondary rounded-5" onclick="history.back()">
-                                    <i class="bi bi-x-circle me-1"></i>
-                                    Cancelar
-                                </button>
-                                <button type="submit" class="btn btn-outline-primary rounded-5" id="btnSubmit">
-                                    <i class="bi bi-check-circle me-1"></i>
-                                    {{ submit_title|default:"Salvar" }}
-                                </button>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-
-            </div>
-
+            {% if object and has_exercises %}
+            <a href="{% url 'activity:preview' object.pk %}" class="btn btn-outline-primary rounded-pill">
+                <i class="bi bi-eye me-1"></i> Preview
+            </a>
+            {% endif %}
         </div>
     </div>
+</div>
+
+<div class="container-fluid mt-2 px-0">
+
+    <!-- ACTIVITY METADATA FORM -->
+    <div class="form-card p-3 rounded-3 mb-3">
+        <div class="form-card-header d-flex mb-0">
+            <div>
+                <div class="form-card-title mb-0">{{ form_title }}</div>
+                <div class="form-card-subtitle">{{ form_subtitle }}</div>
+            </div>
+        </div>
+        <hr>
+        {% if has_submissions %}
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" style="font-size:.875rem">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+            <span>Esta atividade já possui respostas de alunos. As informações não podem ser alteradas, mas você pode <strong>anular exercícios</strong> individualmente abaixo.</span>
+        </div>
+        {% endif %}
+        <form method="post" action="{{ request.path }}">
+            {% csrf_token %}
+            {% include "global/partials/generic/create_or_update/_form.html" %}
+
+            <div class="d-flex justify-content-between align-items-center gap-3 mt-3">
+                {% if not is_update_flow %}
+                <label class="terms-card d-flex gap-2 align-items-center px-3 py-2 rounded-2 mb-0 flex-grow-1">
+                    <input type="checkbox" name="invalidCheck" id="invalidCheck" required />
+                    <div class="text">
+                        <strong>Termo de aceite</strong>
+                        <p class="mb-0">Confirmo que estou ciente de que todas as informações serão visíveis para os alunos vinculados.</p>
+                    </div>
+                </label>
+                {% endif %}
+                {% if not has_submissions %}
+                <div class="d-flex align-items-center gap-2 {% if not is_update_flow %}flex-shrink-0{% else %}ms-auto{% endif %}">
+                    {% if not is_update_flow %}
+                    <button type="button" class="btn btn-outline-secondary rounded-5" onclick="history.back()">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </button>
+                    {% endif %}
+                    <button type="submit" class="btn btn-outline-primary rounded-5">
+                        <i class="bi bi-check-circle me-1"></i>
+                        {% if is_update_flow %}Atualizar{% else %}Salvar e Continuar{% endif %}
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    {% if object %}
+    <!-- EXERCISES SECTION -->
+    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+        <div class="fw-semibold" style="font-size:.9rem;color:var(--gray-700)">
+            <i class="bi bi-list-task me-1"></i>Exercícios
+        </div>
+        <div class="text-muted small">
+            Total: <span id="exercise-total-points">{{ total_points|floatformat:-2 }}</span> pts
+        </div>
+    </div>
+
+    <div id="exercise-cards" class="d-flex flex-column gap-3">
+        {% for exercise in exercises %}
+            {% include "activity/_exercise_card.html" %}
+        {% endfor %}
+
+        <!-- ADD EXERCISE SLOT -->
+        <div id="add-exercise-slot">
+            <div class="text-center py-3">
+                <button type="button"
+                        class="btn btn-outline-secondary rounded-5 px-4"
+                        hx-get="{% url 'activity:exercise_type_selector' pk=activity_list_id %}"
+                        hx-target="#add-exercise-slot"
+                        hx-swap="outerHTML">
+                    <i class="bi bi-plus-circle me-2"></i>Adicionar Exercício
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div id="finish-actions-wrapper" class="{% if not has_exercises %}d-none {% endif %}d-flex justify-content-end gap-2 mt-3 mb-3">
+        {% include "activity/_finish_activity_actions.html" %}
+    </div>
+    {% endif %}
+
+</div>
 
 {% endblock main_content %}
 
 {% block extra_script %}
-    <script src="{% static 'activity/js/multiple_choice_form.js' %}"></script>
-    <script src="{% static 'activity/js/exercise_aside_state.js' %}"></script>
     <script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
     <script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
     <script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
     <script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+    <script src="{% static 'activity/js/multiple_choice_form.js' %}"></script>
+    <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
     <script>
-        (function () {
-            const LANG_MAP = {
-                python: 'python', javascript: 'javascript',
-                java: 'text/x-java', c: 'text/x-csrc', cpp: 'text/x-c++src',
-            };
-            let codeEditors = [];
+    (function () {
+        const LANG_MAP = {
+            python: 'python', javascript: 'javascript',
+            java: 'text/x-java', c: 'text/x-csrc', cpp: 'text/x-c++src',
+        };
+        let codeEditors = [];
 
-            function getLang() {
-                const checked = document.querySelector('[name="secondary-language"]:checked');
-                return checked ? checked.value : 'python';
-            }
+        function getLang() {
+            var checked = document.querySelector('[name="secondary-language"]:checked');
+            return checked ? checked.value : 'python';
+        }
 
-            function initCodeEditors() {
-                codeEditors.forEach(function (ed) { try { ed.toTextArea(); } catch (e) {} });
-                codeEditors = [];
+        function destroyEditorsIn(container) {
+            var toDestroy = codeEditors.filter(function (ed) {
+                var ta = ed.getTextArea();
+                return ta && container.contains(ta);
+            });
+            toDestroy.forEach(function (ed) {
+                try { ed.toTextArea(); } catch (e) {}
+            });
+            codeEditors = codeEditors.filter(function (ed) {
+                return toDestroy.indexOf(ed) === -1;
+            });
+        }
 
-                document.querySelectorAll('textarea.font-monospace').forEach(function (textarea) {
-                    const editor = CodeMirror.fromTextArea(textarea, {
-                        lineNumbers: true,
-                        mode: LANG_MAP[getLang()] || 'python',
-                        theme: 'atom-one-dark',
-                        indentUnit: 4,
-                        tabSize: 4,
-                        lineWrapping: true,
-                    });
-                    textarea.removeAttribute('required');
-                    codeEditors.push(editor);
-                });
+        function initSingleEditor(textarea) {
+            var editor = CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                mode: LANG_MAP[getLang()] || 'python',
+                theme: 'atom-one-dark',
+                indentUnit: 4, tabSize: 4, lineWrapping: true,
+            });
+            textarea.removeAttribute('required');
+            codeEditors.push(editor);
+            return editor;
+        }
 
-                document.querySelectorAll('[name="secondary-language"]').forEach(function (radio) {
-                    radio.addEventListener('change', function () {
-                        const mode = LANG_MAP[this.value] || 'python';
-                        codeEditors.forEach(function (ed) {
-                            ed.setOption('mode', mode);
-                        });
-                    });
-                });
-            }
+        function initEditorsIn(container) {
+            container.querySelectorAll('textarea.font-monospace').forEach(function (ta) {
+                if (ta.nextSibling && ta.nextSibling.classList && ta.nextSibling.classList.contains('CodeMirror')) {
+                    return;
+                }
+                initSingleEditor(ta);
+            });
+        }
 
-            document.addEventListener('htmx:configRequest', function (e) {
-                codeEditors.forEach(function (ed) {
-                    const textarea = ed.getTextArea();
-                    if (textarea && textarea.name) {
-                        e.detail.parameters[textarea.name] = ed.getValue();
+        window.initSingleEditor = initSingleEditor;
+
+        // Push CodeMirror values into HTMX requests
+        document.addEventListener('htmx:configRequest', function (e) {
+            codeEditors.forEach(function (ed) {
+                try {
+                    var ta = ed.getTextArea();
+                    if (ta && ta.name) {
+                        e.detail.parameters[ta.name] = ed.getValue();
                     }
+                } catch (err) {}
+            });
+        });
+
+        // Destroy editors in elements being replaced
+        document.addEventListener('htmx:beforeSwap', function (e) {
+            if (e.detail.target) {
+                destroyEditorsIn(e.detail.target);
+            }
+        });
+
+        // Init editors in newly swapped content
+        document.addEventListener('htmx:afterSwap', function (e) {
+            if (e.detail.elt) {
+                initEditorsIn(e.detail.elt);
+            }
+        });
+
+        // Language change: update all active editors
+        document.addEventListener('change', function (e) {
+            if (e.target.name === 'secondary-language') {
+                var mode = LANG_MAP[e.target.value] || 'python';
+                codeEditors.forEach(function (ed) {
+                    ed.setOption('mode', mode);
                 });
+            }
+        });
+
+        // Re-number exercise cards and show finish actions
+        function updateExerciseUI() {
+            var cards = document.querySelectorAll('#exercise-cards .exercise-create-card');
+            var num = 0;
+            cards.forEach(function (card) {
+                if (card.classList.contains('exercise-card-new')) return;
+                num++;
+                var badge = card.querySelector('.exercise-num');
+                if (badge) badge.textContent = num;
             });
 
-            function initSingleEditor(textarea) {
-                const editor = CodeMirror.fromTextArea(textarea, {
-                    lineNumbers: true,
-                    mode: LANG_MAP[getLang()] || 'python',
-                    theme: 'atom-one-dark',
-                    indentUnit: 4,
-                    tabSize: 4,
-                    lineWrapping: true,
-                });
-                textarea.removeAttribute('required');
-                codeEditors.push(editor);
-                return editor;
+            // Show/hide finish actions based on whether there are preview cards
+            var finishWrapper = document.getElementById('finish-actions-wrapper');
+            if (finishWrapper) {
+                if (num > 0) {
+                    finishWrapper.classList.remove('d-none');
+                } else {
+                    finishWrapper.classList.add('d-none');
+                }
             }
+        }
 
-            window.initCodeEditors = initCodeEditors;
-            window.initSingleEditor = initSingleEditor;
-
-            document.addEventListener('DOMContentLoaded', initCodeEditors);
-            document.addEventListener('htmx:afterSwap', function (e) {
-                if (e.detail.target && e.detail.target.id === 'main-content') {
-                    initCodeEditors();
+        // Highlight code blocks
+        function highlightNewBlocks(container) {
+            container.querySelectorAll('pre code').forEach(function (el) {
+                if (!el.dataset.highlighted) {
+                    hljs.highlightElement(el);
                 }
             });
-        })();
+        }
+
+        document.addEventListener('htmx:afterSettle', function (e) {
+            updateExerciseUI();
+            if (e.detail.elt) {
+                highlightNewBlocks(e.detail.elt);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initEditorsIn(document);
+            updateExerciseUI();
+            highlightNewBlocks(document);
+        });
+    })();
     </script>
 {% endblock extra_script %}

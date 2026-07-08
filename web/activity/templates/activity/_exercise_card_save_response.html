@@ -1,0 +1,11 @@
+{% load static %}
+{% include "activity/_exercise_card.html" %}
+
+{% if is_new %}
+<div hx-swap-oob="beforeend:#exercise-cards">
+    {% include "activity/_add_exercise_slot.html" %}
+</div>
+{% endif %}
+
+<span id="exercise-total-points" hx-swap-oob="innerHTML">{{ total_points|floatformat:-2 }}</span>
+

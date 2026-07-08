@@ -3,11 +3,11 @@
     {% for type_key, type_info in exercise_types.items %}
         <div class="col-md-3">
             <button
-                type="button" 
-                class="card-content p-3 w-100 h-100" 
+                type="button"
+                class="card-content p-3 w-100 h-100"
                 hx-get="{% url type_info.create_url pk=activity_list_id %}"
-                hx-target="#main-content"
-                hx-swap="innerHTML">                
+                hx-target="closest .exercise-create-card"
+                hx-swap="outerHTML">
                 <div class="text-center">
                     <i class="bi {{ type_info.icon }} fs-2 {{ type_info.color }}"></i>
                     <div class="card-field text-center">

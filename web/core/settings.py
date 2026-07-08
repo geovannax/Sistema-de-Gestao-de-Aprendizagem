@@ -28,11 +28,12 @@ DEBUG = bool(os.getenv('WEB_DEBUG', 'False') == 'true')
 
 ALLOWED_HOSTS = os.getenv(
     'WEB_ALLOWED_HOSTS',
-    'localhost,127.0.0.1'
+    'localhost,127.0.0.1,172.16.252.166'
 ).split(',')
+print(ALLOWED_HOSTS)
 CSRF_TRUSTED_ORIGINS = os.getenv(
     'WEB_CSRF_TRUSTED_ORIGINS',
-    'http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1',
+    'http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1,http://172.16.252.166,https://172.16.252.166',
 ).split(',')
 
 # Application definition

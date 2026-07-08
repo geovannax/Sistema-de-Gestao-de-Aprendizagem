@@ -130,6 +130,7 @@ class Exercise(models.Model):
         help_text='Informe quanto este exercício vale na composição da atividade.'
     )
     order = models.PositiveIntegerField(default=0, verbose_name='Ordem')
+    is_annulled = models.BooleanField(default=False, verbose_name='Anulada')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

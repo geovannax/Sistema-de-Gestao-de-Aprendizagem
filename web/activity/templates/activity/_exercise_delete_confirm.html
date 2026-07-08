@@ -1,0 +1,31 @@
+<div class="exercise-create-card" id="exercise-card-{{ exercise.pk }}">
+    <div class="form-card p-3 rounded-3 mb-0">
+        <div class="d-flex align-items-center gap-3">
+            <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle"
+                 style="width:42px;height:42px;background:linear-gradient(135deg,#dc3545,#ff6b6b)">
+                <i class="bi bi-exclamation-lg text-white" style="font-size:1.25rem"></i>
+            </div>
+            <div class="flex-grow-1 overflow-hidden">
+                <div class="fw-semibold">Deletar exercício?</div>
+                <div class="text-muted small text-truncate">{{ exercise.statement }}</div>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary rounded-5"
+                        hx-get="{% url 'activity:exercise_cancel_update' pk=exercise.pk %}"
+                        hx-target="closest .exercise-create-card"
+                        hx-swap="outerHTML">
+                    Cancelar
+                </button>
+                <button type="button"
+                        class="btn btn-sm btn-danger rounded-5"
+                        hx-post="{% url 'activity:exercise_delete' pk=exercise.pk %}"
+                        hx-target="closest .exercise-create-card"
+                        hx-swap="delete"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    <i class="bi bi-trash-fill me-1"></i>Deletar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

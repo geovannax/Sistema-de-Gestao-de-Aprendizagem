@@ -31,16 +31,16 @@ from common.mixins import (
     EnrichObjectMixin,
 )
 from common.utils import get_btn_action
-from student.models import Submission
+from student.models import ExerciseAnswer, Submission
 from common.view.generic import EnhancedListView
 from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Prefetch, Count, Exists, OuterRef, Q, QuerySet
+from django.db.models import Prefetch, Count, Exists, OuterRef, Q, QuerySet, Sum
 from django.forms import BaseModelForm
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView, View
@@ -155,13 +155,12 @@ class ActivityCreateOrUpdateView:
     page_title = None
     page_description = None
 
-    def get_exercises(self) -> list:
-        """Retorna os exercícios da atividade com related models carregados.
+    def render_activity_builder(self) -> HttpResponse:
+        """Após salvar a atividade, redireciona para a página de edição."""
+        return redirect('activity:update', pk=self.object.pk)
 
-        Returns:
-            QuerySet de :class:`~activity.models.Exercise` ordenado por ``order``,
-            ou lista vazia se ``self.object`` ainda não existir (fluxo de criação).
-        """
+    def get_exercises(self) -> list:
+        """Retorna exercícios com related models e prefetch para exibição."""
         if not getattr(self, 'object', None):
             return []
 
@@ -171,56 +170,53 @@ class ActivityCreateOrUpdateView:
                 'code_exercise',
                 'complete_code_exercise',
                 'discursive_exercise',
-                'multiple_choice_exercise'
+                'multiple_choice_exercise',
+            )
+            .prefetch_related(
+                'code_exercise__test_cases',
+                'multiple_choice_exercise__options',
             )
             .order_by('order')
         )
 
+        exercises = list(exercises)
+
+        answered_ids = set(
+            ExerciseAnswer.objects.filter(
+                exercise__activity_list=self.object,
+                submission__submitted_at__isnull=False,
+            ).values_list('exercise_id', flat=True)
+        )
+
         for exercise in exercises:
             exercise.update_url = EXERCISE_TYPES[exercise.type]['update_url']
+            exercise.has_submissions = exercise.pk in answered_ids
 
         return exercises
 
-    def render_activity_builder(self) -> HttpResponse:
-        """Renderiza o partial HTMX do seletor de tipos de exercício.
-
-        Returns:
-            HttpResponse com o template ``activity/_exercise_type_selector.html``.
-        """
-        return render(
-            self.request,
-            'activity/_exercise_type_selector.html',
-            {
-                'exercise_types': EXERCISE_TYPES,
-                'object': self.object,
-                'activity_list_id': self.object.id,
-                'is_update_flow': self.is_update_flow,
-                'has_exercises': self.object.exercises.exists(),
-            }
-        )
-
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
+        exercises = self.get_exercises()
+        total_points = sum(e.points for e in exercises if not e.is_annulled) if exercises else 0
         context.update({
             'form_title': self.form_title,
             'form_subtitle': self.form_subtitle,
             'page_description': self.page_description,
             'page_title': self.page_title,
-            'exercise_types': EXERCISE_TYPES,
             'activity_list_id': self.object.id if getattr(self, 'object', None) else None,
-            'exercises': self.get_exercises(),
+            'exercises': exercises,
             'is_update_flow': self.is_update_flow,
-            'has_exercises': self.object.exercises.exists() if getattr(self, 'object', None) else False,
+            'has_exercises': bool(exercises),
+            'total_points': total_points,
         })
         return context
-    
-    def form_valid(self, form: BaseModelForm) -> HttpResponse:
-        # Salva automaticamente com CreateView
-        self.object = form.save(commit=False)
-        self.object.created_by = self.request.user
-        self.object.is_published = False
-        self.object.save()
 
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        self.object = form.save(commit=False)
+        if not self.is_update_flow:
+            self.object.created_by = self.request.user
+            self.object.is_published = False
+        self.object.save()
         return self.render_activity_builder()
 
     def form_invalid(self, form: BaseModelForm) -> HttpResponse:
@@ -275,13 +271,12 @@ class ActivityUpdateView(
             activity_link__activity_list=self.get_object()
         ).exists()
 
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        context['has_submissions'] = self._has_submissions()
+        return context
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        if self._has_submissions():
-            messages.error(
-                request,
-                'Não é possível editar esta atividade: um ou mais alunos já a responderam.'
-            )
-            return redirect('activity:list')
         return super().get(request, *args, **kwargs)
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
@@ -295,24 +290,15 @@ class ActivityUpdateView(
         return self.render_activity_builder()
 
 
-##### INICIO VIEW DE CRIAÇÃO/ATUALIZAÇÃO DE EXERCÍCIO#####
-class ExerciseCancelView(
-    HTMXLoginRequiredMixin,
-    ObjectAccessRequiredMixin,
-    View
-):
-    
+##### INICIO VIEWS DE EXERCÍCIO #####
+
+class ExerciseCancelView(HTMXLoginRequiredMixin, ObjectAccessRequiredMixin, View):
+    """Cancela a criação de um novo exercício — retorna o slot de adicionar exercício."""
+
     def has_object_access(self, user: User, obj: ActivityList | None) -> bool:
-        """
-        Verifica se o usuário tem acesso ao objeto de lista de atividades (ActivityList) relacionado ao exercício.
-        """
         return False if not obj else obj.created_by == user
 
     def get_object(self) -> ActivityList | None:
-        """
-        Obtem a instância de ActivityList com base no ID fornecido na URL, garantindo que o usuário tenha acesso a ela.
-        Retorna None se a instância não for encontrada ou se o usuário não tiver acesso.
-        """
         return ActivityList.objects.filter(
             id=self.kwargs.get('pk'),
             deleted_at__isnull=True
@@ -321,7 +307,64 @@ class ExerciseCancelView(
     def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
         return render(
             request,
-            'activity/_exercise_type_selector.html',
+            'activity/_add_exercise_slot.html',
+            {'activity_list_id': pk}
+        )
+
+
+class ExerciseCancelUpdateView(HTMXLoginRequiredMixin, ObjectAccessRequiredMixin, View):
+    """Cancela a edição de um exercício existente — restaura o card de preview."""
+
+    def has_object_access(self, user: User, obj: Exercise | None) -> bool:
+        if not obj:
+            return False
+        return obj.activity_list.created_by == user
+
+    def get_object(self) -> Exercise | None:
+        return (
+            Exercise.objects
+            .select_related(
+                'activity_list',
+                'code_exercise',
+                'complete_code_exercise',
+                'discursive_exercise',
+                'multiple_choice_exercise',
+            )
+            .prefetch_related(
+                'code_exercise__test_cases',
+                'multiple_choice_exercise__options',
+            )
+            .filter(
+                id=self.kwargs.get('pk'),
+                activity_list__deleted_at__isnull=True,
+            )
+            .first()
+        )
+
+    def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
+        exercise = self.get_object()
+        if not exercise:
+            return HttpResponse(status=404)
+        exercise.update_url = EXERCISE_TYPES[exercise.type]['update_url']
+        return render(request, 'activity/_exercise_card.html', {'exercise': exercise})
+
+
+class ExerciseTypeSelectorCardView(HTMXLoginRequiredMixin, ObjectAccessRequiredMixin, View):
+    """Retorna o card expandido de seleção de tipo de exercício."""
+
+    def has_object_access(self, user: User, obj: ActivityList | None) -> bool:
+        return False if not obj else obj.created_by == user
+
+    def get_object(self) -> ActivityList | None:
+        return ActivityList.objects.filter(
+            id=self.kwargs.get('pk'),
+            deleted_at__isnull=True
+        ).first()
+
+    def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
+        return render(
+            request,
+            'activity/_exercise_type_selector_card.html',
             {
                 'exercise_types': EXERCISE_TYPES,
                 'activity_list_id': pk,
@@ -331,57 +374,66 @@ class ExerciseCancelView(
 
 ##### INICIO VIEW DE DELETE DE EXERCÍCIO #####
 class ExerciseDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteView):
-    """View para delete de exercício"""
+    """View para delete de exercício — usa confirmação inline no card."""
     model = Exercise
-    template_name = 'global/partials/generic/delete/htmx_view.html'
+    template_name = 'activity/_exercise_delete_confirm.html'
     context_object_name = 'exercise'
 
     def has_object_access(self, user: User, obj: Exercise) -> bool:
-        """
-        Verifica se o usuário tem permissão de acesso ao objeto.
-
-        Na criação, verifica se o usuário é dono da ActivityList.
-        Na atualização, verifica se o usuário é dono da ActivityList do Exercise.
-
-        params:
-            user: Usuário autenticado da requisição.
-            obj: ActivityList (criação) ou Exercise (atualização).
-
-        Returns:
-            True se o usuário tem acesso, False caso contrário.
-        """
         return obj.activity_list.created_by == user
 
     def get_activity_list_id(self) -> int:
-        """
-        Retorna o ID da ActivityList associada ao exercício.
-
-        Na criação, obtém o ID diretamente dos kwargs da URL.
-        Na atualização, obtém o ID a partir do objeto Exercise.
-
-        Returns:
-            ID da ActivityList.
-        """
-        return self.object.activity_list.id
-
-    def get_context_data(self, **kwargs) -> dict:
-        context = super().get_context_data(**kwargs)
-        context.update({'activity_list': self.get_activity_list_id()})
-        return context
+        return self.object.activity_list_id
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
-        # Salva o ID do exercício antes de deletar para usar na resposta HTMX
-        is_deleted = self.object.pk
+        activity_list_id = self.get_activity_list_id()
         self.object.delete()
+        total_points = (
+            Exercise.objects
+            .filter(activity_list_id=activity_list_id, is_annulled=False)
+            .aggregate(total=Sum('points'))['total'] or 0
+        )
         return render(
             self.request,
-            'activity/_exercise_type_selector.html',
-            {
-                'is_deleted': is_deleted,
-                'exercise_types': EXERCISE_TYPES,
-                'activity_list_id': self.get_activity_list_id(),
-            }
+            'activity/_exercise_delete_response.html',
+            {'total_points': total_points},
         )
+
+
+class ExerciseAnnulView(AuthPermissionMixin, View):
+    """Ativa ou desativa a anulação de um exercício."""
+
+    def post(self, request, pk: int) -> HttpResponse:
+        exercise = get_object_or_404(Exercise, pk=pk)
+        if exercise.activity_list.created_by != request.user:
+            raise Http404
+        exercise.is_annulled = not exercise.is_annulled
+        exercise.save(update_fields=['is_annulled', 'updated_at'])
+
+        exercise = (
+            Exercise.objects
+            .select_related('code_exercise', 'complete_code_exercise', 'discursive_exercise', 'multiple_choice_exercise')
+            .prefetch_related('code_exercise__test_cases', 'multiple_choice_exercise__options')
+            .get(pk=pk)
+        )
+        exercise.update_url = EXERCISE_TYPES[exercise.type]['update_url']
+        exercise.has_submissions = ExerciseAnswer.objects.filter(
+            exercise=exercise,
+            submission__submitted_at__isnull=False,
+        ).exists()
+
+        activity_list_id = exercise.activity_list_id
+        total_points = (
+            Exercise.objects
+            .filter(activity_list_id=activity_list_id, is_annulled=False)
+            .aggregate(total=Sum('points'))['total'] or 0
+        )
+        return render(request, 'activity/_exercise_card_save_response.html', {
+            'exercise': exercise,
+            'is_new': False,
+            'total_points': total_points,
+            'activity_list_id': activity_list_id,
+        })
 
 
 class MultipleChoiceExerciseBaseView(ExerciseBaseMixin, InlineFormsetMixin):
@@ -664,7 +716,7 @@ class ActivityPreviewView(AuthPermissionMixin, ObjectAccessRequiredMixin, Detail
             .prefetch_related(
                 Prefetch(
                     'exercises',
-                    Exercise.objects.select_related(
+                    Exercise.objects.filter(is_annulled=False).select_related(
                         'code_exercise',
                         'complete_code_exercise',
                         'discursive_exercise',

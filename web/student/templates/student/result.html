@@ -239,25 +239,27 @@
                                     {% with test_cases=exercise.code_exercise.test_cases.all %}
                                     {% if test_cases %}
                                     <div class="mt-2">
-                                        <div class="mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)">
+                                        <div class="mb-1" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)">
                                             <i class="bi bi-list-check me-1"></i>Casos de teste
                                         </div>
-                                        <table class="table table-sm table-bordered mb-0" style="font-size:.8rem">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width:50%">Entrada</th>
-                                                    <th style="width:50%">Saída esperada</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="font-monospace">
-                                                {% for tc in test_cases %}
-                                                <tr>
-                                                    <td style="white-space:pre-wrap">{{ tc.input|default:"(sem entrada)" }}</td>
-                                                    <td style="white-space:pre-wrap">{{ tc.expected_output }}</td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
+                                        <div class="rounded-3 overflow-hidden" style="border:1px solid #3e4451">
+                                            <table class="table table-sm mb-0" style="font-size:.82rem;background:#282c34;border-collapse:collapse">
+                                                <thead>
+                                                    <tr style="background:#21252b;border-bottom:1px solid #3e4451">
+                                                        <th style="width:50%;padding:.45rem .75rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#636d83;border:none">Entrada</th>
+                                                        <th style="width:50%;padding:.45rem .75rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#636d83;border:none;border-left:1px solid #3e4451">Saída esperada</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for tc in test_cases %}
+                                                    <tr {% if not forloop.first %}style="border-top:1px solid #3e4451"{% endif %}>
+                                                        <td class="p-0" style="border:none;background:#282c34"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ exercise.code_exercise.language }}">{{ tc.input|default:"(sem entrada)" }}</code></pre></td>
+                                                        <td class="p-0" style="border:none;border-left:1px solid #3e4451;background:#282c34"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ exercise.code_exercise.language }}">{{ tc.expected_output }}</code></pre></td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                     {% endif %}
                                     {% endwith %}
@@ -328,7 +330,7 @@
 <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.result-code-answer code').forEach(function (el) {
+        document.querySelectorAll('.result-code-answer code, pre code[class*="language-"]').forEach(function (el) {
             hljs.highlightElement(el);
         });
     });

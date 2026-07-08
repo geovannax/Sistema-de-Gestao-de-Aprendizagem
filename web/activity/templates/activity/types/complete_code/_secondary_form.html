@@ -1,0 +1,50 @@
+{% comment %}Secondary form for complete_code: language field full-width, starter_code and complete_code side by side.{% endcomment %}
+
+{# Hidden fields (e.g. id) #}
+{% for field in secondary_form %}
+    {% if field.is_hidden %}{{ field }}{% endif %}
+{% endfor %}
+
+<div class="form-group">
+    {{ secondary_form.language.label_tag }}
+    {% if secondary_form.language.errors %}
+    <div class="field-error">
+        {% for error in secondary_form.language.errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    {{ secondary_form.language }}
+    {% if secondary_form.language.help_text %}
+    <div class="field-hint mb-3">{{ secondary_form.language.help_text }}</div>
+    {% endif %}
+</div>
+
+<div class="row g-3">
+    <div class="col-6">
+        <div class="form-group mb-0">
+            {{ secondary_form.starter_code.label_tag }}
+            {% if secondary_form.starter_code.errors %}
+            <div class="field-error">
+                {% for error in secondary_form.starter_code.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+            {{ secondary_form.starter_code }}
+            {% if secondary_form.starter_code.help_text %}
+            <div class="field-hint">{{ secondary_form.starter_code.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="form-group mb-0">
+            {{ secondary_form.complete_code.label_tag }}
+            {% if secondary_form.complete_code.errors %}
+            <div class="field-error">
+                {% for error in secondary_form.complete_code.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+            {{ secondary_form.complete_code }}
+            {% if secondary_form.complete_code.help_text %}
+            <div class="field-hint">{{ secondary_form.complete_code.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
