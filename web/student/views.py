@@ -215,6 +215,16 @@ class _ActivityAccessMixin(AuthPermissionMixin):
 
         return link
 
+    def _check_window(self, link: ActivityListGroup) -> HttpResponse | None:
+        now = timezone.now()
+        if link.starts_at and now < link.starts_at:
+            messages.error(self.request, 'Esta atividade ainda não está disponível.')
+            return redirect('student:group_detail', pk=link.group.pk)
+        if link.ends_at and now > link.ends_at:
+            messages.error(self.request, 'O prazo desta atividade foi encerrado.')
+            return redirect('student:group_detail', pk=link.group.pk)
+        return None
+
 
 class StudentActivityView(_ActivityAccessMixin, TemplateView):
     """Página de resolução de uma atividade pelo aluno.
@@ -354,6 +364,11 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity_link = self.get_activity_link()
+
+        block = self._check_window(activity_link)
+        if block:
+            return block
+
         submission = Submission.objects.filter(
             student=request.user,
             activity_link=activity_link,
@@ -379,6 +394,11 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity_link = self.get_activity_link()
+
+        block = self._check_window(activity_link)
+        if block:
+            return block
+
         submission = self._get_or_create_submission(activity_link)
 
         if submission.submitted_at:
@@ -430,6 +450,11 @@ class StudentActivityReviewView(_ActivityAccessMixin, TemplateView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity_link = self.get_activity_link()
+
+        block = self._check_window(activity_link)
+        if block:
+            return block
+
         submission = Submission.objects.filter(
             student=request.user,
             activity_link=activity_link,
@@ -667,6 +692,10 @@ class StudentSubmitView(_ActivityAccessMixin, View):
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity_link = self.get_activity_link()
+
+        block = self._check_window(activity_link)
+        if block:
+            return block
 
         submission = Submission.objects.filter(
             student=request.user,
