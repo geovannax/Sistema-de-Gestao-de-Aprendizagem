@@ -1,0 +1,3 @@
+# ActivityReviewView
+
+::: activity.views.ActivityReviewView

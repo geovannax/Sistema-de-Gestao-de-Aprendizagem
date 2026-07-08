@@ -1,0 +1,3 @@
+# ActivityPreviewView
+
+::: activity.views.ActivityPreviewView

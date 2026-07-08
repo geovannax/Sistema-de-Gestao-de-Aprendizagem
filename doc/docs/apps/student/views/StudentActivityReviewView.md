@@ -1,0 +1,3 @@
+# StudentActivityReviewView
+
+::: student.views.StudentActivityReviewView

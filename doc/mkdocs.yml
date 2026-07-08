@@ -93,6 +93,8 @@ nav:
               - ActivityUpdateView: apps/activity/views/ActivityUpdateView.md
               - ActivityDetailBaseView: apps/activity/views/ActivityDetailBaseView.md
               - ActivityDetailView: apps/activity/views/ActivityDetailView.md
+              - ActivityPreviewView: apps/activity/views/ActivityPreviewView.md
+              - ActivityReviewView: apps/activity/views/ActivityReviewView.md
               - ActivityAssignView: apps/activity/views/ActivityAssignView.md
               - ActivityAssignUpdateView: apps/activity/views/ActivityAssignUpdateView.md
               - ActivityArchiveView: apps/activity/views/ActivityArchiveView.md
@@ -196,7 +198,9 @@ nav:
               - StudentDashboardView: apps/student/views/StudentDashboardView.md
               - StudentGroupDetailView: apps/student/views/StudentGroupDetailView.md
               - StudentActivityView: apps/student/views/StudentActivityView.md
+              - StudentActivityReviewView: apps/student/views/StudentActivityReviewView.md
               - StudentSubmitView: apps/student/views/StudentSubmitView.md
+              - StudentFeedbackView: apps/student/views/StudentFeedbackView.md
               - StudentResultView: apps/student/views/StudentResultView.md
               - TeacherSubmissionsView: apps/student/views/TeacherSubmissionsView.md
               - TeacherGradeView: apps/student/views/TeacherGradeView.md
