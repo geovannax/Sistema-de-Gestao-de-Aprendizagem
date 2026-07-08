@@ -293,7 +293,9 @@ class GroupBaseView:
                 'active': self.__class__.__name__ == 'GroupShareView',
             },
         ]
-        if self.object.created_by == self.request.user:
+        is_owner = self.object.created_by == self.request.user
+        is_shared = self.object.sharings.filter(shared_with=self.request.user, is_active=True).exists()
+        if is_owner or is_shared:
             tabs.append({
                 'title': 'Revisão',
                 'url': 'group:review',
@@ -332,13 +334,15 @@ class GroupReviewView(
     NavigationMixin,
     DetailView,
 ):
-    """Aba de revisão de submissões dos alunos — visível apenas para o dono da turma."""
+    """Aba de revisão de submissões dos alunos — visível para o dono e professores com turma compartilhada."""
 
     model = Group
     template_name = 'group/review.html'
 
     def has_object_access(self, user: User, obj: Group) -> bool:
-        return obj.created_by == user
+        if obj.created_by == user:
+            return True
+        return obj.sharings.filter(shared_with=user, is_active=True).exists()
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)

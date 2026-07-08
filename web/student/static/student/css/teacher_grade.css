@@ -88,8 +88,8 @@
 }
 
 pre.answer-code {
-    background: #1e1e1e;
-    color: #d4d4d4;
+    background: #282c34;
+    color: #abb2bf;
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
     font-size: 0.85rem;
@@ -98,7 +98,7 @@ pre.answer-code {
     margin: 0;
 }
 
-pre.answer-code.starter { background: #2d2d2d; }
+pre.answer-code.starter { background: #282c34; }
 
 /* ── observations & feedback ── */
 .student-observation {

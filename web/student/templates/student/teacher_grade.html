@@ -6,6 +6,7 @@
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'student/css/activity.css' %}">
     <link rel="stylesheet" href="{% static 'student/css/teacher_grade.css' %}">
+    <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
 {% endblock extra_head %}
 
 {% block main_content %}
@@ -83,7 +84,7 @@
                         {% if exercise.type == 'complete_code' and exercise.complete_code_exercise.starter_code %}
                             <div class="answer-block mb-2">
                                 <div class="answer-label">Código base</div>
-                                <pre class="answer-code starter">{{ exercise.complete_code_exercise.starter_code }}</pre>
+                                <pre class="answer-code starter"><code class="language-{{ exercise.complete_code_exercise.language }}">{{ exercise.complete_code_exercise.starter_code }}</code></pre>
                             </div>
                         {% endif %}
 
@@ -91,7 +92,9 @@
                             <div class="answer-block">
                                 <div class="answer-label">Resposta do aluno</div>
                                 {% if exercise.type == 'code' or exercise.type == 'complete_code' %}
-                                    <pre class="answer-code">{{ answer.answer_text }}</pre>
+                                    {% with lang=exercise.code_exercise.language|default:exercise.complete_code_exercise.language %}
+                                    <pre class="answer-code"><code class="language-{{ lang }}">{{ answer.answer_text }}</code></pre>
+                                    {% endwith %}
                                 {% else %}
                                     <div style="white-space: pre-wrap;">{{ answer.answer_text }}</div>
                                 {% endif %}
@@ -177,6 +180,9 @@
             </button>
         </div>
     </form>
+
+    <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
+    <script>hljs.highlightAll();</script>
 
     <script>
         document.querySelectorAll('.grade-radio').forEach(function(radio) {
