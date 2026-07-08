@@ -257,12 +257,18 @@ class ActivityUpdateView(
     def get_queryset(self) -> QuerySet[ActivityList]:
         return (
             ActivityList.objects
-            .filter(created_by=self.request.user, deleted_at__isnull=True)
+            .filter(deleted_at__isnull=True)
             .prefetch_related('exercises')
         )
 
     def has_object_access(self, user: User, obj: ActivityList) -> bool:
-        return obj.created_by == user
+        if obj.created_by == user:
+            return True
+        return obj.list_groups.filter(
+            group__sharings__shared_with=user,
+            group__sharings__is_active=True,
+            group__deleted_at__isnull=True,
+        ).exists()
 
     def _has_submissions(self) -> bool:
         return Submission.objects.filter(
@@ -567,7 +573,14 @@ class ActivityDetailBaseView:
                 exercises_by_type['multiple_choice']['count'] += 1
                 exercises_by_type['multiple_choice']['points'] += exercise.points
                 
-        is_owner = activity.created_by == self.request.user
+        can_edit = (
+            activity.created_by == self.request.user
+            or activity.list_groups.filter(
+                group__sharings__shared_with=self.request.user,
+                group__sharings__is_active=True,
+                group__deleted_at__isnull=True,
+            ).exists()
+        )
         context.update({
             'table': {
                 'fields': self.allowed_fields,
@@ -579,7 +592,7 @@ class ActivityDetailBaseView:
             'total_points': total_points,
             'nav_tabs': self.set_nav_tabs(),
             'count_groups': activity.list_groups.all().count(),
-            'edit_url': reverse('activity:update', kwargs={'pk': activity.pk}) if is_owner else None,
+            'edit_url': reverse('activity:update', kwargs={'pk': activity.pk}) if can_edit else None,
         })
         
         return context
@@ -637,6 +650,56 @@ class ActivityDetailBaseView:
 
 class ActivityDetailView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
     pass
+
+
+class ActivityPreviewView(AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
+    """Preview de uma atividade para o professor — visão similar à review do aluno."""
+    model = ActivityList
+    template_name = 'activity/preview.html'
+
+    def get_queryset(self) -> QuerySet[ActivityList]:
+        return (
+            ActivityList.objects
+            .filter(deleted_at__isnull=True)
+            .prefetch_related(
+                Prefetch(
+                    'exercises',
+                    Exercise.objects.select_related(
+                        'code_exercise',
+                        'complete_code_exercise',
+                        'discursive_exercise',
+                        'multiple_choice_exercise',
+                    ).prefetch_related(
+                        'multiple_choice_exercise__options',
+                        'code_exercise__test_cases',
+                    ).order_by('order')
+                )
+            )
+        )
+
+    def has_object_access(self, user: User, obj: ActivityList) -> bool:
+        if obj.created_by == user:
+            return True
+        return obj.list_groups.filter(
+            group__sharings__shared_with=user,
+            group__sharings__is_active=True,
+            group__deleted_at__isnull=True,
+        ).exists()
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        exercises = list(self.object.exercises.all())
+        for exercise in exercises:
+            exercise.update_url = EXERCISE_TYPES[exercise.type]['update_url']
+        context.update({
+            'exercises': exercises,
+            'total_exercises': len(exercises),
+            'page_title': self.object.title,
+            'has_exercises': len(exercises) > 0,
+            'object': self.object,
+            'is_preview': True,
+        })
+        return context
 
 
 class ActivityAssignView(

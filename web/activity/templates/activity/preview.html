@@ -1,0 +1,200 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Preview — {{ object.title }}{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
+    <link rel="stylesheet" href="{% static 'activity/css/exercise_list_item.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
+    <link rel="stylesheet" href="{% static 'student/css/activity_review.css' %}">
+    <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    <!-- PAGE HEADER -->
+    <div id="page-header">
+        <div class="page-header pt-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{% url 'activity:update' object.pk %}"
+                       class="btn btn-sm btn-outline-secondary rounded-circle flex-shrink-0" title="Voltar à edição">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold page-header-title">{{ object.title }}</h2>
+                        <p class="subtitle">
+                            <i class="bi bi-info-circle"></i>
+                            <span class="subtitle-text">Preview da atividade</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-2">
+        <div class="row">
+
+            <!-- LEFT: SIDEBAR (igual à create page) -->
+            <div class="col-4 p-0 pe-2 mb-3">
+                <div class="col-12 progress-section p-3 rounded-3">
+                    <div class="progress-label">Exercícios</div>
+                    <div id="exercise-total-summary" class="{% if not has_exercises %}d-none {% endif %}small text-muted mb-2">
+                        Total: <span id="exercise-total-points">0</span> pts
+                    </div>
+                    <ul id="page-aside" class="p-0">
+                        {% for exercise in exercises %}
+                            {% include "activity/_exercise_list_item.html" %}
+                        {% endfor %}
+                    </ul>
+                    <div id="empty-state-aside" class="{% if has_exercises %}d-none{% endif %}">
+                        <div class="empty-state-card mt-4">
+                            <i class="bi bi-inbox empty-state-icon"></i>
+                            <h5 class="empty-state-title">Nenhum Exercício Encontrado</h5>
+                            <p class="empty-state-text">Parece que você ainda não adicionou nenhum exercício.</p>
+                        </div>
+                    </div>
+                    <div id="finish-activity-action" class="{% if not has_exercises %}d-none {% endif %}d-flex justify-content-end flex-wrap gap-2 mt-3">
+                        {% if object %}
+                            {% include "activity/_finish_activity_actions.html" %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: PREVIEW CARDS -->
+            <div class="form-card col-8 p-3 rounded-3 mb-3" id="main-content">
+
+                <div class="form-card-header d-flex mb-0" id="form-header">
+                    <div>
+                        <div class="form-card-title mb-0">Preview</div>
+                        <div class="form-card-subtitle">Confira os exercícios antes de finalizar</div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for exercise in exercises %}
+                    <div class="rv-card" id="ex-{{ forloop.counter }}">
+                        <div class="rv-card-stripe rv-stripe-{{ exercise.type }}"></div>
+
+                        <div class="rv-card-inner">
+                            <div class="rv-card-head">
+                                <div class="rv-card-meta">
+                                    <span class="rv-num-box rv-num-{{ exercise.type }}">{{ forloop.counter }}</span>
+                                    <span class="rv-card-label">Questão {{ forloop.counter }}</span>
+                                </div>
+                                <div class="rv-card-badges">
+                                    <span class="rv-type-pill rv-pill-{{ exercise.type }}">
+                                        {% if exercise.type == 'code' %}<i class="bi bi-code-slash"></i> Código
+                                        {% elif exercise.type == 'complete_code' %}<i class="bi bi-pencil-square"></i> Completar Código
+                                        {% elif exercise.type == 'multiple_choice' %}<i class="bi bi-list-check"></i> Múltipla Escolha
+                                        {% elif exercise.type == 'discursive' %}<i class="bi bi-chat-left-text"></i> Discursiva
+                                        {% endif %}
+                                    </span>
+                                    <span class="rv-type-pill" style="background:var(--gray-100);color:var(--gray-600)">
+                                        {{ exercise.points|floatformat:-2 }} pts
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="rv-statement">{{ exercise.statement }}</div>
+
+                            {% if exercise.type == 'multiple_choice' %}
+                                <div class="rv-answer-mc-list mt-2">
+                                    {% for option in exercise.multiple_choice_exercise.options.all %}
+                                    <div class="rv-mc-option {% if option.is_correct %}rv-mc-selected{% endif %}">
+                                        <span class="rv-mc-radio"></span>
+                                        {{ option.text }}
+                                        {% if option.is_correct %}
+                                            <span class="ms-2 badge bg-success" style="font-size:.65rem">Correta</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                            {% elif exercise.type == 'code' %}
+                                <div class="mt-2" style="font-size:.82rem;color:var(--gray-500)">
+                                    <i class="bi bi-code-slash me-1"></i>Linguagem: <strong>{{ exercise.code_exercise.get_language_display }}</strong>
+                                </div>
+                                {% with test_cases=exercise.code_exercise.test_cases.all lang=exercise.code_exercise.language %}
+                                {% if test_cases %}
+                                <div class="mt-2">
+                                    <div class="mb-1" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)">
+                                        <i class="bi bi-list-check me-1"></i>Casos de teste
+                                    </div>
+                                    <div class="rounded-3 overflow-hidden" style="border:1px solid #3e4451">
+                                        <table class="table table-sm mb-0" style="font-size:.82rem;background:#282c34;border-collapse:collapse">
+                                            <thead>
+                                                <tr style="background:#21252b;border-bottom:1px solid #3e4451">
+                                                    <th style="width:50%;padding:.45rem .75rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#636d83;border:none">Entrada</th>
+                                                    <th style="width:50%;padding:.45rem .75rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#636d83;border:none;border-left:1px solid #3e4451">Saída esperada</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for tc in test_cases %}
+                                                <tr {% if not forloop.first %}style="border-top:1px solid #3e4451"{% endif %}>
+                                                    <td class="p-0" style="border:none"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ lang }}">{{ tc.input|default:"(sem entrada)" }}</code></pre></td>
+                                                    <td class="p-0" style="border:none;border-left:1px solid #3e4451"><pre class="m-0 border-0 rounded-0" style="font-size:.82rem"><code class="language-{{ lang }}">{{ tc.expected_output }}</code></pre></td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+
+                            {% elif exercise.type == 'complete_code' %}
+                                <div class="mt-2" style="font-size:.82rem;color:var(--gray-500)">
+                                    <i class="bi bi-code me-1"></i>Linguagem: <strong>{{ exercise.complete_code_exercise.get_language_display }}</strong>
+                                </div>
+                                {% if exercise.complete_code_exercise.starter_code %}
+                                <div class="rv-answer-code mt-2">
+                                    <div class="mb-1" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)">Código base</div>
+                                    <pre><code class="language-{{ exercise.complete_code_exercise.language }}">{{ exercise.complete_code_exercise.starter_code }}</code></pre>
+                                </div>
+                                {% endif %}
+
+                            {% elif exercise.type == 'discursive' %}
+                                {% if exercise.discursive_exercise.min_words or exercise.discursive_exercise.max_words %}
+                                <div class="mt-2" style="font-size:.82rem;color:var(--gray-500)">
+                                    <i class="bi bi-text-left me-1"></i>
+                                    {% if exercise.discursive_exercise.min_words %}Mín. {{ exercise.discursive_exercise.min_words }} palavras{% endif %}
+                                    {% if exercise.discursive_exercise.max_words %} · Máx. {{ exercise.discursive_exercise.max_words }} palavras{% endif %}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Nenhum exercício cadastrado ainda.
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock main_content %}
+
+{% block extra_script %}
+    <script src="{% static 'activity/js/exercise_aside_state.js' %}"></script>
+    <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
+    <script>
+        document.querySelectorAll('pre code').forEach(function (el) {
+            hljs.highlightElement(el);
+        });
+    </script>
+{% endblock extra_script %}

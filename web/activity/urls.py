@@ -7,6 +7,7 @@ from activity.views import (
 
     # Não implementado
     ActivityDetailView,
+    ActivityPreviewView,
     ActivityUpdateView,
     ActivityArchiveView,
     ActivityDeleteView,
@@ -58,6 +59,7 @@ urlpatterns = [
     # Não implementado
     path('create/', ActivityCreateView.as_view(), name='create'),  
     path('detail/<int:pk>/', ActivityDetailView.as_view(), name='detail'),
+    path('preview/<int:pk>/', ActivityPreviewView.as_view(), name='preview'),
     path('update/<int:pk>/', ActivityUpdateView.as_view(), name='update'),
     path('archive/<int:pk>/', ActivityArchiveView.as_view(), name='archive'),
     path('delete/<int:pk>/', ActivityDeleteView.as_view(), name='delete'),

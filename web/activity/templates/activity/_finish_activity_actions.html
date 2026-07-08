@@ -2,7 +2,14 @@
     <i class="bi bi-clock-history me-1"></i>
     Finalizar Depois
 </a>
+{% if is_preview %}
 <a href="{% url 'activity:assign' object.id %}?open_share_modal=1" class="btn btn-outline-primary rounded-5">
     <i class="bi bi-check-circle me-1"></i>
     Finalizar
 </a>
+{% else %}
+<a href="{% url 'activity:preview' object.id %}" class="btn btn-outline-primary rounded-5">
+    <i class="bi bi-eye me-1"></i>
+    Revisar
+</a>
+{% endif %}
