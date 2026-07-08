@@ -5,12 +5,15 @@ professores (``GroupSharing``), matrícula de alunos (``GroupStudent``) e
 convites por token (``GroupInvite``). Todos os grupos suportam soft delete
 via ``deleted_at``.
 """
+from __future__ import annotations
+
+import secrets
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
-import secrets
 
 
 def generate_group_invite_token() -> str:

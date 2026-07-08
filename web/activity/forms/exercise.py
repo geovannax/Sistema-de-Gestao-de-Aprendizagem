@@ -3,10 +3,13 @@
 Contém o formulário base :class:`ExerciseForm`, os formulários específicos
 por tipo de exercício e o validador de sintaxe :class:`SyntaxValidator`.
 """
-from activity.models import CodeExercise, CodeTestCase, CompleteCodeExercise, DiscursiveExercise, Exercise, ExerciseOption
-from django import forms
+from __future__ import annotations
+
 import ast
 import re
+
+from activity.models import CodeExercise, CodeTestCase, CompleteCodeExercise, DiscursiveExercise, Exercise, ExerciseOption
+from django import forms
 
 
 class SyntaxValidator:
@@ -126,7 +129,7 @@ class CodeExerciseForm(forms.ModelForm):
             'language': forms.RadioSelect(attrs={'class': 'radio-group'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         self.fields['language'].choices = [
             choice for choice in self.fields['language'].choices
@@ -169,7 +172,7 @@ class CompleteCodeExerciseForm(forms.ModelForm):
             'complete_code': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 10, 'placeholder': 'Código completo...'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         # Remove a opção vazia do campo de turno
         self.fields['language'].choices = [
@@ -177,8 +180,11 @@ class CompleteCodeExerciseForm(forms.ModelForm):
             if choice[0] != ''
         ]
 
-    def clean_starter_code(self):
+    def clean_starter_code(self) -> str:
         """Valida que o código inicial contenha ao menos uma lacuna ``___``.
+
+        Returns:
+            O valor limpo de ``starter_code`` se a validação passar.
 
         Raises:
             ValidationError: Se ``___`` não estiver presente no código.
@@ -192,8 +198,11 @@ class CompleteCodeExerciseForm(forms.ModelForm):
 
         return starter_code
 
-    def clean_complete_code(self):
+    def clean_complete_code(self) -> str:
         """Valida a sintaxe e a integridade do código completo (gabarito).
+
+        Returns:
+            O valor limpo de ``complete_code`` se a validação passar.
 
         Raises:
             ValidationError: Se ``___`` estiver presente no gabarito ou se a

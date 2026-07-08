@@ -572,3 +572,31 @@ class TestGroupTemplateTags:
     def test_archived_groups_is_archived_by_false(self, group, user):
         from group.templatetags.group_filters import archived_groups_is_archived_by
         assert archived_groups_is_archived_by(group, user) is False
+
+
+# ─── GroupReviewView ─────────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestGroupReviewView:
+    def test_owner_can_access(self, authenticated_client, group):
+        response = authenticated_client.get(f'/group/{group.pk}/review/')
+        assert response.status_code == 200
+
+    def test_shared_teacher_can_access(self, user, group):
+        shared = User.objects.create_user(username='shared_review', password='pass')
+        GroupSharing.objects.create(group=group, shared_with=shared, shared_by=user, is_active=True)
+        client = Client()
+        client.post('/accounts/login/', {'username': 'shared_review', 'password': 'pass'})
+        response = client.get(f'/group/{group.pk}/review/')
+        assert response.status_code == 200
+
+    def test_unrelated_user_gets_403(self, group):
+        other = User.objects.create_user(username='other_review', password='pass')
+        client = Client()
+        client.post('/accounts/login/', {'username': 'other_review', 'password': 'pass'})
+        response = client.get(f'/group/{group.pk}/review/')
+        assert response.status_code == 403
+
+    def test_unauthenticated_redirects(self, group):
+        response = Client().get(f'/group/{group.pk}/review/')
+        assert response.status_code == 302

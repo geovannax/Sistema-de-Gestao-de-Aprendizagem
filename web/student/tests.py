@@ -14,7 +14,7 @@ from activity.models import (
     ExerciseOption,
     MultipleChoiceExercise,
 )
-from group.models import Group, GroupStudent
+from group.models import Group, GroupSharing, GroupStudent
 from student.models import ExerciseAnswer, Submission
 
 
@@ -69,7 +69,7 @@ def code_exercise(activity):
         statement='Escreva um código.',
         points=5,
     )
-    CodeExercise.objects.create(exercise=ex, language='python', expected_output='hello')
+    CodeExercise.objects.create(exercise=ex, language='python')
     return ex
 
 
@@ -764,3 +764,289 @@ class TestTeacherGradeView:
             {'grade_abc': 'correct'},
         )
         assert response.status_code == 302
+
+    def test_post_comment_answer_updates_teacher_comment(
+        self, authenticated_client, activity_link, enrolled,
+        submitted_submission, discursive_exercise
+    ):
+        answer = ExerciseAnswer.objects.create(
+            submission=submitted_submission,
+            exercise=discursive_exercise,
+            answer_text='Resposta',
+            is_correct=None,
+        )
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/submissions/{submitted_submission.pk}/grade/',
+            {
+                f'comment_answer_{answer.pk}': 'Bom trabalho',
+                'teacher_comment': 'Correção geral',
+            },
+        )
+        answer.refresh_from_db()
+        submitted_submission.refresh_from_db()
+        assert submitted_submission.teacher_comment == 'Correção geral'
+
+    def test_post_teacher_shared_access(self, activity_link, enrolled, submitted_submission):
+        from group.models import GroupSharing
+        shared_teacher = User.objects.create_user(username='shared_tea', password='pass')
+        GroupSharing.objects.create(
+            group=activity_link.group,
+            shared_with=shared_teacher,
+            shared_by=activity_link.group.created_by,
+            is_active=True,
+        )
+        client = Client()
+        client.post('/accounts/login/', {'username': 'shared_tea', 'password': 'pass'})
+        response = client.get(
+            f'/student/activity/{activity_link.pk}/submissions/{submitted_submission.pk}/grade/'
+        )
+        assert response.status_code == 200
+
+
+# ─── StudentActivityReviewView ────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentActivityReviewView:
+    def test_review_redirects_to_activity_if_no_submission(
+        self, authenticated_client, activity_link, enrolled
+    ):
+        response = authenticated_client.get(f'/student/activity/{activity_link.pk}/review/')
+        assert response.status_code == 302
+        assert f'/student/activity/{activity_link.pk}/' in response['Location']
+
+    def test_review_redirects_to_result_if_already_submitted(
+        self, authenticated_client, activity_link, enrolled, submitted_submission
+    ):
+        response = authenticated_client.get(f'/student/activity/{activity_link.pk}/review/')
+        assert response.status_code == 302
+        assert 'result' in response['Location']
+
+    def test_review_shows_page_with_in_progress_submission(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        ExerciseAnswer.objects.create(
+            submission=submission,
+            exercise=discursive_exercise,
+            answer_text='Minha resposta',
+        )
+        response = authenticated_client.get(f'/student/activity/{activity_link.pk}/review/')
+        assert response.status_code == 200
+        assert response.context['unanswered_count'] == 0
+
+    def test_review_unanswered_count_correct(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        response = authenticated_client.get(f'/student/activity/{activity_link.pk}/review/')
+        assert response.status_code == 200
+        assert response.context['unanswered_count'] == 1
+
+
+# ─── StudentFeedbackView ──────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentFeedbackView:
+    def test_post_saves_feedback(
+        self, authenticated_client, activity_link, enrolled, submitted_submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/feedback/',
+            {'student_feedback': 'Atividade muito boa!'},
+        )
+        assert response.status_code == 302
+        submitted_submission.refresh_from_db()
+        assert submitted_submission.student_feedback == 'Atividade muito boa!'
+
+    def test_post_no_submission_returns_404(
+        self, authenticated_client, activity_link, enrolled
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/feedback/',
+            {'student_feedback': 'Feedback'},
+        )
+        assert response.status_code == 404
+
+    def test_post_in_progress_submission_returns_404(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/feedback/',
+            {'student_feedback': 'Feedback'},
+        )
+        assert response.status_code == 404
+
+
+# ─── _check_window deadline tests ────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestCheckWindowDeadline:
+    def test_activity_not_yet_started_blocks_get(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(
+            group=group,
+            activity_list=activity,
+            starts_at=timezone.now() + timedelta(days=1),
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/')
+        assert response.status_code == 302
+
+    def test_activity_deadline_passed_blocks_get(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(
+            group=group,
+            activity_list=activity,
+            ends_at=timezone.now() - timedelta(days=1),
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/')
+        assert response.status_code == 302
+
+    def test_activity_deadline_passed_blocks_post(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(
+            group=group,
+            activity_list=activity,
+            ends_at=timezone.now() - timedelta(days=1),
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{link.pk}/',
+            {'current_exercise_pk': '', 'answer_text': ''},
+        )
+        assert response.status_code == 302
+
+    def test_deadline_passed_blocks_submit(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        from student.models import Submission
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(
+            group=group,
+            activity_list=activity,
+            ends_at=timezone.now() - timedelta(days=1),
+        )
+        Submission.objects.create(student=user, activity_link=link)
+        response = authenticated_client.post(f'/student/activity/{link.pk}/submit/')
+        assert response.status_code == 302
+
+    def test_deadline_passed_blocks_review(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        from student.models import Submission
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(
+            group=group,
+            activity_list=activity,
+            ends_at=timezone.now() - timedelta(days=1),
+        )
+        Submission.objects.create(student=user, activity_link=link)
+        response = authenticated_client.get(f'/student/activity/{link.pk}/review/')
+        assert response.status_code == 302
+
+
+# ─── StudentActivityView go_review ───────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentActivityGoReview:
+    def test_post_go_review_redirects_to_review(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {'current_exercise_pk': '', 'go_review': '1'},
+        )
+        assert response.status_code == 302
+        assert 'review' in response['Location']
+
+    def test_post_go_review_htmx_returns_hx_redirect(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {'current_exercise_pk': '', 'go_review': '1'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        assert 'HX-Redirect' in response
+
+
+# ─── StudentResultView deleted activity branch ────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentResultDeletedActivity:
+    def test_result_accessible_after_delete_if_submitted(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        from student.models import Submission
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        sub = Submission.objects.create(
+            student=user, activity_link=link, submitted_at=timezone.now()
+        )
+        activity.deleted_at = timezone.now()
+        activity.save()
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 200
+
+    def test_result_404_after_delete_if_not_submitted(
+        self, authenticated_client, user, group, activity
+    ):
+        from group.models import GroupStudent
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        activity.deleted_at = timezone.now()
+        activity.save()
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 404
+
+
+# ─── _save_answer delete branch ───────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestSaveAnswerDeleteBranch:
+    def test_empty_answer_deletes_existing(
+        self, authenticated_client, activity_link, enrolled, discursive_exercise, submission
+    ):
+        ExerciseAnswer.objects.create(
+            submission=submission,
+            exercise=discursive_exercise,
+            answer_text='Resposta para deletar',
+        )
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {
+                'current_exercise_pk': discursive_exercise.pk,
+                'navigate_to_pk': discursive_exercise.pk,
+                'answer_text': '   ',
+            },
+        )
+        assert not ExerciseAnswer.objects.filter(
+            submission=submission, exercise=discursive_exercise
+        ).exists()
+
+
+# ─── StudentResultView 404 branches ──────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentResultView404Branches:
+    def test_result_404_for_nonexistent_link(self, authenticated_client):
+        response = authenticated_client.get('/student/activity/99999/result/')
+        assert response.status_code == 404
+
+    def test_result_404_when_not_enrolled(self, authenticated_client, user, group, activity):
+        other_owner = User.objects.create_user(username='result_owner', password='pass')
+        other_group = Group.objects.create(
+            name='G Not Enrolled', description='x' * 15, shift='Manhã', created_by=other_owner
+        )
+        link = ActivityListGroup.objects.create(group=other_group, activity_list=activity)
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 404

@@ -593,6 +593,7 @@ class TeacherSubmissionsView(_TeacherAccessMixin, TemplateView):
             'pending_enrollments': pending_enrollments,
             'total_exercises': total_exercises,
             'total_enrolled': len(submitted) + len(pending_enrollments),
+            'in_progress_count': sum(1 for e in pending_enrollments if e.in_progress),
         })
         return context
 

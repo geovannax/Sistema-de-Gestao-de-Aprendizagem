@@ -343,8 +343,6 @@ class ExerciseCancelUpdateView(HTMXLoginRequiredMixin, ObjectAccessRequiredMixin
 
     def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
         exercise = self.get_object()
-        if not exercise:
-            return HttpResponse(status=404)
         exercise.update_url = EXERCISE_TYPES[exercise.type]['update_url']
         return render(request, 'activity/_exercise_card.html', {'exercise': exercise})
 

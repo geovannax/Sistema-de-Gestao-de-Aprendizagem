@@ -4,10 +4,12 @@ Define a estrutura de dados para listas de atividades e exercícios
 polimórficos. Cada tipo de exercício possui um modelo OneToOne próprio
 vinculado ao modelo base :class:`Exercise`.
 """
+from __future__ import annotations
+
 from activity.constants import EXERCISE_TYPE_CHOICES, LANGUAGE_CHOICES
-from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, MinValueValidator
+from django.db import models
 from group.models import Group
 
 
@@ -74,9 +76,20 @@ class ActivityArchived(models.Model):
 class ActivityListGroup(models.Model):
     """Vínculo entre uma lista de atividades e uma turma.
 
-    Registra o compartilhamento de uma atividade com uma turma, com período
-    de disponibilidade opcional. ``due_date`` é mantido igual a ``ends_at``
-    como atalho de consulta.
+    Registra o compartilhamento de uma atividade com uma turma com período
+    de disponibilidade opcional. Quando ``starts_at`` ou ``ends_at`` estão
+    definidos, o acesso do aluno é bloqueado fora desse intervalo pela view
+    :class:`~student.views.StudentActivityView`.
+
+    Attributes:
+        activity_list: Lista de atividades vinculada.
+        group: Turma que recebeu a atividade.
+        assigned_at: Momento em que o vínculo foi criado.
+        starts_at: Data/hora a partir da qual o aluno pode acessar a atividade.
+            ``None`` significa sem restrição de início.
+        ends_at: Prazo máximo para o aluno responder e submeter.
+            ``None`` significa sem prazo. Igual a ``due_date``.
+        due_date: Alias de ``ends_at`` mantido como atalho de consulta ORM.
     """
     activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='list_groups')
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='activity_list_groups')
