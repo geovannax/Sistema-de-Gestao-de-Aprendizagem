@@ -937,6 +937,33 @@ class TestActivityDetailAndPreviewViews:
         response = activity_client.get(f'/activity/preview/{other_activity.pk}/')
         assert response.status_code == 403
 
+    def test_review_tab_get(self, activity_client, activity, activity_user):
+        group = Group.objects.create(
+            name='Review Group', description='x' * 15, shift='Manhã', created_by=activity_user
+        )
+        ActivityListGroup.objects.create(group=group, activity_list=activity)
+        response = activity_client.get(f'/activity/review/{activity.pk}/')
+        assert response.status_code == 200
+        assert 'review_links' in response.context
+
+    def test_review_tab_includes_group_annotations(self, activity_client, activity, activity_user):
+        group = Group.objects.create(
+            name='Anotado', description='x' * 15, shift='Tarde', created_by=activity_user
+        )
+        ActivityListGroup.objects.create(group=group, activity_list=activity)
+        response = activity_client.get(f'/activity/review/{activity.pk}/')
+        assert response.status_code == 200
+        links = list(response.context['review_links'])
+        assert len(links) == 1
+        assert hasattr(links[0], 'submission_count')
+        assert hasattr(links[0], 'pending_count')
+
+    def test_review_tab_unauthorized(self, activity_client, activity_user):
+        other = User.objects.create_user(username='other_rev', password='pass')
+        other_activity = ActivityList.objects.create(title='OutroRev', created_by=other)
+        response = activity_client.get(f'/activity/review/{other_activity.pk}/')
+        assert response.status_code == 403
+
 
 @pytest.mark.django_db
 class TestActivityUpdateProtection:

@@ -32,3 +32,16 @@
     background: var(--blue-100) !important;
     border-color: transparent !important;
 }
+
+#page-aside {
+    counter-reset: ex-num;
+    list-style: none;
+}
+
+#page-aside > li {
+    counter-increment: ex-num;
+}
+
+#page-aside > li .exercise-statement::before {
+    content: counter(ex-num) ". ";
+}

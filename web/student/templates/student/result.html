@@ -176,6 +176,15 @@
         <!-- MAIN — exercícios, feedback, voltar -->
         <div class="col-lg-9">
 
+            {% if submission.teacher_comment %}
+                <div class="mb-4 p-3 rounded-3" style="background:#eff6ff; border:1px solid #bfdbfe;">
+                    <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; color:#1e40af; margin-bottom:0.5rem;">
+                        <i class="bi bi-chat-quote me-1"></i>Comentário geral do professor
+                    </div>
+                    <div style="white-space: pre-wrap;">{{ submission.teacher_comment }}</div>
+                </div>
+            {% endif %}
+
             <!-- Exercise results -->
             {% for exercise in exercises %}
                 <div class="result-exercise-card mb-3
@@ -289,15 +298,6 @@
 
                 </div>
             {% endfor %}
-
-            {% if submission.teacher_comment %}
-                <div class="mb-4 p-3 rounded" style="background:#eff6ff; border:1px solid #bfdbfe;">
-                    <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; color:#1e40af; margin-bottom:0.5rem;">
-                        <i class="bi bi-chat-quote me-1"></i>Comentário geral do professor
-                    </div>
-                    <div style="white-space: pre-wrap;">{{ submission.teacher_comment }}</div>
-                </div>
-            {% endif %}
 
             <!-- Feedback do aluno -->
             {% if not submission.student_feedback %}

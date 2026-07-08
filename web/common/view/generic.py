@@ -3,6 +3,10 @@
 Centraliza autenticação, filtragem, ordenação, tipo de visualização,
 paginação e enriquecimento de ações em uma única classe base reutilizável.
 """
+from __future__ import annotations
+
+from typing import Any
+
 from common.mixins import ActionsMixin, FilteringMixin, NavigationMixin, OrderingMixin, ViewTypeMixin
 from django.db.models import QuerySet
 from django.views.generic import ListView
@@ -55,7 +59,7 @@ class EnhancedListView(
         queryset = self.apply_filtering(queryset)
         return queryset
 
-    def get_context_data(self, **kwargs) -> dict:
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Monta o contexto completo da listagem.
 
         Adiciona ao contexto padrão do ``ListView``:

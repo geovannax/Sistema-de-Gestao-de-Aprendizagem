@@ -4,14 +4,20 @@ Conecta os eventos de login e logout do Django Auth a comportamentos
 específicos do projeto: exibição de mensagem de boas-vindas, restauração
 de cookies de preferência no login e limpeza desses cookies no logout.
 """
+from __future__ import annotations
+
+from typing import Any
+
 from accounts.models import UserPreferences
+from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
-from django.contrib import messages
+from django.http import HttpRequest
 
 
 @receiver(user_logged_in)
-def on_login(sender, request, user, **kwargs):
+def on_login(sender: type, request: HttpRequest, user: User, **kwargs: Any) -> None:
     """Exibe mensagem de boas-vindas e restaura cookies de preferência.
 
     Garante que a sessão seja criada imediatamente (workaround necessário
@@ -34,7 +40,7 @@ def on_login(sender, request, user, **kwargs):
 
 
 @receiver(user_logged_out)
-def on_logout(sender, request, user, **kwargs):
+def on_logout(sender: type, request: HttpRequest, user: User, **kwargs: Any) -> None:
     """Remove cookies de preferência do navegador ao fazer logout.
 
     Sinaliza ao ``CookieMiddleware`` via ``request._delete_cookies`` para

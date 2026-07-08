@@ -1,0 +1,102 @@
+<style>
+    .review-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .review-row:last-child { border-bottom: none; }
+    .review-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--gray-700);
+        margin-bottom: 0.2rem;
+    }
+    .review-meta {
+        font-size: 0.78rem;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .badge-pending {
+        background: #fef3c7; color: #92400e;
+        border-radius: 20px; padding: 0.2rem 0.65rem;
+        font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    }
+    .badge-ok {
+        background: #d1fae5; color: #065f46;
+        border-radius: 20px; padding: 0.2rem 0.65rem;
+        font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    }
+    .empty-review { text-align: center; padding: 2.5rem 1rem; color: var(--gray-600); }
+    .empty-review i { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+</style>
+
+<div class="px-1 py-2">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="fw-semibold" style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--gray-500);">
+            {% if mode == 'activity' %}
+                <i class="bi bi-people me-1" style="color:var(--blue-500);"></i>
+                Turmas vinculadas
+            {% else %}
+                <i class="bi bi-list-check me-1" style="color:var(--blue-500);"></i>
+                Atividades
+            {% endif %}
+        </span>
+        <small class="text-muted">
+            {{ links|length }}
+            {% if mode == 'activity' %}
+                turma{{ links|length|pluralize }}
+            {% else %}
+                atividade{{ links|length|pluralize }}
+            {% endif %}
+        </small>
+    </div>
+
+    {% if links %}
+        {% for link in links %}
+            <div class="review-row">
+                <div class="min-width-0 flex-grow-1">
+                    <div class="review-title text-truncate">
+                        {% if mode == 'activity' %}
+                            {{ link.group.name }}
+                            <small class="text-muted fw-normal ms-1" style="font-size:0.75rem;">{{ link.group.shift }}</small>
+                        {% else %}
+                            {{ link.activity_list.title }}
+                        {% endif %}
+                    </div>
+                    <div class="review-meta">
+                        <span><i class="bi bi-send-check me-1"></i>{{ link.submission_count }} entregue{{ link.submission_count|pluralize }}</span>
+                        {% if link.pending_count > 0 %}
+                            <span class="badge-pending">
+                                <i class="bi bi-clock me-1"></i>{{ link.pending_count }} pendente{{ link.pending_count|pluralize }}
+                            </span>
+                        {% elif link.submission_count > 0 %}
+                            <span class="badge-ok">
+                                <i class="bi bi-check-lg me-1"></i>Tudo corrigido
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{% url 'student:activity_submissions' link.pk %}"
+                   class="btn btn-sm {% if link.pending_count > 0 %}btn-warning{% else %}btn-outline-secondary{% endif %} rounded-5 flex-shrink-0">
+                    <i class="bi bi-pencil-square me-1"></i>Corrigir
+                </a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-review">
+            <i class="bi bi-inbox"></i>
+            <p class="mb-0">
+                {% if mode == 'activity' %}
+                    Esta atividade não está vinculada a nenhuma turma.
+                {% else %}
+                    Nenhuma atividade vinculada a esta turma.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>

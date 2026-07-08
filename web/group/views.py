@@ -97,6 +97,8 @@ class GroupListBaseView(EnhancedListView):
 
 
 class GroupActiveListView(AuthPermissionMixin, GroupListBaseView):
+    """Listagem de turmas ativas criadas pelo professor autenticado."""
+
     page_title = 'Turmas Ativas'
     create_url = 'group:create'
 
@@ -113,6 +115,8 @@ class GroupActiveListView(AuthPermissionMixin, GroupListBaseView):
 
 
 class GroupArchivedListView(AuthPermissionMixin, GroupListBaseView):
+    """Listagem de turmas arquivadas pelo professor autenticado."""
+
     page_title = 'Turmas Arquivadas'
 
     def get_queryset(self):
@@ -125,6 +129,8 @@ class GroupArchivedListView(AuthPermissionMixin, GroupListBaseView):
 
 
 class GroupSharedListView(AuthPermissionMixin, GroupListBaseView):
+    """Listagem de turmas compartilhadas com o professor autenticado por outros professores."""
+
     page_title = 'Turmas Compartilhadas'
 
     def get_queryset(self):
@@ -207,6 +213,8 @@ class GroupCreateView(
     GroupCreateOrUpdateView,
     CreateView
 ):
+    """Criação de nova turma pelo professor autenticado."""
+
     form_subtitle = 'Complete o formulário para ativar sua turma e começar a organizar suas atividades.'
     page_description = 'Crie uma nova turma para organizar as suas atividades e acompanhar o progresso dos alunos.'
     page_title = 'Criar Turma'
@@ -225,6 +233,8 @@ class GroupUpdateView(
     ObjectAccessRequiredMixin,
     UpdateView
 ):
+    """Edição de uma turma existente — restrita ao criador da turma."""
+
     form_subtitle = 'Revise e atualize os dados da sua turma para garantir que tudo esteja sempre correto.'
     page_description = 'Gerencie e edite as informações da turma, mantendo alunos e atividades sempre organizados e atualizados.'
     page_title = 'Atualizar Turma'
@@ -313,6 +323,8 @@ class GroupDetailView(
     NavigationMixin,
     DetailView
 ):
+    """Detalhes de uma turma: resumo, atividades recentes e abas de navegação."""
+
     model = Group
 
     def has_object_access(self, user: User, obj: Group) -> bool:
@@ -387,6 +399,8 @@ class GroupShareView(
     FormMixin,
     DetailView
 ):
+    """Aba de compartilhamento de turma: gerencia compartilhamentos com professores e matrículas de alunos."""
+
     template_name = 'group/shared_list_view.html'
     model = Group
     form_class = GroupSharingForm
@@ -605,6 +619,7 @@ class GroupShareView(
 
 ##### INICIO VIEW DE GERENCIAMENTO DE ARQUIVAMENTO DE TURMA #####
 class GroupManageArchivingView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
+    """Alterna o estado de arquivamento de uma turma (arquivar / desarquivar) via POST."""
 
     def get_object(self) -> Group | None:
         return Group.objects.filter(
@@ -649,6 +664,8 @@ class GroupManageArchivingView(AuthPermissionMixin, ObjectAccessRequiredMixin, V
 
 
 class GroupInviteCreateView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
+    """Gera um novo link de convite para matrícula de alunos via token."""
+
     def get_object(self) -> Group | None:
         return Group.objects.filter(
             pk=self.kwargs['pk'],
@@ -688,6 +705,8 @@ class GroupInviteCreateView(AuthPermissionMixin, ObjectAccessRequiredMixin, View
 
 
 class GroupInviteExpireView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
+    """Expira manualmente um convite ativo, tornando-o inválido para novos acessos."""
+
     def get_object(self) -> GroupInvite | None:
         if hasattr(self, 'object'):
             return self.object
@@ -826,7 +845,7 @@ class GroupInviteConfirmView(AuthPermissionMixin, View):
             f'Você entrou na turma "{invite.group.name}" com sucesso.'
         )
 
-        return redirect('home')
+        return redirect('student:dashboard')
 
 
 ##### INICIO VIEW DE SOFT DELETE DE TURMA #####

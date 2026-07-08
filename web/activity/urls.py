@@ -14,6 +14,7 @@ from activity.views import (
     ActivityAssignView,
     ActivityAssignUpdateView,
     ActivityUnshareView,
+    ActivityReviewView,
 
     DiscursiveExerciseCreateView,
     DiscursiveExerciseUpdateView,
@@ -72,6 +73,7 @@ urlpatterns = [
     path('unshare/<int:pk>/', ActivityUnshareView.as_view(), name='unshare'),
     path('assign/update/<int:pk>/', ActivityAssignUpdateView.as_view(), name='assign_update'),
     path('assign/<int:pk>/', ActivityAssignView.as_view(), name='assign'),
+    path('review/<int:pk>/', ActivityReviewView.as_view(), name='review'),
 
 
 

@@ -1,4 +1,9 @@
 """Middleware do app accounts."""
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from django.http import HttpRequest, HttpResponse
 
 
 class CookieMiddleware:
@@ -12,10 +17,10 @@ class CookieMiddleware:
     Registrado em ``MIDDLEWARE`` no ``settings.py``.
     """
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         """Processa a requisição e aplica/remove cookies na resposta.
 
         Args:

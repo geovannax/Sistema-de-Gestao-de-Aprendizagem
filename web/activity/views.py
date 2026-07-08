@@ -660,16 +660,22 @@ class ActivityDetailBaseView:
         """Configura as abas de navegação"""
         return [{
                 'title': 'Resumo',
-                'url': 'activity:detail',                
+                'url': 'activity:detail',
                 'pk': self.object.pk,
                 'icon': 'bi-info-circle',
                 'active': self.__class__.__name__ == 'ActivityDetailView'
             }, {
                 'title': 'Vincular a Turmas',
-                'url': 'activity:assign',                
+                'url': 'activity:assign',
                 'pk': self.object.pk,
                 'icon': 'bi-share',
                 'active': self.__class__.__name__ == 'ActivityAssignView'
+            }, {
+                'title': 'Revisão',
+                'url': 'activity:review',
+                'pk': self.object.pk,
+                'icon': 'bi-pencil-square',
+                'active': self.__class__.__name__ == 'ActivityReviewView'
             }
         ]
 
@@ -700,6 +706,41 @@ class ActivityDetailBaseView:
 
 class ActivityDetailView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
     pass
+
+
+class ActivityReviewView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
+    """Aba de revisão de submissões por turma dentro de uma atividade — restrita ao criador e compartilhados."""
+
+    template_name = 'activity/review_tab.html'
+
+    def get_context_data(self, **kwargs: Any) -> dict:
+        context = super().get_context_data(**kwargs)
+        links = (
+            ActivityListGroup.objects
+            .filter(
+                activity_list=self.object,
+                group__deleted_at__isnull=True,
+            )
+            .select_related('group')
+            .annotate(
+                submission_count=Count(
+                    'submissions',
+                    filter=Q(submissions__submitted_at__isnull=False),
+                    distinct=True,
+                ),
+                pending_count=Count(
+                    'submissions__answers',
+                    filter=Q(
+                        submissions__submitted_at__isnull=False,
+                        submissions__answers__is_correct__isnull=True,
+                    ),
+                    distinct=True,
+                ),
+            )
+            .order_by('group__name')
+        )
+        context['review_links'] = links
+        return context
 
 
 class ActivityPreviewView(AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):

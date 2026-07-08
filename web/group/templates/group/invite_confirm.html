@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="{% static 'group/css/invite_confirm.css' %}">
 {% endblock extra_head %}
 
+{% block extra_script %}
+    <script>localStorage.setItem('viewMode', 'aluno');</script>
+{% endblock extra_script %}
+
 {% block main_content %}
     <div class="container invite-page py-4 mt-2">
         <div class="row justify-content-center w-100">
