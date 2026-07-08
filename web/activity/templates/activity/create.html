@@ -140,10 +140,9 @@
                 codeEditors = [];
 
                 document.querySelectorAll('textarea.font-monospace').forEach(function (textarea) {
-                    const isCode = textarea.name.endsWith('_code');
                     const editor = CodeMirror.fromTextArea(textarea, {
                         lineNumbers: true,
-                        mode: isCode ? (LANG_MAP[getLang()] || 'python') : null,
+                        mode: LANG_MAP[getLang()] || 'python',
                         theme: 'atom-one-dark',
                         indentUnit: 4,
                         tabSize: 4,
@@ -157,9 +156,7 @@
                     radio.addEventListener('change', function () {
                         const mode = LANG_MAP[this.value] || 'python';
                         codeEditors.forEach(function (ed) {
-                            if (ed.getTextArea().name.endsWith('_code')) {
-                                ed.setOption('mode', mode);
-                            }
+                            ed.setOption('mode', mode);
                         });
                     });
                 });
@@ -173,6 +170,23 @@
                     }
                 });
             });
+
+            function initSingleEditor(textarea) {
+                const editor = CodeMirror.fromTextArea(textarea, {
+                    lineNumbers: true,
+                    mode: LANG_MAP[getLang()] || 'python',
+                    theme: 'atom-one-dark',
+                    indentUnit: 4,
+                    tabSize: 4,
+                    lineWrapping: true,
+                });
+                textarea.removeAttribute('required');
+                codeEditors.push(editor);
+                return editor;
+            }
+
+            window.initCodeEditors = initCodeEditors;
+            window.initSingleEditor = initSingleEditor;
 
             document.addEventListener('DOMContentLoaded', initCodeEditors);
             document.addEventListener('htmx:afterSwap', function (e) {

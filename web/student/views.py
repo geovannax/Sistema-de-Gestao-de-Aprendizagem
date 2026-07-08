@@ -5,14 +5,14 @@ from typing import Any
 
 from activity.models import ActivityListGroup, Exercise, ExerciseOption
 from common.mixins import AuthPermissionMixin
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import TemplateView, View
-from group.models import Group, GroupStudent
+from group.models import Group, GroupSharing, GroupStudent
 from student.models import ExerciseAnswer, Submission
 
 
@@ -40,11 +40,16 @@ class StudentDashboardView(AuthPermissionMixin, TemplateView):
 
     def get_activity_links(self, group_ids: list[int]) -> QuerySet[ActivityListGroup]:
         """Retorna os vínculos de atividades para um conjunto de turmas."""
+        submitted_links = Submission.objects.filter(
+            student=self.request.user,
+            submitted_at__isnull=False,
+        ).values('activity_link_id')
         return (
             ActivityListGroup.objects
+            .filter(group_id__in=group_ids)
             .filter(
-                group_id__in=group_ids,
-                activity_list__deleted_at__isnull=True,
+                Q(activity_list__deleted_at__isnull=True) |
+                Q(pk__in=submitted_links)
             )
             .select_related('activity_list', 'group')
         )
@@ -126,11 +131,16 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
 
     def get_activity_links(self, group: Group) -> list[ActivityListGroup]:
         """Retorna as atividades da turma com status e submissão anotados."""
+        submitted_links = Submission.objects.filter(
+            student=self.request.user,
+            submitted_at__isnull=False,
+        ).values('activity_link_id')
         links = list(
             ActivityListGroup.objects
+            .filter(group=group)
             .filter(
-                group=group,
-                activity_list__deleted_at__isnull=True,
+                Q(activity_list__deleted_at__isnull=True) |
+                Q(pk__in=submitted_links)
             )
             .select_related('activity_list')
             .order_by('-assigned_at')
@@ -240,7 +250,7 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                 'discursive_exercise',
                 'multiple_choice_exercise',
             )
-            .prefetch_related('multiple_choice_exercise__options')
+            .prefetch_related('multiple_choice_exercise__options', 'code_exercise__test_cases')
         )
 
     def _build_context(
@@ -446,7 +456,7 @@ class StudentActivityReviewView(_ActivityAccessMixin, TemplateView):
                 'discursive_exercise',
                 'multiple_choice_exercise',
             )
-            .prefetch_related('multiple_choice_exercise__options')
+            .prefetch_related('multiple_choice_exercise__options', 'code_exercise__test_cases')
         )
 
         answers = {
@@ -486,7 +496,12 @@ class _TeacherAccessMixin(AuthPermissionMixin):
         except ActivityListGroup.DoesNotExist:
             raise Http404
         if link.group.created_by != self.request.user:
-            raise Http404
+            if not GroupSharing.objects.filter(
+                group=link.group,
+                shared_with=self.request.user,
+                is_active=True,
+            ).exists():
+                raise Http404
         return link
 
 
@@ -581,7 +596,7 @@ class TeacherGradeView(_TeacherAccessMixin, View):
                 'discursive_exercise',
                 'multiple_choice_exercise',
             )
-            .prefetch_related('multiple_choice_exercise__options')
+            .prefetch_related('multiple_choice_exercise__options', 'code_exercise__test_cases')
         )
         answers = {
             a.exercise_id: a
@@ -686,6 +701,34 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
 
     template_name = 'student/result.html'
 
+    def get_activity_link(self) -> ActivityListGroup:
+        try:
+            link = (
+                ActivityListGroup.objects
+                .select_related('activity_list', 'group')
+                .get(pk=self.kwargs['link_pk'])
+            )
+        except ActivityListGroup.DoesNotExist:
+            raise Http404
+
+        if not GroupStudent.objects.filter(
+            group=link.group,
+            student=self.request.user,
+            is_active=True,
+            group__deleted_at__isnull=True,
+        ).exists():
+            raise Http404
+
+        if link.activity_list.deleted_at is not None:
+            if not Submission.objects.filter(
+                activity_link=link,
+                student=self.request.user,
+                submitted_at__isnull=False,
+            ).exists():
+                raise Http404
+
+        return link
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity_link = self.get_activity_link()
 
@@ -716,7 +759,7 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
                 'discursive_exercise',
                 'multiple_choice_exercise',
             )
-            .prefetch_related('multiple_choice_exercise__options')
+            .prefetch_related('multiple_choice_exercise__options', 'code_exercise__test_cases')
         )
 
         answers = {

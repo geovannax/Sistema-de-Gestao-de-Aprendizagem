@@ -140,11 +140,7 @@ class Exercise(models.Model):
 
 
 class CodeExercise(models.Model):
-    """Dados específicos de um exercício do tipo código.
-
-    O aluno submete código na linguagem informada; o output gerado é
-    comparado com ``expected_output`` para correção automática.
-    """
+    """Dados específicos de um exercício do tipo código."""
     exercise = models.OneToOneField(Exercise, on_delete=models.CASCADE, related_name='code_exercise')
     language = models.CharField(
         max_length=20,
@@ -152,11 +148,36 @@ class CodeExercise(models.Model):
         verbose_name='Linguagem',
         help_text='Selecione a linguagem de programação para o exercício.'
     )
-    expected_output = models.TextField(
-        validators=[MinLengthValidator(5)],
-        verbose_name='Output Esperado',
-        help_text='Forneça a saída esperada para o exercício.'
+
+
+class CodeTestCase(models.Model):
+    """Caso de teste para exercício do tipo código.
+
+    Cada caso define uma entrada e a saída esperada correspondente.
+    Exibido ao aluno como especificação e usado pelo professor na correção.
+    """
+    exercise = models.ForeignKey(
+        CodeExercise,
+        on_delete=models.CASCADE,
+        related_name='test_cases',
+        verbose_name='Exercício',
     )
+    input = models.TextField(
+        blank=True,
+        default='',
+        verbose_name='Entrada',
+        help_text='Valores de entrada para o programa (pode ser vazio se não houver entrada).',
+    )
+    expected_output = models.TextField(
+        verbose_name='Saída esperada',
+        help_text='Saída que o programa deve produzir para esta entrada.',
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name='Ordem')
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = 'Caso de Teste'
+        verbose_name_plural = 'Casos de Teste'
 
 
 class CompleteCodeExercise(models.Model):

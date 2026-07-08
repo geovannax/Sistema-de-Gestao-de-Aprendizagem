@@ -3,7 +3,7 @@
 Contém o formulário base :class:`ExerciseForm`, os formulários específicos
 por tipo de exercício e o validador de sintaxe :class:`SyntaxValidator`.
 """
-from activity.models import CodeExercise, CompleteCodeExercise, DiscursiveExercise, Exercise, ExerciseOption
+from activity.models import CodeExercise, CodeTestCase, CompleteCodeExercise, DiscursiveExercise, Exercise, ExerciseOption
 from django import forms
 import ast
 import re
@@ -118,26 +118,39 @@ class SyntaxValidator:
 
 
 class CodeExerciseForm(forms.ModelForm):
-    """Formulário para exercícios do tipo código.
-
-    Campos: linguagem de programação e output esperado para correção.
-    Remove a opção em branco do campo ``language`` (RadioSelect).
-    """
+    """Formulário para exercícios do tipo código. Campos: linguagem de programação."""
     class Meta:
         model = CodeExercise
-        fields = ['language', 'expected_output']
+        fields = ['language']
         widgets = {
             'language': forms.RadioSelect(attrs={'class': 'radio-group'}),
-            'expected_output': forms.Textarea(attrs={'class': 'form-control font-monospace', 'rows': 10, 'placeholder': 'Saída esperada para correção...'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Remove a opção vazia do campo de turno
         self.fields['language'].choices = [
             choice for choice in self.fields['language'].choices
             if choice[0] != ''
         ]
+
+
+class CodeTestCaseForm(forms.ModelForm):
+    """Formulário para um caso de teste de exercício de código."""
+    class Meta:
+        model = CodeTestCase
+        fields = ['input', 'expected_output']
+        widgets = {
+            'input': forms.Textarea(attrs={
+                'class': 'form-control font-monospace',
+                'rows': 4,
+                'placeholder': 'Ex: 5 3',
+            }),
+            'expected_output': forms.Textarea(attrs={
+                'class': 'form-control font-monospace',
+                'rows': 4,
+                'placeholder': 'Ex: 4.0',
+            }),
+        }
 
 
 class CompleteCodeExerciseForm(forms.ModelForm):
@@ -233,7 +246,7 @@ class ExerciseForm(forms.ModelForm):
             'type': forms.HiddenInput(),
             'statement': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3,
+                'rows': 10,
                 'placeholder': 'Enunciado...'
             }),
             'points': forms.NumberInput(attrs={

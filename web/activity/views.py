@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import Any
 from activity.constants import EXERCISE_TYPES
 from activity.forms.activity import ActivityAssignForm, ActivityListForm, ActivityListGroupPeriodForm
-from activity.forms.exercise import CodeExerciseForm, CompleteCodeExerciseForm, DiscursiveExerciseForm, ExerciseOptionForm
+from activity.forms.exercise import CodeExerciseForm, CodeTestCaseForm, CompleteCodeExerciseForm, DiscursiveExerciseForm, ExerciseOptionForm
+from activity.forms.formsets.code_test_case import CodeTestCaseFormCreateSet, CodeTestCaseFormUpdateSet
 from activity.forms.formsets.exercise_option import ExerciseOptionFormCreateSet, ExerciseOptionFormUpdateSet
 from activity.mixins import ExerciseBaseMixin
 from activity.models import (
@@ -10,6 +11,7 @@ from activity.models import (
     ActivityList,
     ActivityListGroup,
     CodeExercise,
+    CodeTestCase,
     CompleteCodeExercise,
     DiscursiveExercise,
     Exercise,
@@ -412,14 +414,58 @@ class CodeExerciseBaseView(ExerciseBaseMixin, SecondaryFormMixin):
     template_name = "activity/types/code/_form.html"
     update_url = 'activity:code_exercise_update'
     type_exercise = 'code'
+    test_case_formset_class = None  # definido nas subclasses
+
+    def get_test_case_formset(self):
+        instance = self.get_secondary_instance()
+        kwargs = {'prefix': 'test_cases', 'instance': instance}
+        if self.request.POST:
+            kwargs['data'] = self.request.POST
+        return self.test_case_formset_class(**kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'test_case_formset' not in context:
+            context['test_case_formset'] = self.get_test_case_formset()
+        return context
+
+    def form_valid(self, form):
+        instance = self.get_secondary_instance()
+        secondary_form = self.get_secondary_form(instance=instance)
+        test_case_formset = self.get_test_case_formset()
+
+        if secondary_form.is_valid() and test_case_formset.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                secondary_obj = secondary_form.save(commit=False)
+                secondary_obj.exercise = self.object
+                secondary_obj.save()
+                test_case_formset.instance = secondary_obj
+                test_case_formset.save()
+            return self.render_success()
+
+        return self.form_invalid(form, secondary_form=secondary_form, test_case_formset=test_case_formset)
+
+    def form_invalid(self, form, secondary_form=None, test_case_formset=None):
+        if secondary_form is None:
+            secondary_instance = self.get_secondary_instance()
+            secondary_form = self.get_secondary_form(instance=secondary_instance)
+        if test_case_formset is None:
+            test_case_formset = self.get_test_case_formset()
+        context = self.get_context_data(
+            form=form,
+            secondary_form=secondary_form,
+            test_case_formset=test_case_formset,
+        )
+        return self.render_to_response(context)
 
 
 class CodeExerciseCreateView(CodeExerciseBaseView, CreateView):
-    pass
+    test_case_formset_class = CodeTestCaseFormCreateSet
 
 
 class CodeExerciseUpdateView(CodeExerciseBaseView, UpdateView):
-    pass
+    test_case_formset_class = CodeTestCaseFormUpdateSet
 
 
 class CompleteCodeExerciseBaseView(ExerciseBaseMixin, SecondaryFormMixin):
@@ -521,6 +567,7 @@ class ActivityDetailBaseView:
                 exercises_by_type['multiple_choice']['count'] += 1
                 exercises_by_type['multiple_choice']['points'] += exercise.points
                 
+        is_owner = activity.created_by == self.request.user
         context.update({
             'table': {
                 'fields': self.allowed_fields,
@@ -532,13 +579,19 @@ class ActivityDetailBaseView:
             'total_points': total_points,
             'nav_tabs': self.set_nav_tabs(),
             'count_groups': activity.list_groups.all().count(),
+            'edit_url': reverse('activity:update', kwargs={'pk': activity.pk}) if is_owner else None,
         })
         
         return context
  
     def has_object_access(self, user: User, obj: ActivityList) -> bool:
-        """Permite acesso apenas para o criador da atividade"""
-        return obj.created_by == user
+        if obj.created_by == user:
+            return True
+        return obj.list_groups.filter(
+            group__sharings__shared_with=user,
+            group__sharings__is_active=True,
+            group__deleted_at__isnull=True,
+        ).exists()
 
     def set_nav_tabs(self) -> list:
         """Configura as abas de navegação"""
@@ -800,15 +853,34 @@ class ActivityArchiveView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity = self.get_object()
 
-        archived, created = ActivityArchived.objects.get_or_create(
+        existing = ActivityArchived.objects.filter(
             activity_list=activity,
             user=request.user,
-            defaults={'is_archived': True}
-        )
+        ).first()
 
-        if not created:
-            archived.is_archived = not archived.is_archived
-            archived.save(update_fields=['is_archived', 'updated_at'])
+        will_archive = not (existing and existing.is_archived)
+
+        if will_archive:
+            now = timezone.now()
+            if activity.list_groups.filter(
+                Q(ends_at__isnull=True) | Q(ends_at__gte=now)
+            ).exists():
+                messages.error(
+                    request,
+                    'Não é possível arquivar esta atividade: ela está vinculada a uma turma com período em aberto.'
+                )
+                return redirect('activity:list')
+
+        if existing:
+            existing.is_archived = not existing.is_archived
+            existing.save(update_fields=['is_archived', 'updated_at'])
+            archived = existing
+        else:
+            archived = ActivityArchived.objects.create(
+                activity_list=activity,
+                user=request.user,
+                is_archived=True,
+            )
 
         messages.success(
             request,
@@ -864,7 +936,7 @@ class ActivityDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteV
 
         messages.error(
             request,
-            'Nao foi possivel deletar esta atividade porque ela esta vinculada a turma com periodo em aberto. Encerre o periodo ou arquive a atividade.'
+            'Não é possível deletar esta atividade: ela está vinculada a uma turma com período em aberto. Encerre o período antes.'
         )
         return redirect('activity:detail', pk=obj.pk)
 

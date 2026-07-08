@@ -97,6 +97,32 @@
                                 {% endif %}
                             </div>
 
+                            {% if exercise.type == 'code' %}
+                                {% with test_cases=exercise.code_exercise.test_cases.all %}
+                                {% if test_cases %}
+                                <div class="answer-block">
+                                    <div class="answer-label">Casos de teste</div>
+                                    <table class="table table-sm table-bordered mb-0" style="font-size:.82rem">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:50%">Entrada</th>
+                                                <th style="width:50%">Saída esperada</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="font-monospace">
+                                            {% for tc in test_cases %}
+                                            <tr>
+                                                <td style="white-space:pre-wrap">{{ tc.input|default:"(sem entrada)" }}</td>
+                                                <td style="white-space:pre-wrap">{{ tc.expected_output }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                            {% endif %}
+
                             <div class="grade-buttons">
                                 <label>
                                     <input type="radio" name="grade_{{ answer.pk }}" value="correct"

@@ -20,11 +20,18 @@
             </div>
         </div>
 
-        {% if create_url %}
-            <a href="{% url create_url %}" class="btn btn-outline-primary rounded-pill">
-                <i class="bi bi-plus-circle me-2"></i> Cadastrar
-            </a>
-        {% endif %}
+        <div class="d-flex gap-2">
+            {% if edit_url %}
+                <a href="{{ edit_url }}" class="btn btn-outline-primary rounded-pill">
+                    <i class="bi bi-pencil me-1"></i> Editar
+                </a>
+            {% endif %}
+            {% if create_url %}
+                <a href="{% url create_url %}" class="btn btn-outline-primary rounded-pill">
+                    <i class="bi bi-plus-circle me-2"></i> Cadastrar
+                </a>
+            {% endif %}
+        </div>
 
     </div>
 </div>
