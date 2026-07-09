@@ -20,9 +20,11 @@
 
     <!-- ─── MINI TOPBAR ──────────────────────────────────────── -->
     <div class="act-topbar">
+        {% if not activity_link.activity_list.max_attempts %}
         <a href="{% url 'student:group_detail' activity_link.group.pk %}" class="act-back" title="Voltar para a turma">
             <i class="bi bi-arrow-left"></i>
         </a>
+        {% endif %}
         <div class="act-info">
             <div class="act-title">{{ activity_link.activity_list.title }}</div>
             <div class="act-sub">{{ activity_link.group.name }}</div>
@@ -400,6 +402,7 @@
             document.getElementById('rf-option').value = d.selected_option;
             document.getElementById('rf-text').value   = d.answer_text;
             document.getElementById('rf-obs').value    = d.observation;
+            window._actAllowLeave = true;
             document.getElementById('review-form').submit();
         } else {
             goTo(current + 1);
@@ -458,4 +461,25 @@
 
 })();
 </script>
+{% if activity_link.activity_list.max_attempts %}
+<script>
+window._actAllowLeave = false;
+window.addEventListener('beforeunload', function (e) {
+    if (!window._actAllowLeave) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+window.addEventListener('pagehide', function () {
+    if (!window._actAllowLeave) {
+        var csrf = (document.cookie.split('; ').filter(function (r) {
+            return r.startsWith('csrftoken=');
+        })[0] || '=').split('=')[1];
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', csrf);
+        navigator.sendBeacon('{% url "student:activity_abandon" activity_link.pk %}', fd);
+    }
+});
+</script>
+{% endif %}
 {% endblock extra_script %}

@@ -9,26 +9,38 @@ from django.db import models
 class Submission(models.Model):
     """Tentativa de um aluno em uma atividade vinculada a uma turma.
 
-    Criada automaticamente ao acessar a atividade pela primeira vez.
-    ``submitted_at`` é ``None`` enquanto o aluno ainda pode editar as
-    respostas; preenchido na submissão final, após a qual a atividade
-    passa a ser somente leitura.
+    Criada automaticamente ao acessar a atividade. ``attempt_number``
+    incrementa a cada nova tentativa (quando ``max_attempts`` permite).
+    ``submitted_at`` é ``None`` enquanto editável; preenchido na entrega
+    final, após a qual a tentativa passa a ser somente leitura.
+
+    Attributes:
+        student: Aluno que realizou a tentativa.
+        activity_link: Vínculo atividade↔turma ao qual a tentativa pertence.
+        attempt_number: Número sequencial da tentativa do aluno (começa em 1).
+        started_at: Momento em que a tentativa foi criada.
+        submitted_at: Momento da entrega final; ``None`` enquanto em andamento.
+        student_feedback: Comentário opcional do aluno após a entrega.
+        teacher_comment: Comentário geral do professor sobre a tentativa.
     """
 
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submissions')
     activity_link = models.ForeignKey(ActivityListGroup, on_delete=models.CASCADE, related_name='submissions')
+    attempt_number = models.PositiveIntegerField(default=1, verbose_name='Tentativa')
     started_at = models.DateTimeField(auto_now_add=True, verbose_name='Iniciado em')
     submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='Submetido em')
+    is_abandoned = models.BooleanField(default=False, verbose_name='Abandonada')
     student_feedback = models.TextField(blank=True, default='', verbose_name='Feedback do aluno')
     teacher_comment = models.TextField(blank=True, default='', verbose_name='Comentário do professor')
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['student', 'activity_link'],
-                name='unique_student_activity_submission',
+                fields=['student', 'activity_link', 'attempt_number'],
+                name='unique_student_activity_attempt',
             )
         ]
+        ordering = ['-attempt_number']
         verbose_name = 'Submissão'
         verbose_name_plural = 'Submissões'
 

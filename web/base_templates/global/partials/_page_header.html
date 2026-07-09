@@ -21,6 +21,11 @@
         </div>
 
         <div class="d-flex gap-2">
+            {% if preview_url %}
+                <a href="{{ preview_url }}" class="btn btn-outline-secondary rounded-pill">
+                    <i class="bi bi-eye me-1"></i> Visualizar
+                </a>
+            {% endif %}
             {% if edit_url %}
                 <a href="{{ edit_url }}" class="btn btn-outline-primary rounded-pill">
                     <i class="bi bi-pencil me-1"></i> Editar

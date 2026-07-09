@@ -25,6 +25,8 @@ class ActivityList(models.Model):
         description: Descrição e objetivos da atividade.
         created_by: Professor que criou a atividade.
         is_published: Indica se a atividade está visível para os alunos.
+        max_attempts: Número máximo de tentativas permitidas por aluno.
+            ``None`` significa sem limite.
         deleted_at: Preenchido no soft delete; ``None`` enquanto ativa.
     """
     title = models.CharField(
@@ -39,6 +41,13 @@ class ActivityList(models.Model):
     )
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='Criado por')
     is_published = models.BooleanField(default=False, db_index=True, verbose_name='Publicada')
+    max_attempts = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Máximo de Tentativas',
+        help_text='Número máximo de tentativas que cada aluno pode realizar. Deixe em branco para tentativas ilimitadas.',
+        validators=[MinValueValidator(1)],
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
     deleted_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='Deletado em')
@@ -209,7 +218,7 @@ class CompleteCodeExercise(models.Model):
     )
     starter_code = models.TextField(
         verbose_name='Código Incompleto',
-        help_text='Forneça o código inicial com lacunas para o aluno completar. Use "___" para indicar as lacunas.'
+        help_text='Forneça o código inicial com lacunas. Cada lacuna deve ser marcada com exatamente três underlines: "___". Ex: x = ___'
     )
     complete_code = models.TextField(
         verbose_name='Código Completo (Gabarito)',

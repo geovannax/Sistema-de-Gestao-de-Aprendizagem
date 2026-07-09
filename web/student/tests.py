@@ -259,12 +259,23 @@ class TestStudentActivityView:
         assert response.status_code == 200
         assert Submission.objects.filter(student=user, activity_link=activity_link).exists()
 
-    def test_redirects_to_result_if_already_submitted(
+    def test_redirects_to_result_when_max_attempts_reached(
         self, authenticated_client, activity_link, enrolled, submitted_submission
     ):
+        activity_link.activity_list.max_attempts = 1
+        activity_link.activity_list.save()
         response = authenticated_client.get(f'/student/activity/{activity_link.pk}/')
         assert response.status_code == 302
         assert 'result' in response['Location']
+
+    def test_starts_new_attempt_if_submitted_and_unlimited(
+        self, authenticated_client, activity_link, enrolled, submitted_submission
+    ):
+        response = authenticated_client.get(f'/student/activity/{activity_link.pk}/')
+        assert response.status_code == 200
+        assert Submission.objects.filter(
+            student=submitted_submission.student, activity_link=activity_link
+        ).count() == 2
 
     def test_get_with_exercise_param(self, authenticated_client, activity_link, enrolled, mc_exercise):
         ex, mc, opt_wrong, opt_correct = mc_exercise
@@ -383,6 +394,48 @@ class TestStudentActivityView:
             submission=submission, exercise=complete_code_exercise
         ).exists()
 
+    def test_complete_code_correct_answer_auto_graded(
+        self, authenticated_client, activity_link, enrolled, submission, activity
+    ):
+        ex = Exercise.objects.create(activity_list=activity, type='complete_code', statement='Q', points=1)
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='x = ___', complete_code='x = 42'
+        )
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {'current_exercise_pk': ex.pk, 'navigate_to_pk': ex.pk, 'answer_text': 'x = 42'},
+        )
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=ex)
+        assert answer.is_correct is True
+
+    def test_complete_code_whitespace_ignored_in_grading(
+        self, authenticated_client, activity_link, enrolled, submission, activity
+    ):
+        ex = Exercise.objects.create(activity_list=activity, type='complete_code', statement='Q', points=1)
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='x = ___', complete_code='x=42'
+        )
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {'current_exercise_pk': ex.pk, 'navigate_to_pk': ex.pk, 'answer_text': 'x  =  42'},
+        )
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=ex)
+        assert answer.is_correct is True
+
+    def test_complete_code_wrong_answer_auto_graded(
+        self, authenticated_client, activity_link, enrolled, submission, activity
+    ):
+        ex = Exercise.objects.create(activity_list=activity, type='complete_code', statement='Q', points=1)
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='x = ___', complete_code='x = 42'
+        )
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {'current_exercise_pk': ex.pk, 'navigate_to_pk': ex.pk, 'answer_text': 'x = 99'},
+        )
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=ex)
+        assert answer.is_correct is False
+
     def test_post_saves_correct_multiple_choice(
         self, authenticated_client, activity_link, enrolled, mc_exercise, submission
     ):
@@ -481,9 +534,11 @@ class TestStudentActivityView:
         )
         assert response.status_code == 200
 
-    def test_post_already_submitted_redirects(
+    def test_post_redirects_to_result_when_max_attempts_reached(
         self, authenticated_client, activity_link, enrolled, submitted_submission
     ):
+        activity_link.activity_list.max_attempts = 1
+        activity_link.activity_list.save()
         response = authenticated_client.post(
             f'/student/activity/{activity_link.pk}/',
             {'current_exercise_pk': '', 'answer_text': ''},
@@ -814,12 +869,13 @@ class TestStudentActivityReviewView:
         assert response.status_code == 302
         assert f'/student/activity/{activity_link.pk}/' in response['Location']
 
-    def test_review_redirects_to_result_if_already_submitted(
+    def test_review_redirects_to_activity_when_no_in_progress_submission(
         self, authenticated_client, activity_link, enrolled, submitted_submission
     ):
+        # No in-progress submission → review redirects to activity (retry or limit check)
         response = authenticated_client.get(f'/student/activity/{activity_link.pk}/review/')
         assert response.status_code == 302
-        assert 'result' in response['Location']
+        assert f'/student/activity/{activity_link.pk}/' in response['Location']
 
     def test_review_shows_page_with_in_progress_submission(
         self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
@@ -1049,4 +1105,240 @@ class TestStudentResultView404Branches:
         )
         link = ActivityListGroup.objects.create(group=other_group, activity_list=activity)
         response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 404
+
+
+# ─── StudentAbandonView ───────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentAbandonView:
+    def _make_limited_link(self, group, activity, max_attempts=2):
+        activity.max_attempts = max_attempts
+        activity.save()
+        return ActivityListGroup.objects.create(group=group, activity_list=activity)
+
+    def test_abandon_closes_in_progress_submission(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        link = self._make_limited_link(group, activity)
+        sub = Submission.objects.create(student=user, activity_link=link)
+        response = authenticated_client.post(f'/student/activity/{link.pk}/abandon/')
+        assert response.status_code == 204
+        sub.refresh_from_db()
+        assert sub.submitted_at is not None
+        assert sub.is_abandoned is True
+
+    def test_abandon_no_op_for_unlimited_activity(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        sub = Submission.objects.create(student=user, activity_link=link)
+        response = authenticated_client.post(f'/student/activity/{link.pk}/abandon/')
+        assert response.status_code == 204
+        sub.refresh_from_db()
+        assert sub.submitted_at is None
+        assert sub.is_abandoned is False
+
+
+# ─── StudentActivityView — limited activity paths ─────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentActivityViewLimited:
+    def _make_limited_link(self, group, activity, max_attempts=2):
+        activity.max_attempts = max_attempts
+        activity.save()
+        return ActivityListGroup.objects.create(group=group, activity_list=activity)
+
+    def test_get_creates_new_attempt_after_abandoned(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """GET opens a fresh attempt when previous one was abandoned and attempts remain."""
+        link = self._make_limited_link(group, activity, max_attempts=2)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/')
+        assert response.status_code == 200
+        assert Submission.objects.filter(
+            student=user, activity_link=link, submitted_at__isnull=True
+        ).exists()
+
+    def test_get_redirects_to_result_when_all_attempts_abandoned(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """GET redirects with error when all attempts are abandoned (no intentional submit)."""
+        link = self._make_limited_link(group, activity, max_attempts=1)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/')
+        assert response.status_code == 302
+        assert 'result' in response['Location']
+
+    def test_post_creates_new_attempt_after_abandoned(
+        self, authenticated_client, user, group, activity, enrolled, discursive_exercise
+    ):
+        """POST creates new submission when previous was abandoned but attempts remain."""
+        link = self._make_limited_link(group, activity, max_attempts=2)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{link.pk}/',
+            {'current_exercise_pk': '', 'answer_text': ''},
+        )
+        assert response.status_code in (200, 302)
+        assert Submission.objects.filter(student=user, activity_link=link).count() == 2
+
+    def test_post_redirects_to_result_when_all_abandoned_and_exhausted(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """POST to limited activity with all attempts abandoned and exhausted returns None → redirect."""
+        link = self._make_limited_link(group, activity, max_attempts=1)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{link.pk}/',
+            {'current_exercise_pk': '', 'answer_text': ''},
+        )
+        assert response.status_code == 302
+        assert 'result' in response['Location']
+
+
+@pytest.mark.django_db
+class TestStudentActivityViewUnlimitedPostNoInProgress:
+    def test_post_creates_new_submission_when_previous_submitted(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """POST to unlimited activity without in-progress submission creates a new one."""
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), attempt_number=1,
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{link.pk}/',
+            {'current_exercise_pk': '', 'answer_text': ''},
+        )
+        assert response.status_code in (200, 302)
+        assert Submission.objects.filter(student=user, activity_link=link).count() == 2
+
+
+# ─── StudentResultView — limited activity paths ───────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentResultViewLimited:
+    def _make_limited_link(self, group, activity, max_attempts=2):
+        activity.max_attempts = max_attempts
+        activity.save()
+        return ActivityListGroup.objects.create(group=group, activity_list=activity)
+
+    def test_result_shows_intentional_submission(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """GET /result/ for limited activity shows the intentional submission."""
+        link = self._make_limited_link(group, activity, max_attempts=2)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=False, attempt_number=2,
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 200
+
+    def test_result_fallback_to_abandoned_when_no_intentional(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """GET /result/ falls back to latest abandoned submission when no intentional one exists."""
+        link = self._make_limited_link(group, activity, max_attempts=1)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 200
+
+    def test_result_context_has_attempts_remaining_limited(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """Context includes attempts_remaining for limited activities."""
+        link = self._make_limited_link(group, activity, max_attempts=3)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=False, attempt_number=2,
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 200
+        assert response.context['attempts_remaining'] == 1
+        assert response.context['can_retry'] is False  # has intentional → no retry
+
+    def test_result_can_retry_false_after_intentional(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """can_retry is False after an intentional submission, regardless of attempts left."""
+        link = self._make_limited_link(group, activity, max_attempts=3)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=False, attempt_number=1,
+        )
+        response = authenticated_client.get(f'/student/activity/{link.pk}/result/')
+        assert response.status_code == 200
+        assert response.context['can_retry'] is False
+
+
+# ─── StudentFeedbackView — limited activity path ──────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentFeedbackViewLimited:
+    def _make_limited_link(self, group, activity, max_attempts=2):
+        activity.max_attempts = max_attempts
+        activity.save()
+        return ActivityListGroup.objects.create(group=group, activity_list=activity)
+
+    def test_feedback_saved_for_intentional_submission(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """POST feedback uses the non-abandoned submission for limited activities."""
+        link = self._make_limited_link(group, activity)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        intentional = Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=False, attempt_number=2,
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{link.pk}/feedback/',
+            {'student_feedback': 'Ótima atividade!'},
+        )
+        assert response.status_code == 302
+        intentional.refresh_from_db()
+        assert intentional.student_feedback == 'Ótima atividade!'
+
+    def test_feedback_404_when_only_abandoned_submissions(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        """POST feedback returns 404 when only abandoned submissions exist (no intentional)."""
+        link = self._make_limited_link(group, activity)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=True, attempt_number=1,
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{link.pk}/feedback/',
+            {'student_feedback': 'Feedback'},
+        )
         assert response.status_code == 404

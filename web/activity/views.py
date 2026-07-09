@@ -281,11 +281,11 @@ class ActivityUpdateView(
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         if self._has_submissions():
-            messages.error(
-                self.request,
-                'Não é possível editar esta atividade: um ou mais alunos já a responderam.'
-            )
-            return redirect('activity:list')
+            obj = form.save(commit=False)
+            obj.save(update_fields=['title', 'description', 'max_attempts', 'updated_at'])
+            self.object = obj
+            messages.success(self.request, 'Título, descrição e tentativas atualizados.')
+            return self.render_activity_builder()
         self.object = form.save()
         return self.render_activity_builder()
 
@@ -643,6 +643,7 @@ class ActivityDetailBaseView:
             'nav_tabs': self.set_nav_tabs(),
             'count_groups': activity.list_groups.all().count(),
             'edit_url': reverse('activity:update', kwargs={'pk': activity.pk}) if can_edit else None,
+            'preview_url': reverse('activity:preview', kwargs={'pk': activity.pk}),
         })
         
         return context
@@ -658,25 +659,26 @@ class ActivityDetailBaseView:
 
     def set_nav_tabs(self) -> list:
         """Configura as abas de navegação"""
-        return [{
-                'title': 'Resumo',
+        return [
+            {
+                'title': 'Estatística',
+                'url': 'activity:stats',
+                'pk': self.object.pk,
+                'icon': 'bi-bar-chart',
+                'active': self.__class__.__name__ == 'ActivityDetailView'
+            }, {
+                'title': 'Revisão',
                 'url': 'activity:detail',
                 'pk': self.object.pk,
-                'icon': 'bi-info-circle',
-                'active': self.__class__.__name__ == 'ActivityDetailView'
+                'icon': 'bi-pencil-square',
+                'active': self.__class__.__name__ == 'ActivityReviewView'
             }, {
                 'title': 'Vincular a Turmas',
                 'url': 'activity:assign',
                 'pk': self.object.pk,
                 'icon': 'bi-share',
                 'active': self.__class__.__name__ == 'ActivityAssignView'
-            }, {
-                'title': 'Revisão',
-                'url': 'activity:review',
-                'pk': self.object.pk,
-                'icon': 'bi-pencil-square',
-                'active': self.__class__.__name__ == 'ActivityReviewView'
-            }
+            },
         ]
 
     def init_exercise_info(self) -> dict:

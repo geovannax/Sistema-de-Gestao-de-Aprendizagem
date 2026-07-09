@@ -91,8 +91,14 @@
                                     <span class="status-badge status-{{ link.status_class }}">
                                         {{ link.status_label }}
                                     </span>
-                                    {% if link.submission %}
+                                    {% if link.in_progress_submission %}
                                         <span class="status-badge status-in-progress">Em andamento</span>
+                                    {% endif %}
+                                    {% if link.activity_list.max_attempts %}
+                                        <span class="status-badge" style="background:var(--gray-100);color:var(--gray-600)">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                            {{ link.attempts_used }}/{{ link.activity_list.max_attempts }} tentativa{{ link.activity_list.max_attempts|pluralize:"," }}
+                                        </span>
                                     {% endif %}
                                     <div class="activity-title">{{ link.activity_list.title }}</div>
                                     {% if link.activity_list.description %}
@@ -114,14 +120,20 @@
                                 </div>
                                 <div class="flex-shrink-0 pt-1">
                                     {% if link.status_class == 'open' %}
-                                        <a href="{% url 'student:activity' link.pk %}"
-                                           class="btn btn-sm btn-primary rounded-5">
-                                            {% if link.submission %}
-                                                <i class="bi bi-play-fill me-1"></i>Continuar
-                                            {% else %}
-                                                <i class="bi bi-play me-1"></i>Iniciar
-                                            {% endif %}
-                                        </a>
+                                        {% if link.attempts_exhausted %}
+                                            <span class="btn btn-sm btn-outline-secondary rounded-5 disabled" aria-disabled="true">
+                                                <i class="bi bi-slash-circle me-1"></i>Sem tentativas
+                                            </span>
+                                        {% else %}
+                                            <a href="{% url 'student:activity' link.pk %}"
+                                               class="btn btn-sm btn-primary rounded-5">
+                                                {% if link.in_progress_submission %}
+                                                    <i class="bi bi-play-fill me-1"></i>Continuar
+                                                {% else %}
+                                                    <i class="bi bi-play me-1"></i>Iniciar
+                                                {% endif %}
+                                            </a>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -142,13 +154,19 @@
                                     <span class="status-badge status-submitted">
                                         <i class="bi bi-check-lg"></i> Entregue
                                     </span>
+                                    {% if link.activity_list.max_attempts %}
+                                        <span class="status-badge" style="background:var(--gray-100);color:var(--gray-600)">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                            {{ link.attempts_used }}/{{ link.activity_list.max_attempts }} tentativa{{ link.activity_list.max_attempts|pluralize:"," }}
+                                        </span>
+                                    {% endif %}
                                     <div class="activity-title">{{ link.activity_list.title }}</div>
                                     {% if link.activity_list.description %}
                                         <div class="activity-description">{{ link.activity_list.description }}</div>
                                     {% endif %}
                                     <div class="activity-period">
                                         <i class="bi bi-send-check"></i>
-                                        Submetida em {{ link.submission.submitted_at|date:"d/m/Y \à\s H:i" }}
+                                        Submetida em {{ link.latest_submission.submitted_at|date:"d/m/Y \à\s H:i" }}
                                     </div>
                                 </div>
                                 <div class="flex-shrink-0 pt-1 d-flex flex-column gap-1 align-items-end">
@@ -156,7 +174,13 @@
                                        class="btn btn-sm btn-outline-success rounded-5">
                                         <i class="bi bi-eye me-1"></i>Ver Resultado
                                     </a>
-                                    {% if link.submission.teacher_comment %}
+                                    {% if link.can_retry %}
+                                        <a href="{% url 'student:activity' link.pk %}"
+                                           class="btn btn-sm btn-outline-primary rounded-5">
+                                            <i class="bi bi-arrow-repeat me-1"></i>Nova tentativa
+                                        </a>
+                                    {% endif %}
+                                    {% if link.latest_submission.teacher_comment %}
                                         <a href="{% url 'student:activity_result' link.pk %}"
                                            class="btn btn-sm btn-outline-info rounded-5">
                                             <i class="bi bi-chat-quote me-1"></i>Feedback do professor

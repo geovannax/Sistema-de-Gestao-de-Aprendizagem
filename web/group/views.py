@@ -289,18 +289,18 @@ class GroupBaseView:
         """Configura as abas de navegação"""
         tabs = [
             {
-                'title': 'Resumo',
-                'url': 'group:detail',
-                'pk': self.object.pk,
-                'icon': 'bi-info-circle',
-                'active': self.__class__.__name__ == 'GroupDetailView',
-            },
-            {
                 'title': 'Compartilhamento',
                 'url': 'group:share',
                 'pk': self.object.pk,
                 'icon': 'bi-share',
                 'active': self.__class__.__name__ == 'GroupShareView',
+            },
+            {
+                'title': 'Estatística',
+                'url': 'group:stats',
+                'pk': self.object.pk,
+                'icon': 'bi-bar-chart',
+                'active': self.__class__.__name__ == 'GroupDetailView',
             },
         ]
         is_owner = self.object.created_by == self.request.user
@@ -308,7 +308,7 @@ class GroupBaseView:
         if is_owner or is_shared:
             tabs.append({
                 'title': 'Revisão',
-                'url': 'group:review',
+                'url': 'group:detail',
                 'pk': self.object.pk,
                 'icon': 'bi-pencil-square',
                 'active': self.__class__.__name__ == 'GroupReviewView',
@@ -323,7 +323,7 @@ class GroupDetailView(
     NavigationMixin,
     DetailView
 ):
-    """Detalhes de uma turma: resumo, atividades recentes e abas de navegação."""
+    """Aba Estatística da turma: atividades recentes e abas de navegação."""
 
     model = Group
 

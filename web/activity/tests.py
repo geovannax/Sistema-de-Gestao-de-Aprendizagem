@@ -109,6 +109,39 @@ class TestSyntaxValidator:
         assert SyntaxValidator.validate('any code', 'ruby') is True
 
 
+# ─── normalize_code unit tests ───────────────────────────────────────────────
+
+class TestNormalizeCode:
+    def test_strips_whitespace_python(self):
+        from activity.utils import normalize_code
+        assert normalize_code('x  =  1', 'python') == normalize_code('x=1', 'python')
+
+    def test_strips_whitespace_javascript(self):
+        from activity.utils import normalize_code
+        assert normalize_code('let x  =  1', 'javascript') == normalize_code('let x=1', 'javascript')
+
+    def test_strips_comments_python(self):
+        from activity.utils import normalize_code
+        with_comment = normalize_code('x = 1  # meu comentário', 'python')
+        without_comment = normalize_code('x = 1', 'python')
+        assert with_comment == without_comment
+
+    def test_preserves_string_literals(self):
+        from activity.utils import normalize_code
+        a = normalize_code('print("hello world")', 'python')
+        b = normalize_code('print( "hello world" )', 'python')
+        assert a == b
+
+    def test_different_values_not_equal(self):
+        from activity.utils import normalize_code
+        assert normalize_code('x = 1', 'python') != normalize_code('x = 2', 'python')
+
+    def test_unknown_language_fallback(self):
+        from activity.utils import normalize_code
+        result = normalize_code('x = 1', 'cobol')
+        assert 'x' in result and '1' in result
+
+
 # ─── CompleteCodeExerciseForm tests ──────────────────────────────────────────
 
 class TestCompleteCodeExerciseForm:

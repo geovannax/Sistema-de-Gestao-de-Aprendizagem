@@ -38,8 +38,9 @@
                 </div>
             </div>
             {% if object and has_exercises %}
-            <a href="{% url 'activity:preview' object.pk %}" class="btn btn-outline-primary rounded-pill">
-                <i class="bi bi-eye me-1"></i> Preview
+            <a href="{% url 'activity:preview' object.pk %}" class="btn btn-outline-primary rounded-5">
+                <i class="bi bi-eye me-1"></i>
+                Revisar
             </a>
             {% endif %}
         </div>
@@ -58,9 +59,9 @@
         </div>
         <hr>
         {% if has_submissions %}
-        <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" style="font-size:.875rem">
+        <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" style="font-size:.875rem">
             <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-            <span>Esta atividade já possui respostas de alunos. As informações não podem ser alteradas, mas você pode <strong>anular exercícios</strong> individualmente abaixo.</span>
+            <span>Esta atividade já possui respostas de alunos. Você pode editar <strong>Título</strong>, <strong>Descrição</strong> e <strong>Máximo de Tentativas</strong>. Os exercícios não podem ser alterados — apenas <strong>anulados</strong> individualmente abaixo.</span>
         </div>
         {% endif %}
         <form method="post" action="{{ request.path }}">
@@ -77,7 +78,6 @@
                     </div>
                 </label>
                 {% endif %}
-                {% if not has_submissions %}
                 <div class="d-flex align-items-center gap-2 {% if not is_update_flow %}flex-shrink-0{% else %}ms-auto{% endif %}">
                     {% if not is_update_flow %}
                     <button type="button" class="btn btn-outline-secondary rounded-5" onclick="history.back()">
@@ -89,7 +89,6 @@
                         {% if is_update_flow %}Atualizar{% else %}Salvar e Continuar{% endif %}
                     </button>
                 </div>
-                {% endif %}
             </div>
         </form>
     </div>

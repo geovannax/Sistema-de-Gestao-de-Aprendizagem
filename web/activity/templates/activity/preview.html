@@ -29,7 +29,7 @@
                         <h2 class="fw-bold page-header-title">{{ object.title }}</h2>
                         <p class="subtitle">
                             <i class="bi bi-info-circle"></i>
-                            <span class="subtitle-text">Preview da atividade</span>
+                            <span class="subtitle-text">Prévia da atividade</span>
                         </p>
                     </div>
                 </div>
@@ -70,11 +70,16 @@
             <!-- RIGHT: PREVIEW CARDS -->
             <div class="form-card col-8 p-3 rounded-3 mb-3" id="main-content">
 
-                <div class="form-card-header d-flex mb-0" id="form-header">
+                <div class="form-card-header d-flex justify-content-between align-items-start mb-0" id="form-header">
                     <div>
-                        <div class="form-card-title mb-0">Preview</div>
+                        <div class="form-card-title mb-0">Prévia</div>
                         <div class="form-card-subtitle">Confira os exercícios antes de finalizar</div>
                     </div>
+                    {% if object.max_attempts %}
+                    <span class="badge rounded-pill" style="background:var(--blue-50,#eff6ff);color:var(--blue-700,#1d4ed8);font-size:.75rem;border:1px solid var(--blue-200,#bfdbfe);white-space:nowrap">
+                        <i class="bi bi-arrow-repeat me-1"></i>{{ object.max_attempts }} tentativa{{ object.max_attempts|pluralize:",s" }}
+                    </span>
+                    {% endif %}
                 </div>
 
                 <hr>

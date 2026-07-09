@@ -12,13 +12,13 @@ import json
 class ActivityListForm(forms.ModelForm):
     """Formulário para criação e edição de uma lista de atividades.
 
-    Campos expostos: ``title`` e ``description``.
+    Campos expostos: ``title``, ``description`` e ``max_attempts``.
     Os demais campos (``created_by``, ``is_published``, etc.) são
     preenchidos automaticamente pela view.
     """
     class Meta:
         model = ActivityList
-        fields = ['title', 'description']
+        fields = ['title', 'description', 'max_attempts']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -28,6 +28,11 @@ class ActivityListForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 4,
                 'placeholder': 'Descreva o objetivo desta lista...',
+            }),
+            'max_attempts': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'placeholder': 'Ex: 3 (deixe em branco para ilimitado)',
             }),
         }
 

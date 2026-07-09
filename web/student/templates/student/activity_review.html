@@ -193,7 +193,7 @@
                             {% endif %}
 
                             <div class="mt-3 text-end">
-                                <a href="{% url 'student:activity' activity_link.pk %}?exercise={{ exercise.pk }}"
+                                <a href="{% url 'student:activity' activity_link.pk %}?exercise={{ exercise.pk }}{% if activity_link.activity_list.max_attempts %}&resume=1{% endif %}"
                                    class="btn btn-outline-secondary btn-sm rounded-pill">
                                     <i class="bi bi-pencil me-1 p-1"></i>Voltar e editar
                                 </a>
