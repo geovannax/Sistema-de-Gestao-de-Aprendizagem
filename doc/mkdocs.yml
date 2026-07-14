@@ -61,6 +61,7 @@ nav:
   - Guia de Início:
       - Desenvolvimento: guia_de_início/dev.md
       - Produção: guia_de_início/prod.md
+  - Arquitetura e Tecnologias: arquitetura.md
   - Apps:
       - accounts:
           - Visão Geral: apps/accounts/index.md

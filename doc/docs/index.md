@@ -44,23 +44,11 @@ Essa separação busca manter o projeto organizado por responsabilidades, facili
 
 ## Arquitetura e Tecnologias
 
-A aplicação é construída com uma arquitetura web baseada em [Django](https://docs.djangoproject.com/), priorizando renderização server-side, simplicidade operacional e evolução progressiva da interface.
+A aplicação é construída com uma arquitetura web **server-driven** baseada em [Django](https://docs.djangoproject.com/), servida via ASGI com [uvicorn](https://www.uvicorn.org/), com execução assíncrona de código de alunos via [Celery](https://docs.celeryq.dev/) e [Redis](https://redis.io/docs/latest/).
 
-A stack principal do projeto inclui:
+A stack inclui [Django Templates](https://docs.djangoproject.com/en/stable/topics/templates/) + [HTMX](https://htmx.org/docs/) para interações dinâmicas sem SPA, [Bootstrap 5](https://getbootstrap.com/docs/) hospedado localmente, [PostgreSQL](https://www.postgresql.org/docs/) 18 em produção e um sandbox de execução de código com isolamento via `nobody`, `ulimits` e `iptables`.
 
-- [Django](https://docs.djangoproject.com/) como framework backend principal;
-- [Django ORM](https://docs.djangoproject.com/en/stable/topics/db/) para modelagem e acesso a dados;
-- [Django Templates](https://docs.djangoproject.com/en/stable/topics/templates/) para renderização das páginas;
-- [Bootstrap](https://getbootstrap.com/docs/) para composição da interface;
-- [HTMX](https://htmx.org/docs/) como estratégia preferencial para interações dinâmicas progressivas;
-- [PostgreSQL](https://www.postgresql.org/docs/) como banco de dados previsto para ambientes produtivos;
-- [Redis](https://redis.io/docs/latest/) para cenários de cache, filas ou otimizações futuras;
-- [Docker](https://docs.docker.com/) e [Docker Compose](https://docs.docker.com/compose/) para padronização dos ambientes;
-- [Nginx](https://nginx.org/en/docs/) e [Gunicorn](https://docs.gunicorn.org/en/stable/) como componentes previstos para deploy em produção;
-- [MkDocs](https://www.mkdocs.org/) e [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) para documentação técnica versionada;
-- [mkdocstrings](https://mkdocstrings.github.io/) para geração de referência técnica a partir do código Python.
-
-A proposta arquitetural favorece uma aplicação server-driven, evitando complexidade desnecessária no frontend e mantendo as regras principais no backend.
+Veja a descrição completa em [Arquitetura e Tecnologias](arquitetura.md).
 
 ---
 

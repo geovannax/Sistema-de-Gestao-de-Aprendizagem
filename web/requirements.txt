@@ -12,3 +12,7 @@ redis==5.0.1
 sqlparse==0.5.5
 tzdata==2025.3
 uvicorn==0.42.0
+mkdocs==1.6.1
+mkdocs-material==9.7.6
+mkdocstrings==1.0.4
+mkdocstrings-python==2.0.3
