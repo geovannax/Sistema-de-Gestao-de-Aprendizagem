@@ -22,6 +22,10 @@
             {% if tc_form.input.errors %}
                 <div class="text-danger" style="font-size:.8rem">{{ tc_form.input.errors|join:", " }}</div>
             {% endif %}
+            <div class="d-flex align-items-start gap-1 mt-1" style="font-size:.72rem;color:#6c757d;line-height:1.4">
+                <i class="bi bi-info-circle mt-1" style="flex-shrink:0;font-size:.7rem"></i>
+                <span>Um valor por linha — cada linha é lida por uma chamada de <code style="font-size:.72rem">input()</code>, <code style="font-size:.72rem">scanf()</code>, <code style="font-size:.72rem">cin</code> ou <code style="font-size:.72rem">Scanner.next()</code>.</span>
+            </div>
         </div>
         <div class="col-md-6">
             <label class="form-label small fw-semibold text-muted mb-1">

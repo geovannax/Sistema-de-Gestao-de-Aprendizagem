@@ -41,16 +41,21 @@ class ActivityList(models.Model):
     )
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='Criado por')
     is_published = models.BooleanField(default=False, db_index=True, verbose_name='Publicada')
-    max_attempts = models.PositiveIntegerField(
+    max_attempts = models.PositiveIntegerField(  # type: ignore[misc]
         null=True,
         blank=True,
         verbose_name='Máximo de Tentativas',
         help_text='Número máximo de tentativas que cada aluno pode realizar. Deixe em branco para tentativas ilimitadas.',
         validators=[MinValueValidator(1)],
     )
+    manual_grading = models.BooleanField(
+        default=False,
+        verbose_name='Correção manual',
+        help_text='Se marcado, a correção de todos os exercícios fica a cargo do professor. A autocorreção automática no envio é desativada.',
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
-    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='Deletado em')
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='Deletado em')  # type: ignore[misc]
 
     def __str__(self) -> str:
         return self.title
@@ -103,9 +108,9 @@ class ActivityListGroup(models.Model):
     activity_list = models.ForeignKey(ActivityList, on_delete=models.CASCADE, related_name='list_groups')
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='activity_list_groups')
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name='Vinculado em')
-    starts_at = models.DateTimeField(null=True, blank=True, verbose_name='Início')
-    ends_at = models.DateTimeField(null=True, blank=True, verbose_name='Fim')
-    due_date = models.DateTimeField(null=True, blank=True, verbose_name='Prazo')
+    starts_at = models.DateTimeField(null=True, blank=True, verbose_name='Início')  # type: ignore[misc]
+    ends_at = models.DateTimeField(null=True, blank=True, verbose_name='Fim')  # type: ignore[misc]
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name='Prazo')  # type: ignore[misc]
 
     class Meta:
         constraints = [
@@ -170,6 +175,12 @@ class CodeExercise(models.Model):
         choices=LANGUAGE_CHOICES,
         verbose_name='Linguagem',
         help_text='Selecione a linguagem de programação para o exercício.'
+    )
+    max_executions = models.PositiveIntegerField(  # type: ignore[misc]
+        null=True,
+        blank=True,
+        verbose_name='Limite de execuções',
+        help_text='Máximo de vezes que o aluno pode clicar em Executar. Deixe em branco para ilimitado.',
     )
 
 
@@ -270,7 +281,7 @@ class DiscursiveExercise(models.Model):
         help_text='Número mínimo de palavras que a resposta deve conter.'
     )
 
-    max_words = models.PositiveIntegerField(
+    max_words = models.PositiveIntegerField(  # type: ignore[misc]
         null=True,
         blank=True,
         verbose_name='Máximo de Palavras',

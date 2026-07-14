@@ -55,7 +55,7 @@ def get_model_only_fields(obj: object, only_fields: list[str]) -> list[tuple[str
     """
     return [
         (field.verbose_name, field)
-        for field in obj._meta.fields
+        for field in obj._meta.fields  # type: ignore[attr-defined]
         if field.name in only_fields
     ]
 

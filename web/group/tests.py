@@ -600,3 +600,33 @@ class TestGroupReviewView:
     def test_unauthenticated_redirects(self, group):
         response = Client().get(f'/group/{group.pk}/review/')
         assert response.status_code == 302
+
+
+# ─── GroupDetailView (stats tab) ─────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestGroupDetailView:
+    def test_owner_can_access_stats(self, authenticated_client, group):
+        response = authenticated_client.get(f'/group/{group.pk}/stats/')
+        assert response.status_code == 200
+
+    def test_shared_user_can_access_stats(self, group, user):
+        shared = User.objects.create_user(username='shared_stats', password='pass')
+        GroupSharing.objects.create(
+            group=group, shared_with=shared, shared_by=user, is_active=True
+        )
+        client = Client()
+        client.post('/accounts/login/', {'username': 'shared_stats', 'password': 'pass'})
+        response = client.get(f'/group/{group.pk}/stats/')
+        assert response.status_code == 200
+
+    def test_non_owner_without_sharing_gets_403(self, group):
+        other = User.objects.create_user(username='stranger_stats', password='pass')
+        client = Client()
+        client.post('/accounts/login/', {'username': 'stranger_stats', 'password': 'pass'})
+        response = client.get(f'/group/{group.pk}/stats/')
+        assert response.status_code == 403
+
+    def test_unauthenticated_redirects(self, group):
+        response = Client().get(f'/group/{group.pk}/stats/')
+        assert response.status_code == 302

@@ -110,7 +110,7 @@ if DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': str(BASE_DIR / 'db.sqlite3'),
         }
     }
     CACHES = {
@@ -200,3 +200,24 @@ STATIC_ROOT = BASE_DIR / 'static'
 
 LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/'
+
+# ---------------------------------------------------------------------------
+# Celery
+# ---------------------------------------------------------------------------
+_REDIS_HOST = os.getenv('REDIS_CONTAINER_NAME', 'localhost')
+_REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+_REDIS_PASS = os.getenv('REDIS_PASSWORD', 'redis_password')
+_REDIS_BASE  = f'redis://:{_REDIS_PASS}@{_REDIS_HOST}:{_REDIS_PORT}'
+
+CELERY_BROKER_URL       = _REDIS_BASE + '/1'
+CELERY_RESULT_BACKEND   = _REDIS_BASE + '/3'
+CELERY_RESULT_EXPIRES   = 3600          # 1 hora
+CELERY_TASK_SERIALIZER  = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT   = ['json']
+CELERY_TIMEZONE         = 'America/Sao_Paulo'
+
+if DEBUG:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_BROKER_URL        = 'memory://'
+    CELERY_RESULT_BACKEND    = 'cache+memory://'

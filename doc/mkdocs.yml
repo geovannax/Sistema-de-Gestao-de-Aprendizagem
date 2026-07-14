@@ -101,6 +101,9 @@ nav:
               - ActivityDeleteView: apps/activity/views/ActivityDeleteView.md
               - ActivityUnshareView: apps/activity/views/ActivityUnshareView.md
               - ExerciseCancelView: apps/activity/views/ExerciseCancelView.md
+              - ExerciseCancelUpdateView: apps/activity/views/ExerciseCancelUpdateView.md
+              - ExerciseTypeSelectorCardView: apps/activity/views/ExerciseTypeSelectorCardView.md
+              - ExerciseAnnulView: apps/activity/views/ExerciseAnnulView.md
               - ExerciseDeleteView: apps/activity/views/ExerciseDeleteView.md
               - MultipleChoiceExerciseBaseView: apps/activity/views/MultipleChoiceExerciseBaseView.md
               - MultipleChoiceExerciseCreateView: apps/activity/views/MultipleChoiceExerciseCreateView.md
@@ -153,6 +156,11 @@ nav:
               - page_not_found: apps/common/views/page_not_found.md
           - utils:
               - get_btn_action: apps/common/utils/get_btn_action.md
+          - executor:
+              - ExecutorError: apps/common/executor/ExecutorError.md
+              - LanguageNotSupportedError: apps/common/executor/LanguageNotSupportedError.md
+              - CompilationError: apps/common/executor/CompilationError.md
+              - execute_code: apps/common/executor/execute_code.md
           - filters:
               - get_attr: apps/common/filters/get_attr.md
               - get_attr_with_truncate: apps/common/filters/get_attr_with_truncate.md
@@ -194,6 +202,7 @@ nav:
           - models:
               - Submission: apps/student/models/Submission.md
               - ExerciseAnswer: apps/student/models/ExerciseAnswer.md
+              - CodeExecution: apps/student/models/CodeExecution.md
           - views:
               - StudentDashboardView: apps/student/views/StudentDashboardView.md
               - StudentGroupDetailView: apps/student/views/StudentGroupDetailView.md
@@ -202,5 +211,10 @@ nav:
               - StudentSubmitView: apps/student/views/StudentSubmitView.md
               - StudentFeedbackView: apps/student/views/StudentFeedbackView.md
               - StudentResultView: apps/student/views/StudentResultView.md
+              - StudentAbandonView: apps/student/views/StudentAbandonView.md
+              - StudentRunCodeView: apps/student/views/StudentRunCodeView.md
+              - StudentRunCodePollView: apps/student/views/StudentRunCodePollView.md
               - TeacherSubmissionsView: apps/student/views/TeacherSubmissionsView.md
               - TeacherGradeView: apps/student/views/TeacherGradeView.md
+          - tasks:
+              - execute_code_task: apps/student/tasks/execute_code_task.md

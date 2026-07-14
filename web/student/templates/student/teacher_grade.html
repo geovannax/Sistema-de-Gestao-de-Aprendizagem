@@ -39,8 +39,17 @@
         {% for exercise in exercises %}
             {% with answer=exercise.answer %}
                 {% if exercise.type == 'multiple_choice' %}
-                    <div class="grade-card auto-graded">
-                        <div class="exercise-num">Questão {{ forloop.counter }} · Múltipla Escolha · Auto-corrigida</div>
+                    <div class="grade-card auto-graded {% if answer %}{% if answer.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="exercise-num">Questão {{ forloop.counter }} · Múltipla Escolha · Auto-corrigida</div>
+                            {% if answer %}
+                                {% if answer.is_correct %}
+                                    <span class="d-flex align-items-center gap-1 text-success" style="font-size:.9rem;"><i class="bi bi-check-circle-fill"></i>Correta</span>
+                                {% else %}
+                                    <span class="d-flex align-items-center gap-1 text-danger" style="font-size:.9rem;"><i class="bi bi-x-circle-fill"></i>Incorreta</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
                         <div class="exercise-statement">{{ exercise.statement }}</div>
 
                         {% if answer %}
@@ -76,15 +85,27 @@
                     </div>
 
                 {% else %}
-                    {# Discursiva, Código ou Completar Código — correção manual #}
-                    <div class="grade-card {% if answer.is_correct %}manual-correct{% elif answer.is_correct == False %}manual-incorrect{% else %}manual-pending{% endif %}">
-                        <div class="exercise-num">
-                            Questão {{ forloop.counter }} ·
-                            {% if exercise.type == 'discursive' %}Discursiva
-                            {% elif exercise.type == 'code' %}Código
-                            {% elif exercise.type == 'complete_code' %}Completar Código
+                    <div class="grade-card {% if exercise.type == 'discursive' or activity_link.activity_list.manual_grading %}{% if answer.is_correct %}manual-correct{% elif answer.is_correct == False %}manual-incorrect{% else %}manual-pending{% endif %}{% else %}auto-graded {% if answer.is_correct %}correct{% elif answer.is_correct == False %}incorrect{% else %}pending{% endif %}{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="exercise-num">
+                                Questão {{ forloop.counter }} ·
+                                {% if exercise.type == 'discursive' %}Discursiva
+                                {% elif exercise.type == 'code' %}Código
+                                {% elif exercise.type == 'complete_code' %}Completar Código
+                                {% endif %}
+                                · {% if exercise.type == 'discursive' or activity_link.activity_list.manual_grading %}Correção manual{% else %}Auto-corrigida{% endif %}
+                            </div>
+                            {% if not exercise.type == 'discursive' and not activity_link.activity_list.manual_grading %}
+                                {% if answer %}
+                                    {% if answer.is_correct %}
+                                        <span class="d-flex align-items-center gap-1 text-success" style="font-size:.9rem;"><i class="bi bi-check-circle-fill"></i>Correta</span>
+                                    {% elif answer.is_correct == False %}
+                                        <span class="d-flex align-items-center gap-1 text-danger" style="font-size:.9rem;"><i class="bi bi-x-circle-fill"></i>Incorreta</span>
+                                    {% else %}
+                                        <span class="d-flex align-items-center gap-1 text-muted" style="font-size:.9rem;"><i class="bi bi-hourglass"></i>Aguardando</span>
+                                    {% endif %}
+                                {% endif %}
                             {% endif %}
-                            · Correção manual
                         </div>
                         <div class="exercise-statement">{{ exercise.statement }}</div>
 
@@ -135,6 +156,7 @@
                                 {% endif %}
                             </div>
 
+                            {% if exercise.type == 'discursive' or activity_link.activity_list.manual_grading %}
                             <div class="grade-buttons">
                                 <label>
                                     <input type="radio" name="grade_{{ answer.pk }}" value="correct"
@@ -151,6 +173,7 @@
                                     </span>
                                 </label>
                             </div>
+                            {% endif %}
 
                             {% if answer.student_observation %}
                                 <div class="student-observation">

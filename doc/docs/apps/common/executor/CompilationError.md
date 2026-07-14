@@ -1,0 +1,3 @@
+# CompilationError
+
+::: common.executor.CompilationError

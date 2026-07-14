@@ -7,6 +7,8 @@ from student.views import (
     StudentFeedbackView,
     StudentGroupDetailView,
     StudentResultView,
+    StudentRunCodePollView,
+    StudentRunCodeView,
     StudentSubmitView,
     TeacherGradeView,
     TeacherSubmissionsView,
@@ -26,4 +28,6 @@ urlpatterns = [
     path('activity/<int:link_pk>/result/', StudentResultView.as_view(), name='activity_result'),
     path('activity/<int:link_pk>/submissions/', TeacherSubmissionsView.as_view(), name='activity_submissions'),
     path('activity/<int:link_pk>/submissions/<int:submission_pk>/grade/', TeacherGradeView.as_view(), name='activity_grade'),
+    path('activity/<int:link_pk>/run/', StudentRunCodeView.as_view(), name='activity_run_code'),
+    path('activity/<int:link_pk>/run/poll/<str:task_id>/', StudentRunCodePollView.as_view(), name='activity_run_code_poll'),
 ]

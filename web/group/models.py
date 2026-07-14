@@ -63,7 +63,7 @@ class Group(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='Criado por')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
-    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='Deletado em')
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name='Deletado em')  # type: ignore[misc]
 
     def __str__(self) -> str:
         return self.name
@@ -112,8 +112,8 @@ class GroupSharing(models.Model):
     registro é mantido no banco para histórico.
     """
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='sharings')
-    shared_with = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='shared_group', verbose_name='Compartilhado com')
-    shared_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='shared_by_me', verbose_name='Compartilhado por')
+    shared_with = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='shared_group', verbose_name='Compartilhado com')  # type: ignore[misc]
+    shared_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='shared_by_me', verbose_name='Compartilhado por')  # type: ignore[misc]
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Compartilhado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
     is_active = models.BooleanField(db_index=True, default=True, verbose_name='Está Ativo')
@@ -163,7 +163,7 @@ class GroupInvite(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_group_invites')
     token = models.CharField(max_length=128, unique=True, default=generate_group_invite_token)
     expires_at = models.DateTimeField(verbose_name='Expira em')
-    max_uses = models.PositiveIntegerField(null=True, blank=True, verbose_name='Limite de usos')
+    max_uses = models.PositiveIntegerField(null=True, blank=True, verbose_name='Limite de usos')  # type: ignore[misc]
     used_count = models.PositiveIntegerField(default=0, verbose_name='Usos')
     is_active = models.BooleanField(db_index=True, default=True, verbose_name='Esta ativo')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')

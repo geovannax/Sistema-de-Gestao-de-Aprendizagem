@@ -1,3 +1,9 @@
+"""Views do app group.
+
+Implementa listagens de turmas (ativas, arquivadas, compartilhadas), criação,
+edição e soft delete, compartilhamento entre professores, matrícula de alunos
+via link de convite com expiração e gerenciamento de arquivamento.
+"""
 from __future__ import annotations
 from typing import Any
 from common.mixins import (
@@ -32,16 +38,27 @@ from group.models import Group, GroupArchived, GroupInvite, GroupSharing, GroupS
 
 ##### INICIO VIEW NAVTABS DA ABA TURMAS #####
 class GroupListBaseView(EnhancedListView):
-    """Classe base para listagens de grupos"""
+    """Classe base para listagens de grupos.
+
+    Compartilha lógica de enriquecimento de ações, filtro de arquivadas e
+    configuração das abas de navegação entre :class:`GroupActiveListView`,
+    :class:`GroupArchivedListView` e :class:`GroupSharedListView`.
+    """
     allowed_fields = ['name', 'description', 'shift', 'created_at']
     detail_url = 'group:detail'
     model = Group
     page_description = 'Organize, acompanhe e compartilhe suas turmas com facilidade.'
 
     def has_object_enrich_actions(self, user: User, obj: Group) -> bool:
+        """Retorna ``True`` se o usuário for o criador da turma."""
         return obj.created_by == user
 
     def enrich_actions(self, user: User, obj: Group) -> list:
+        """Retorna os botões de ação disponíveis para o grupo na listagem.
+
+        O criador recebe ``update``, ``archive`` e ``delete``. Usuários
+        com acesso compartilhado recebem apenas ``archive``.
+        """
         if self.has_object_enrich_actions(user, obj):
             return get_btn_action(
                 ['update', 'archive', 'delete'],
@@ -54,7 +71,7 @@ class GroupListBaseView(EnhancedListView):
             )
 
     def get_archived_group_ids(self) -> QuerySet:
-        """Retorna IDs de grupos arquivados do usuário - uma única query"""
+        """Retorna subquery para uso em ``Exists()`` — turmas arquivadas pelo usuário."""
         return GroupArchived.objects.filter(
             group=OuterRef('pk'),
             user=self.request.user,
@@ -62,6 +79,7 @@ class GroupListBaseView(EnhancedListView):
         )
 
     def get_context_data(self, **kwargs) -> dict:
+        """Adiciona abas de navegação e configuração de colunas ao contexto."""
         context = super().get_context_data(**kwargs)
         context.update({
             'nav_tabs': self.set_nav_tabs(),
@@ -73,7 +91,7 @@ class GroupListBaseView(EnhancedListView):
         return context
 
     def set_nav_tabs(self) -> list:
-        """Configura as abas de navegação"""
+        """Retorna as abas de navegação entre turmas ativas, compartilhadas e arquivadas."""
         return [
             {
                 'title': 'Ativas',
@@ -103,7 +121,7 @@ class GroupActiveListView(AuthPermissionMixin, GroupListBaseView):
     create_url = 'group:create'
 
     def get_queryset(self):
-        """Retorna os grupos ativos do usuário"""
+        """Retorna turmas criadas pelo usuário, não deletadas e não arquivadas."""
         qs_archived = self.get_archived_group_ids()
 
         return super().get_queryset().filter(
@@ -120,7 +138,7 @@ class GroupArchivedListView(AuthPermissionMixin, GroupListBaseView):
     page_title = 'Turmas Arquivadas'
 
     def get_queryset(self):
-        """Retorna os grupos arquivados do usuário"""
+        """Retorna turmas marcadas como arquivadas pelo usuário atual."""
         return super().get_queryset().filter(
             archived_groups__user=self.request.user,
             archived_groups__is_archived=True,
@@ -134,8 +152,7 @@ class GroupSharedListView(AuthPermissionMixin, GroupListBaseView):
     page_title = 'Turmas Compartilhadas'
 
     def get_queryset(self):
-        """Retorna os grupos compartilhados com o usuário.
-        """
+        """Retorna turmas compartilhadas com o usuário (ativas e não arquivadas)."""
         qs_archived = self.get_archived_group_ids()
 
         return super().get_queryset().filter(
@@ -185,6 +202,7 @@ class GroupCreateOrUpdateView(SuccessMessageMixin):
     ]
 
     def get_context_data(self, **kwargs) -> dict:
+        """Adiciona títulos, dicas e configurações do formulário ao contexto."""
         context = super().get_context_data(**kwargs)
         context.update({
             'form_title': self.form_title,
@@ -198,11 +216,12 @@ class GroupCreateOrUpdateView(SuccessMessageMixin):
         return context
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        """Salva a turma, convertendo ``IntegrityError`` em erro de nome duplicado no formulário."""
         try:
             return super().form_valid(form)
-        except IntegrityError as e:
+        except IntegrityError:
             form.add_error(
-                'name', 
+                'name',
                 'Você já tem uma turma com este nome. Por favor, escolha outro nome.'
             )
             return self.form_invalid(form)
@@ -222,7 +241,7 @@ class GroupCreateView(
     success_message = 'Turma criada com sucesso!'
     
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
-        # Atribuir o usuário logado como criador da turma
+        """Atribui o usuário autenticado como criador antes de salvar a turma."""
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
@@ -242,6 +261,7 @@ class GroupUpdateView(
     success_message = 'Turma atualizada com sucesso!'
 
     def has_object_access(self, user: User, obj: Group) -> bool:
+        """Retorna ``True`` se o usuário for o criador da turma."""
         return obj.created_by == user
 
 
@@ -257,9 +277,11 @@ class GroupBaseView:
     template_name = 'group/detail_list_view.html'
 
     def get_queryset(self) -> QuerySet[Group]:
+        """Retorna turmas não deletadas."""
         return super().get_queryset().filter(deleted_at__isnull=True)
 
     def get_context_data(self, **kwargs) -> dict:
+        """Adiciona abas de navegação e lista de atividades recentes com contagem de submissões."""
         context = super().get_context_data(**kwargs)
         context.update({
             'nav_tabs': self.set_nav_tabs(),
@@ -286,7 +308,11 @@ class GroupBaseView:
         return context
 
     def set_nav_tabs(self) -> list:
-        """Configura as abas de navegação"""
+        """Retorna as abas de navegação entre Compartilhamento, Estatística e Revisão.
+
+        A aba de Revisão só é incluída para o criador da turma ou professores com
+        compartilhamento ativo.
+        """
         tabs = [
             {
                 'title': 'Compartilhamento',
@@ -328,16 +354,13 @@ class GroupDetailView(
     model = Group
 
     def has_object_access(self, user: User, obj: Group) -> bool:
-        # Verificar se o usuário é o criador da turma
+        """Retorna ``True`` para o criador da turma ou professores com compartilhamento ativo."""
         if obj.created_by == user:
             return True
-
-        # Verificar se a turma foi compartilhada com o usuário
         if obj.sharings.filter(shared_with=user, is_active=True).exists():
             return True
-
         return False
- 
+
 
 class GroupReviewView(
     AuthPermissionMixin,
@@ -352,11 +375,13 @@ class GroupReviewView(
     template_name = 'group/review.html'
 
     def has_object_access(self, user: User, obj: Group) -> bool:
+        """Retorna ``True`` para o criador ou professores com compartilhamento ativo."""
         if obj.created_by == user:
             return True
         return obj.sharings.filter(shared_with=user, is_active=True).exists()
 
     def get_context_data(self, **kwargs) -> dict:
+        """Adiciona ``activity_links`` com contagens de submissões e pendências por atividade."""
         context = super().get_context_data(**kwargs)
         activity_links = (
             ActivityListGroup.objects
@@ -420,6 +445,7 @@ class GroupShareView(
         return share_view if share_view in ['teachers', 'students'] else 'teachers'
 
     def get_share_allowed_fields(self) -> dict[str, str]:
+        """Retorna os campos de filtragem de acordo com a aba ativa (professores ou alunos)."""
         if self.get_share_view() == 'students':
             return {
                 "student": "student__username__icontains",
@@ -456,16 +482,17 @@ class GroupShareView(
         ]
 
     def has_object_access(self, user: User, obj: Group) -> bool:
-        # Verificar se o usuário é o criador da turma
+        """Retorna ``True`` apenas para o criador da turma."""
         if hasattr(obj, 'created_by') and obj.created_by == user:
             return True
-
         return False
 
     def has_object_enrich_actions(self, user: User, obj: GroupSharing) -> bool:
+        """Retorna ``True`` se o usuário for quem compartilhou o registro."""
         return obj.shared_by == user
 
     def enrich_actions(self, user: User, obj: GroupSharing) -> list:
+        """Retorna o botão ``unshare`` para o professor que realizou o compartilhamento."""
         if self.has_object_enrich_actions(user, obj):
             return get_btn_action(
                 ['unshare'],
@@ -473,6 +500,7 @@ class GroupShareView(
             )
 
     def get_sharings_queryset(self) -> QuerySet:
+        """Retorna compartilhamentos ou matrículas conforme a aba ativa, com filtro e ordenação."""
         self.allowed_fields = self.get_share_allowed_fields()
 
         if self.get_share_view() == 'students':
@@ -510,12 +538,14 @@ class GroupShareView(
         }
 
     def get_form_kwargs(self):
+        """Injeta ``group_pk`` e ``request_user`` nos kwargs do formulário de compartilhamento."""
         kwargs = super().get_form_kwargs()
         kwargs['group_pk'] = self.kwargs.get('pk')
         kwargs['request_user'] = self.request.user
         return kwargs
 
     def get_context_data(self, **kwargs) -> dict:
+        """Monta contexto com paginação, enriquecimento, filtros, link de convite e abas de compartilhamento."""
         context = super().get_context_data(**kwargs)
 
         sharings_qs = self.get_sharings_queryset()
@@ -573,6 +603,7 @@ class GroupShareView(
         return context
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Valida a presença de usuários selecionados antes de processar o formulário."""
         # Garantir que self.object esteja definido para o form_valid
         self.object = self.get_object()
 
@@ -583,11 +614,12 @@ class GroupShareView(
 
         if form.is_valid():
             return self.form_valid(form)
-        
+
         return self.get(request, *args, **kwargs)
 
     @transaction.atomic
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        """Cria compartilhamentos em lote, reativando registros existentes em caso de conflito."""
         users = form.cleaned_data['users']
         group = self.object
         shared_by = self.request.user
@@ -614,6 +646,7 @@ class GroupShareView(
         return super().form_valid(form)
 
     def get_success_url(self):
+        """Redireciona para a aba de compartilhamento da turma após o POST."""
         return reverse('group:share', kwargs={'pk': self.object.pk})
 
 
@@ -622,6 +655,7 @@ class GroupManageArchivingView(AuthPermissionMixin, ObjectAccessRequiredMixin, V
     """Alterna o estado de arquivamento de uma turma (arquivar / desarquivar) via POST."""
 
     def get_object(self) -> Group | None:
+        """Retorna a turma se o usuário for o criador ou tiver compartilhamento ativo."""
         return Group.objects.filter(
             pk=self.kwargs['pk'],
             deleted_at__isnull=True
@@ -634,13 +668,13 @@ class GroupManageArchivingView(AuthPermissionMixin, ObjectAccessRequiredMixin, V
         ).first()
 
     def has_object_access(self, user: User, obj: Group | None) -> bool:
-        # Verificar se o usuário é o criador da turma
+        """Retorna ``True`` para criador ou qualquer professor com acesso à turma."""
         if (hasattr(obj, 'created_by') and obj.created_by == user) or self.get_object():
             return True
-
         return False
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Alterna ``is_archived`` via toggle, criando o registro na primeira vez."""
         group_pk = self.kwargs['pk']
 
         # Obter ou criar o registro
@@ -667,6 +701,7 @@ class GroupInviteCreateView(AuthPermissionMixin, ObjectAccessRequiredMixin, View
     """Gera um novo link de convite para matrícula de alunos via token."""
 
     def get_object(self) -> Group | None:
+        """Retorna a turma do criador autenticado ou ``None`` se não encontrada."""
         return Group.objects.filter(
             pk=self.kwargs['pk'],
             created_by=self.request.user,
@@ -674,9 +709,11 @@ class GroupInviteCreateView(AuthPermissionMixin, ObjectAccessRequiredMixin, View
         ).first()
 
     def has_object_access(self, user: User, obj: Group | None) -> bool:
+        """Retorna ``True`` se o objeto existir e o usuário for o criador."""
         return obj and obj.created_by == user
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Cria um convite com 7 dias de validade e retorna o link HTMX ou redireciona."""
         group = self.get_object()
         invite = GroupInvite.objects.create(
             group=group,
@@ -708,6 +745,7 @@ class GroupInviteExpireView(AuthPermissionMixin, ObjectAccessRequiredMixin, View
     """Expira manualmente um convite ativo, tornando-o inválido para novos acessos."""
 
     def get_object(self) -> GroupInvite | None:
+        """Retorna o convite com cache em ``self.object`` para evitar múltiplas queries."""
         if hasattr(self, 'object'):
             return self.object
 
@@ -724,9 +762,11 @@ class GroupInviteExpireView(AuthPermissionMixin, ObjectAccessRequiredMixin, View
         return self.object
 
     def has_object_access(self, user: User, obj: GroupInvite | None) -> bool:
+        """Retorna ``True`` se o usuário for o criador da turma do convite."""
         return obj and obj.group.created_by == user
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Define ``is_active=False`` e ``expires_at`` para o momento atual."""
         invite = self.get_object()
         invite.is_active = False
         invite.expires_at = timezone.now()
@@ -755,6 +795,7 @@ class GroupInviteConfirmView(AuthPermissionMixin, View):
     template_name = 'group/invite_confirm.html'
 
     def get_invite(self) -> GroupInvite | None:
+        """Retorna o convite pelo token com cache em ``self.invite``."""
         if hasattr(self, 'invite'):
             return self.invite  # pragma: no cover
 
@@ -814,10 +855,12 @@ class GroupInviteConfirmView(AuthPermissionMixin, View):
         return context
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Renderiza a página de confirmação do convite com o status atual."""
         return render(request, self.template_name, self.get_context_data())
 
     @transaction.atomic
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Matricula o aluno na turma e incrementa o contador de usos do convite."""
         context = self.get_context_data()
         invite = context['invite']
 
@@ -850,19 +893,18 @@ class GroupInviteConfirmView(AuthPermissionMixin, View):
 
 ##### INICIO VIEW DE SOFT DELETE DE TURMA #####
 class GroupSoftDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, DeleteView):
-    """View para soft delete de grupo"""
+    """View de soft delete de grupo — define ``deleted_at`` e desativa compartilhamentos."""
+
     model = Group
     template_name = 'global/partials/generic/delete/view.html'
     context_object_name = 'delete'
 
     def has_object_access(self, user: User, obj: Group) -> bool:
-        # Verificar se o usuário é o criador da turma
-        if obj.created_by == user:
-            return True
-
-        return False
+        """Retorna ``True`` se o usuário for o criador da turma."""
+        return obj.created_by == user
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Aplica soft delete na turma e desativa todos os compartilhamentos vinculados."""
         obj = self.get_object()
 
         # 1. Realiza soft delete do grupo
@@ -882,18 +924,21 @@ class GroupSoftDeleteView(AuthPermissionMixin, ObjectAccessRequiredMixin, Delete
 
 ##### INICIO VIEW DE REMOÇÃO DE COMPARTILHAMENTO DE TURMA #####
 class GroupUnshareView(AuthPermissionMixin, ObjectAccessRequiredMixin, View):
-    """View para remover compartilhamento"""
+    """Remove um compartilhamento de turma entre professores, desativando-o."""
 
     def get_object(self) -> GroupSharing | None:
+        """Retorna o compartilhamento cujo ``shared_by`` é o usuário autenticado."""
         return GroupSharing.objects.filter(
             pk=self.kwargs['pk'],
             shared_by=self.request.user
         ).first()
 
     def has_object_access(self, user: User, obj: GroupSharing) -> bool:
+        """Retorna ``True`` se o usuário for o criador da turma do compartilhamento."""
         return obj.group.created_by == user
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Define ``is_active=False`` no compartilhamento e redireciona para o detalhe da turma."""
         obj = self.get_object()
         obj.is_active = False
         obj.save(update_fields=['is_active'])

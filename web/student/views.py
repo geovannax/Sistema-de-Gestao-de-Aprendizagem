@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import TemplateView, View
 from group.models import Group, GroupSharing, GroupStudent
-from student.models import ExerciseAnswer, Submission
+from student.models import CodeExecution, ExerciseAnswer, Submission
 
 
 class StudentDashboardView(AuthPermissionMixin, TemplateView):
@@ -200,7 +200,7 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
                 submitted_at__isnull=False,
             ).values('activity_link_id').annotate(n=Count('id')).values_list('activity_link_id', 'n')
         )
-        # Opção B: conta todas (para atividades com limite)
+        # Conta todas as submissões (cada início de tentativa, incluindo abandonadas pelo beacon)
         all_counts: dict[int, int] = dict(
             Submission.objects.filter(
                 student=self.request.user,
@@ -210,9 +210,11 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
 
         for link in links:
             max_att = link.activity_list.max_attempts
-            # For limited activities, never surface an in-progress (abandoned attempts
-            # are auto-closed server-side; "Continuar" must never appear).
-            link.in_progress_submission = None if max_att is not None else in_progress.get(link.pk)
+            # "Continuar" only for truly unlimited activities (no max_attempts AND no ends_at).
+            # Any activity with a time deadline or attempt limit uses beacon to close
+            # in-progress on leave, so "Iniciar" always reuses existing in-progress silently.
+            is_free_unlimited = max_att is None and link.ends_at is None
+            link.in_progress_submission = in_progress.get(link.pk) if is_free_unlimited else None
             # For limited activities "latest_submission" means only intentional deliveries.
             # The pending/completed split depends on this: only an intentional submission
             # moves an activity to "completed".
@@ -224,13 +226,11 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
                 all_counts.get(link.pk, 0) if max_att is not None
                 else submitted_counts.get(link.pk, 0)
             )
-            has_intentional = link.latest_submission is not None
+            has_intentional = latest_intentional.get(link.pk) is not None
             link.can_retry = (
                 link.status_class == 'open'
-                and (
-                    max_att is None  # unlimited: always can retry
-                    or (not has_intentional and link.attempts_used < max_att)  # limited: no intentional + attempts left
-                )
+                and not has_intentional
+                and (max_att is None or link.attempts_used < max_att)
             )
             link.attempts_exhausted = (
                 max_att is not None
@@ -270,8 +270,16 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
 
 class _ActivityAccessMixin(AuthPermissionMixin):
     """Valida acesso do aluno a um ActivityListGroup."""
+    kwargs: dict[str, Any]
+    request: HttpRequest
 
     def get_activity_link(self) -> ActivityListGroup:
+        """Carrega o vínculo atividade↔turma e verifica que o aluno está matriculado.
+
+        Raises:
+            Http404: Se o vínculo não existir, a atividade estiver deletada ou
+                o aluno não estiver matriculado na turma.
+        """
         try:
             link = (
                 ActivityListGroup.objects
@@ -295,6 +303,12 @@ class _ActivityAccessMixin(AuthPermissionMixin):
         return link
 
     def _check_window(self, link: ActivityListGroup) -> HttpResponse | None:
+        """Valida a janela temporal da atividade.
+
+        Returns:
+            ``HttpResponseRedirect`` com mensagem de erro se a atividade ainda
+            não iniciou ou já encerrou; ``None`` se o acesso é permitido.
+        """
         now = timezone.now()
         if link.starts_at and now < link.starts_at:
             messages.error(self.request, 'Esta atividade ainda não está disponível.')
@@ -350,16 +364,24 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                 ).count()
             if max_att is not None and attempts_used >= max_att:
                 return None
+            # Use max existing attempt_number + 1 to avoid unique constraint collisions
+            last_num = (
+                Submission.objects.filter(
+                    student=self.request.user,
+                    activity_link=activity_link,
+                ).aggregate(n=Max('attempt_number'))['n'] or 0
+            )
             submission = Submission.objects.create(
                 student=self.request.user,
                 activity_link=activity_link,
-                attempt_number=attempts_used + 1,
+                attempt_number=last_num + 1,
             )
         return submission
 
     def _build_exercises(
         self, activity_link: ActivityListGroup
     ) -> list[Exercise]:
+        """Retorna exercícios não anulados da atividade com todos os ``select_related`` e prefetch."""
         return list(
             activity_link.activity_list.exercises
             .filter(is_annulled=False)
@@ -378,6 +400,20 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
         submission: Submission,
         navigate_to_pk: int | None,
     ) -> dict:
+        """Monta o contexto de navegação da atividade (exercícios, respostas, progresso).
+
+        Anota cada exercício com ``is_answered``, ``answer``, ``is_current`` e
+        ``nav_index``. Determina o exercício atual por ``navigate_to_pk`` (ou o
+        primeiro se não informado) e calcula o percentual de progresso.
+
+        Args:
+            activity_link: Vínculo atividade↔turma em uso.
+            submission: Tentativa em andamento do aluno.
+            navigate_to_pk: ``pk`` do exercício a exibir; usa o primeiro se ``None``.
+
+        Returns:
+            Dicionário pronto para o template de resolução de atividade.
+        """
         exercises = self._build_exercises(activity_link)
         answers = {
             a.exercise_id: a
@@ -432,6 +468,14 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
         exercise: Exercise,
         post_data: dict,
     ) -> None:
+        """Persiste ou remove a resposta do aluno para um exercício da submissão.
+
+        Para ``multiple_choice``: valida a opção e preenche ``is_correct`` automaticamente.
+        Para ``complete_code``: compara código normalizado com o gabarito.
+        Para ``code``: aproveita o resultado da última execução se o código bater.
+        Para demais tipos: salva o texto sem correção automática.
+        Remove o registro se não houver conteúdo (sem opção, sem texto e sem observação).
+        """
         observation = post_data.get('student_observation', '').strip()
         defaults: dict = {
             'answer_text': '',
@@ -461,6 +505,14 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                     normalize_code(answer_text, cc.language)
                     == normalize_code(cc.complete_code, cc.language)
                 )
+        elif exercise.type == 'code':
+            answer_text = post_data.get('answer_text', '').strip()
+            defaults['answer_text'] = answer_text
+            latest_exec = CodeExecution.objects.filter(
+                submission=submission, exercise=exercise,
+            ).order_by('-created_at').first()
+            if latest_exec and latest_exec.source_code.strip() == answer_text:
+                defaults['is_correct'] = latest_exec.all_correct
         else:
             defaults['answer_text'] = post_data.get('answer_text', '').strip()
 
@@ -480,6 +532,12 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
     # ------------------------------------------------------------------
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Carrega ou cria a submissão e renderiza a página de resolução.
+
+        Para atividades com limite de tentativas, bloqueia o acesso após entrega
+        intencional ou esgotamento de tentativas. Detecta ``HX-Request`` para
+        retornar apenas o fragmento ``_activity_main.html``.
+        """
         activity_link = self.get_activity_link()
 
         block = self._check_window(activity_link)
@@ -489,17 +547,10 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
         max_att = activity_link.activity_list.max_attempts
 
         if max_att is not None:
-            # ?resume=1 is set by the review page's "Voltar e editar" links so the
-            # student can return from review without losing their in-progress attempt.
-            # Any other entry (fresh visit, beacon failure recovery) closes the old attempt.
-            resuming = request.GET.get('resume') == '1'
-            if not resuming:
-                Submission.objects.filter(
-                    student=request.user,
-                    activity_link=activity_link,
-                    submitted_at__isnull=True,
-                ).update(submitted_at=timezone.now(), is_abandoned=True)
-
+            # Reconnect reuses the in-progress attempt — the beacon (pagehide) closes it
+            # only when the student intentionally leaves (refresh, back button, close tab).
+            # A genuine network drop won't fire the beacon, so the attempt survives and
+            # the student can pick up where they left off at no extra cost.
             submission = Submission.objects.filter(
                 student=request.user,
                 activity_link=activity_link,
@@ -518,6 +569,7 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                     messages.info(request, 'Você já entregou esta atividade.')
                     return redirect('student:activity_result', link_pk=self.kwargs['link_pk'])
 
+                # Each submission created = 1 attempt consumed (beacon-closed or submitted)
                 attempts_used = Submission.objects.filter(
                     student=request.user,
                     activity_link=activity_link,
@@ -529,28 +581,49 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
                         f'tentativa{"" if max_att == 1 else "s"} disponíve{"l" if max_att == 1 else "is"}.',
                     )
                     return redirect('student:activity_result', link_pk=self.kwargs['link_pk'])
+                last_num = (
+                    Submission.objects.filter(
+                        student=request.user,
+                        activity_link=activity_link,
+                    ).aggregate(n=Max('attempt_number'))['n'] or 0
+                )
                 submission = Submission.objects.create(
                     student=request.user,
                     activity_link=activity_link,
-                    attempt_number=attempts_used + 1,
+                    attempt_number=last_num + 1,
                 )
         else:
-            # Unlimited: reuse in-progress or create new (only submitted attempts count)
             submission = Submission.objects.filter(
                 student=request.user,
                 activity_link=activity_link,
                 submitted_at__isnull=True,
             ).first()
             if submission is None:
+                has_intentional = Submission.objects.filter(
+                    student=request.user,
+                    activity_link=activity_link,
+                    submitted_at__isnull=False,
+                    is_abandoned=False,
+                ).exists()
+                if has_intentional:
+                    messages.info(request, 'Você já entregou esta atividade.')
+                    return redirect('student:activity_result', link_pk=self.kwargs['link_pk'])
                 attempts_used = Submission.objects.filter(
                     student=request.user,
                     activity_link=activity_link,
                     submitted_at__isnull=False,
+                    is_abandoned=False,
                 ).count()
+                last_num = (
+                    Submission.objects.filter(
+                        student=request.user,
+                        activity_link=activity_link,
+                    ).aggregate(n=Max('attempt_number'))['n'] or 0
+                )
                 submission = Submission.objects.create(
                     student=request.user,
                     activity_link=activity_link,
-                    attempt_number=attempts_used + 1,
+                    attempt_number=last_num + 1,
                 )
 
         navigate_to_str = request.GET.get('exercise', '')
@@ -563,6 +636,12 @@ class StudentActivityView(_ActivityAccessMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Salva a resposta do exercício atual e navega para o próximo ou para a revisão.
+
+        ``go_review=1`` no POST redireciona para a tela de revisão (suporte a HTMX via
+        ``HX-Redirect``). Caso contrário, renderiza o fragmento ou a página completa
+        no exercício indicado por ``navigate_to_pk``.
+        """
         activity_link = self.get_activity_link()
 
         block = self._check_window(activity_link)
@@ -612,12 +691,17 @@ class StudentAbandonView(_ActivityAccessMixin, View):
     """Fecha a tentativa em andamento quando o aluno sai da atividade sem submeter.
 
     Chamado via navigator.sendBeacon no evento pagehide do navegador.
-    Só age em atividades com max_attempts definido.
+    Age em qualquer atividade que tenha prazo (ends_at) ou limite de tentativas.
+    Atividades sem prazo e sem limite não disparam o beacon.
     """
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         activity_link = self.get_activity_link()
-        if activity_link.activity_list.max_attempts is not None:
+        has_constraint = (
+            activity_link.activity_list.max_attempts is not None
+            or activity_link.ends_at is not None
+        )
+        if has_constraint:
             Submission.objects.filter(
                 student=request.user,
                 activity_link=activity_link,
@@ -637,6 +721,12 @@ class StudentActivityReviewView(_ActivityAccessMixin, TemplateView):
     template_name = 'student/activity_review.html'
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Valida janela e submissão em andamento antes de renderizar a revisão.
+
+        Redireciona para a resolução se não houver submissão em andamento.
+        Armazena ``activity_link`` e ``submission`` em atributos de instância
+        para uso em :meth:`get_context_data`.
+        """
         activity_link = self.get_activity_link()
 
         block = self._check_window(activity_link)
@@ -657,6 +747,7 @@ class StudentActivityReviewView(_ActivityAccessMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs: Any) -> dict:
+        """Adiciona exercícios com respostas anotadas e contagem de não respondidos."""
         context = super().get_context_data(**kwargs)
         activity_link = self._activity_link
         submission = self._submission
@@ -695,9 +786,18 @@ class StudentActivityReviewView(_ActivityAccessMixin, TemplateView):
 
 
 class _TeacherAccessMixin(AuthPermissionMixin):
-    """Verifica que o usuário é o dono da turma do ActivityListGroup."""
+    """Verifica que o usuário é o dono da turma do ActivityListGroup ou tem compartilhamento ativo."""
+    kwargs: dict[str, Any]
+    request: HttpRequest
 
     def get_activity_link(self) -> ActivityListGroup:
+        """Carrega o vínculo e valida que o usuário é o professor responsável.
+
+        Aceita o criador da turma ou professores com compartilhamento ativo.
+
+        Raises:
+            Http404: Se o vínculo não existir ou o usuário não tiver acesso.
+        """
         try:
             link = (
                 ActivityListGroup.objects
@@ -728,15 +828,24 @@ class TeacherSubmissionsView(_TeacherAccessMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         activity_link = self.get_activity_link()
 
-        # All submitted submissions
-        submitted = list(
+        # Only intentionally delivered submissions (excludes abandoned/in-progress)
+        raw_submitted = (
             Submission.objects.filter(
                 activity_link=activity_link,
                 submitted_at__isnull=False,
+                is_abandoned=False,
             )
             .select_related('student')
             .order_by('submitted_at')
         )
+
+        # Deduplicate by student: keep only the highest attempt_number per student
+        # (handles legacy data where multiple submissions may share is_abandoned=False)
+        _seen: dict[int, Any] = {}
+        for sub in raw_submitted:
+            if sub.student_id not in _seen or sub.attempt_number > _seen[sub.student_id].attempt_number:
+                _seen[sub.student_id] = sub
+        submitted = sorted(_seen.values(), key=lambda s: s.submitted_at)
 
         submitted_student_ids = {s.student_id for s in submitted}
         total_exercises = activity_link.activity_list.exercises.count()
@@ -769,8 +878,8 @@ class TeacherSubmissionsView(_TeacherAccessMixin, TemplateView):
         for enrollment in pending_enrollments:
             enrollment.in_progress = enrollment.student_id in in_progress_ids
 
-        submissions_to_grade = [s for s in submitted if s.pending_count > 0]
-        submissions_graded = [s for s in submitted if s.pending_count == 0]
+        submissions_to_grade = [s for s in submitted if s.pending_count > 0 or s.answered_count < total_exercises]
+        submissions_graded = [s for s in submitted if s.pending_count == 0 and s.answered_count >= total_exercises]
 
         context.update({
             'activity_link': activity_link,
@@ -794,6 +903,11 @@ class TeacherGradeView(_TeacherAccessMixin, View):
     template_name = 'student/teacher_grade.html'
 
     def _get_submission(self, activity_link: ActivityListGroup) -> Submission:
+        """Retorna a submissão entregue para correção ou levanta 404.
+
+        Raises:
+            Http404: Se a submissão não existir ou ainda não tiver sido entregue.
+        """
         try:
             return (
                 Submission.objects
@@ -808,6 +922,7 @@ class TeacherGradeView(_TeacherAccessMixin, View):
             raise Http404
 
     def _build_context(self, activity_link: ActivityListGroup, submission: Submission) -> dict:
+        """Retorna o contexto com exercícios e respostas do aluno para a tela de correção."""
         exercises = list(
             activity_link.activity_list.exercises
             .filter(is_annulled=False)
@@ -833,11 +948,13 @@ class TeacherGradeView(_TeacherAccessMixin, View):
         }
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Renderiza o formulário de correção manual da submissão."""
         activity_link = self.get_activity_link()
         submission = self._get_submission(activity_link)
         return render(request, self.template_name, self._build_context(activity_link, submission))
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Aplica acerto/erro por questão e comentários, depois redireciona para a lista de submissões."""
         activity_link = self.get_activity_link()
         submission = self._get_submission(activity_link)
 
@@ -879,6 +996,7 @@ class StudentSubmitView(_ActivityAccessMixin, View):
     """
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Finaliza a submissão, dispara autocorreção quando aplicável e redireciona para os resultados."""
         activity_link = self.get_activity_link()
 
         block = self._check_window(activity_link)
@@ -894,16 +1012,59 @@ class StudentSubmitView(_ActivityAccessMixin, View):
         if not submission:
             raise Http404
 
+        if not activity_link.activity_list.manual_grading:
+            self._auto_grade(submission)
+
         submission.submitted_at = timezone.now()
         submission.save(update_fields=['submitted_at'])
 
         return redirect('student:activity_result', link_pk=self.kwargs['link_pk'])
+
+    def _auto_grade(self, submission: Submission) -> None:
+        """Dispara correção automática para exercícios de código (via Celery) e código completo.
+
+        Exercícios do tipo ``code`` são enfileirados como tarefa assíncrona.
+        Exercícios ``complete_code`` são corrigidos de forma síncrona por
+        comparação de código normalizado. Outros tipos são ignorados.
+        """
+        from activity.utils import normalize_code
+        from student.tasks import execute_code_task
+
+        answers = (
+            ExerciseAnswer.objects
+            .filter(submission=submission)
+            .select_related(
+                'exercise',
+                'exercise__code_exercise',
+                'exercise__complete_code_exercise',
+            )
+        )
+
+        for answer in answers:
+            ex = answer.exercise
+            if ex.is_annulled or not answer.answer_text:
+                continue
+
+            if ex.type == 'code':
+                execute_code_task.delay(submission.pk, ex.pk, answer.answer_text)
+
+            elif ex.type == 'complete_code':
+                try:
+                    cc = ex.complete_code_exercise
+                    answer.is_correct = (
+                        normalize_code(answer.answer_text, cc.language)
+                        == normalize_code(cc.complete_code, cc.language)
+                    )
+                    answer.save(update_fields=['is_correct'])
+                except Exception:
+                    pass
 
 
 class StudentFeedbackView(_ActivityAccessMixin, View):
     """Salva o feedback geral do aluno sobre a atividade após submissão."""
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Persiste ``student_feedback`` na submissão mais recente e redireciona para a turma."""
         activity_link = self.get_activity_link()
         max_att = activity_link.activity_list.max_attempts
 
@@ -931,6 +1092,14 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
     template_name = 'student/result.html'
 
     def get_activity_link(self) -> ActivityListGroup:
+        """Carrega o vínculo sem filtrar atividades deletadas, permitindo ver resultados de atividades removidas.
+
+        Levanta 404 se o aluno não estiver matriculado ou se a atividade foi deletada
+        sem que o aluno tenha ao menos uma submissão entregue.
+
+        Raises:
+            Http404: Sem acesso ou sem submissão para atividade deletada.
+        """
         try:
             link = (
                 ActivityListGroup.objects
@@ -959,6 +1128,12 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
         return link
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Carrega a submissão a exibir e redireciona para resolução se ainda não houver entrega.
+
+        Para atividades com limite de tentativas, prioriza a submissão intencional
+        mais recente; usa a última submetida como fallback. Armazena referências em
+        atributos de instância para :meth:`get_context_data`.
+        """
         activity_link = self.get_activity_link()
         max_att = activity_link.activity_list.max_attempts
 
@@ -1007,6 +1182,7 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs: Any) -> dict:
+        """Calcula pontuação, percentual de acerto, tentativas restantes e flag ``can_retry``."""
         context = super().get_context_data(**kwargs)
         activity_link = self._activity_link
         submission = self._submission
@@ -1050,18 +1226,17 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
             and (activity_link.ends_at is None or now <= activity_link.ends_at)
         )
         max_att = activity_link.activity_list.max_attempts
+        has_intentional = Submission.objects.filter(
+            student=submission.student,
+            activity_link=activity_link,
+            submitted_at__isnull=False,
+            is_abandoned=False,
+        ).exists()
         if max_att is not None:
             attempts_used = Submission.objects.filter(
                 student=submission.student,
                 activity_link=activity_link,
             ).count()
-            has_intentional = Submission.objects.filter(
-                student=submission.student,
-                activity_link=activity_link,
-                submitted_at__isnull=False,
-                is_abandoned=False,
-            ).exists()
-            # Once intentionally submitted, no more retries
             can_retry = window_open and not has_intentional and attempts_used < max_att
             attempts_remaining = max_att - attempts_used
         else:
@@ -1070,7 +1245,7 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
                 activity_link=activity_link,
                 submitted_at__isnull=False,
             ).count()
-            can_retry = window_open
+            can_retry = window_open and not has_intentional
             attempts_remaining = None
 
         context.update({
@@ -1090,3 +1265,144 @@ class StudentResultView(_ActivityAccessMixin, TemplateView):
             'can_retry': can_retry,
         })
         return context
+
+
+# ---------------------------------------------------------------------------
+# Execução de código (Executar)
+# ---------------------------------------------------------------------------
+
+class StudentRunCodeView(_ActivityAccessMixin, View):
+    """Enfileira a execução do código do aluno no Celery e retorna polling HTML."""
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Valida o exercício, verifica limite de execuções e enfileira a tarefa Celery.
+
+        Retorna o fragmento de polling ``_run_code_polling.html`` com a URL de
+        verificação de status. Em caso de erro (exercício inválido, código vazio,
+        limite atingido) retorna ``_run_code_result.html`` com a mensagem de erro.
+        """
+        from student.tasks import execute_code_task
+
+        activity_link = self.get_activity_link()
+
+        exercise_pk_str = (
+            request.POST.get('exercise_pk') or request.POST.get('current_exercise_pk', '')
+        )
+        if not exercise_pk_str.isdigit():
+            return render(request, 'student/partials/_run_code_result.html',
+                          {'error': 'Exercício inválido.'})
+
+        exercise_pk = int(exercise_pk_str)
+
+        try:
+            exercise = (
+                Exercise.objects
+                .select_related('code_exercise', 'complete_code_exercise')
+                .get(
+                    pk=exercise_pk,
+                    activity_list=activity_link.activity_list,
+                    type__in=['code', 'complete_code'],
+                    is_annulled=False,
+                )
+            )
+        except Exercise.DoesNotExist:
+            raise Http404
+
+        submission = Submission.objects.filter(
+            student=request.user,
+            activity_link=activity_link,
+            submitted_at__isnull=True,
+            is_abandoned=False,
+        ).first()
+
+        if not submission:
+            return render(request, 'student/partials/_run_code_result.html', {
+                'error': 'Nenhuma tentativa em andamento. Recarregue a página para continuar.',
+                'exercise_pk': exercise_pk,
+            })
+
+        max_exec = (
+            exercise.code_exercise.max_executions
+            if exercise.type == 'code'
+            else None
+        )
+        if max_exec is not None:
+            used = CodeExecution.objects.filter(
+                submission=submission, exercise=exercise
+            ).count()
+            if used >= max_exec:
+                return render(request, 'student/partials/_run_code_result.html', {
+                    'error': f'Limite de {max_exec} execuções atingido para este exercício.',
+                    'exercise_pk': exercise_pk,
+                })
+
+        source_code = (
+            request.POST.get('source_code') or request.POST.get('answer_text', '')
+        ).strip()
+        if not source_code:
+            return render(request, 'student/partials/_run_code_result.html', {
+                'error': 'O código não pode estar vazio.',
+                'exercise_pk': exercise_pk,
+            })
+
+        task = execute_code_task.delay(submission.pk, exercise.pk, source_code)
+
+        poll_url = (
+            reverse('student:activity_run_code_poll',
+                    kwargs={'link_pk': activity_link.pk, 'task_id': task.id})
+            + f'?exercise_pk={exercise_pk}'
+        )
+
+        return render(request, 'student/partials/_run_code_polling.html', {
+            'exercise_pk': exercise_pk,
+            'poll_url': poll_url,
+        })
+
+
+class StudentRunCodePollView(_ActivityAccessMixin, View):
+    """Verifica o status da tarefa Celery e retorna resultado ou spinner."""
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Consulta a tarefa Celery e retorna o fragmento de resultado ou o spinner de espera."""
+        from celery.result import AsyncResult
+
+        task_id = self.kwargs['task_id']
+        exercise_pk = request.GET.get('exercise_pk', '')
+        result = AsyncResult(task_id)
+
+        if not result.ready():
+            activity_link = self.get_activity_link()
+            poll_url = (
+                reverse('student:activity_run_code_poll',
+                        kwargs={'link_pk': activity_link.pk, 'task_id': task_id})
+                + f'?exercise_pk={exercise_pk}'
+            )
+            return render(request, 'student/partials/_run_code_polling.html', {
+                'exercise_pk': exercise_pk,
+                'poll_url': poll_url,
+            })
+
+        data = result.get(timeout=1)
+
+        if 'error' in data:
+            return render(request, 'student/partials/_run_code_result.html', {
+                'error': data['error'],
+                'exercise_pk': exercise_pk,
+            })
+
+        if data.get('run_only'):
+            return render(request, 'student/partials/_run_code_result.html', {
+                'run_only': True,
+                'stdout': data['stdout'],
+                'stderr': data['stderr'],
+                'status': data['status'],
+                'exercise_pk': exercise_pk,
+            })
+
+        return render(request, 'student/partials/_run_code_result.html', {
+            'results': data['results'],
+            'all_correct': data['all_correct'],
+            'correct_count': data['correct_count'],
+            'total_count': data['total_count'],
+            'exercise_pk': exercise_pk,
+        })

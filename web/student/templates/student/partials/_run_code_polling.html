@@ -1,0 +1,9 @@
+<div hx-get="{{ poll_url }}"
+     hx-trigger="every 2s"
+     hx-target="#run-result-{{ exercise_pk }}"
+     hx-swap="innerHTML">
+    <div class="d-flex align-items-center gap-2 py-2 text-muted">
+        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+        <small>Executando...</small>
+    </div>
+</div>

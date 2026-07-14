@@ -1,3 +1,4 @@
+import sys
 import pytest
 from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
@@ -178,3 +179,254 @@ class TestCommonTemplateTags:
         from common.templatetags.common_filters import get_item
         result = get_item(object(), 'nonexistent_xyz')
         assert result == '-'
+
+
+# ─── AuthPermissionMixin HTMX branch ────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestAuthPermissionMixinHTMX:
+    def test_unauthenticated_htmx_returns_401_with_redirect_header(self):
+        response = Client().get('/group/active/', HTTP_HX_REQUEST='true')
+        assert response.status_code == 401
+        assert 'HX-Redirect' in response
+
+    def test_unauthenticated_non_htmx_does_normal_redirect(self):
+        response = Client().get('/group/active/')
+        assert response.status_code == 302
+        assert '/accounts/login/' in response['Location']
+
+
+# ─── executor ────────────────────────────────────────────────────────────────
+
+class TestExecutorNormalize:
+    def test_strips_trailing_whitespace_per_line(self):
+        from common.executor import _normalize
+        assert _normalize('hello  \nworld  ') == 'hello\nworld'
+
+    def test_strips_trailing_blank_lines(self):
+        from common.executor import _normalize
+        assert _normalize('hello\n\n\n') == 'hello'
+
+    def test_preserves_internal_blank_lines(self):
+        from common.executor import _normalize
+        assert _normalize('a\n\nb') == 'a\n\nb'
+
+
+class TestExecutorMakePreexec:
+    @pytest.mark.skipif(sys.platform == 'linux', reason='only tests non-Linux path')
+    def test_returns_none_on_non_linux(self):
+        from common.executor import _make_preexec
+        from pathlib import Path
+        result = _make_preexec(Path('.'))
+        assert result is None
+
+    def test_linux_path_with_mocked_platform(self):
+        import os
+        from unittest.mock import patch, MagicMock
+        from pathlib import Path
+        import common.executor as mod
+
+        mock_resource = MagicMock()
+        mock_resource.RLIMIT_AS = 0
+        mock_resource.RLIMIT_CPU = 1
+        mock_resource.RLIMIT_FSIZE = 2
+        mock_resource.RLIMIT_NPROC = 3
+
+        with patch.object(mod, '_IS_LINUX', True), \
+             patch.dict('sys.modules', {'resource': mock_resource}), \
+             patch.object(os, 'setgroups', create=True), \
+             patch.object(os, 'setgid', create=True), \
+             patch.object(os, 'setuid', create=True), \
+             patch.object(os, 'chdir'):
+            fn = mod._make_preexec(Path('/tmp'))
+            assert callable(fn)
+            fn()
+
+        mock_resource.setrlimit.assert_called()
+
+    def test_linux_preexec_os_errors_silenced(self):
+        import os
+        from unittest.mock import patch, MagicMock
+        from pathlib import Path
+        import common.executor as mod
+
+        mock_resource = MagicMock()
+        mock_resource.RLIMIT_AS = 0
+        mock_resource.RLIMIT_CPU = 1
+        mock_resource.RLIMIT_FSIZE = 2
+        mock_resource.RLIMIT_NPROC = 3
+        mock_resource.setrlimit.side_effect = ValueError('not permitted')
+
+        with patch.object(mod, '_IS_LINUX', True), \
+             patch.dict('sys.modules', {'resource': mock_resource}), \
+             patch.object(os, 'setgroups', create=True, side_effect=OSError('perm')), \
+             patch.object(os, 'setgid', create=True), \
+             patch.object(os, 'setuid', create=True), \
+             patch.object(os, 'chdir'):
+            fn = mod._make_preexec(Path('/tmp'))
+            fn()  # should not raise despite OSError + ValueError
+
+
+class TestExecutor:
+    def test_unsupported_language_raises(self):
+        from common.executor import execute_code, LanguageNotSupportedError
+        with pytest.raises(LanguageNotSupportedError):
+            execute_code('fortran', 'program x; end program x', [])
+
+    def test_python_correct_output(self):
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code
+        mock_proc = MagicMock()
+        mock_proc.returncode = 0
+        mock_proc.stdout = 'hello\n'
+        mock_proc.stderr = ''
+        with patch('subprocess.run', return_value=mock_proc):
+            results = execute_code('python', 'print("hello")', [
+                {'input': '', 'expected_output': 'hello'}
+            ])
+        assert results[0]['is_correct'] is True
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'hello'
+
+    def test_python_wrong_output(self):
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code
+        mock_proc = MagicMock()
+        mock_proc.returncode = 0
+        mock_proc.stdout = 'world\n'
+        mock_proc.stderr = ''
+        with patch('subprocess.run', return_value=mock_proc):
+            results = execute_code('python', 'print("world")', [
+                {'input': '', 'expected_output': 'hello'}
+            ])
+        assert results[0]['is_correct'] is False
+        assert results[0]['status'] == 'wrong_answer'
+
+    def test_python_runtime_error(self):
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code
+        mock_proc = MagicMock()
+        mock_proc.returncode = 1
+        mock_proc.stdout = ''
+        mock_proc.stderr = 'ZeroDivisionError'
+        with patch('subprocess.run', return_value=mock_proc):
+            results = execute_code('python', '1/0', [
+                {'input': '', 'expected_output': ''}
+            ])
+        assert results[0]['status'] == 'runtime_error'
+
+    def test_timeout_sets_time_limit_status(self):
+        from unittest.mock import patch
+        from subprocess import TimeoutExpired
+        from common.executor import execute_code
+        with patch('subprocess.run', side_effect=TimeoutExpired('python', 10)):
+            results = execute_code('python', 'while True: pass', [
+                {'input': '', 'expected_output': ''}
+            ])
+        assert results[0]['status'] == 'time_limit'
+        assert results[0]['is_correct'] is False
+
+    def test_compilation_error_raises(self):
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code, CompilationError
+        mock_compile = MagicMock()
+        mock_compile.returncode = 1
+        mock_compile.stderr = 'error: expected ;'
+        mock_compile.stdout = ''
+        with patch('subprocess.run', return_value=mock_compile):
+            with pytest.raises(CompilationError) as exc_info:
+                execute_code('c', 'int main() { return 0 }', [
+                    {'input': '', 'expected_output': ''}
+                ])
+        assert 'error: expected ;' in exc_info.value.output
+
+    def test_chmod_oserror_silenced_in_compilation(self):
+        import tempfile
+        import os
+        from unittest.mock import patch, MagicMock
+        from pathlib import Path
+        from common.executor import execute_code
+
+        original_mkdtemp = tempfile.mkdtemp
+        original_chmod = os.chmod
+
+        def mkdtemp_with_binary(*args, **kwargs):
+            path = original_mkdtemp(*args, **kwargs)
+            (Path(path) / 'solution').touch()
+            return path
+
+        def chmod_raise_for_binary(path, mode):
+            if Path(str(path)).name == 'solution':
+                raise OSError('permission denied')
+            return original_chmod(path, mode)
+
+        compile_result = MagicMock()
+        compile_result.returncode = 0
+        compile_result.stderr = ''
+        compile_result.stdout = ''
+
+        run_result = MagicMock()
+        run_result.returncode = 0
+        run_result.stdout = '42\n'
+        run_result.stderr = ''
+
+        with patch('tempfile.mkdtemp', side_effect=mkdtemp_with_binary), \
+             patch('subprocess.run', side_effect=[compile_result, run_result]), \
+             patch('os.chmod', side_effect=chmod_raise_for_binary):
+            results = execute_code('c', 'int main() { return 0; }', [
+                {'input': '', 'expected_output': '42'}
+            ])
+        assert results[0]['is_correct'] is True
+
+    def test_c_compilation_success_covers_chmod_loop(self):
+        import tempfile
+        import os
+        from unittest.mock import patch, MagicMock
+        from pathlib import Path
+        from common.executor import execute_code
+
+        original_mkdtemp = tempfile.mkdtemp
+
+        def mkdtemp_with_binary(*args, **kwargs):
+            path = original_mkdtemp(*args, **kwargs)
+            # Create a fake compiled binary (no extension) so the chmod loop runs its body
+            (Path(path) / 'solution').touch()
+            return path
+
+        compile_result = MagicMock()
+        compile_result.returncode = 0
+        compile_result.stderr = ''
+        compile_result.stdout = ''
+
+        run_result = MagicMock()
+        run_result.returncode = 0
+        run_result.stdout = '42\n'
+        run_result.stderr = ''
+
+        with patch('tempfile.mkdtemp', side_effect=mkdtemp_with_binary), \
+             patch('subprocess.run', side_effect=[compile_result, run_result]):
+            results = execute_code('c', 'int main() { return 0; }', [
+                {'input': '', 'expected_output': '42'}
+            ])
+        assert results[0]['is_correct'] is True
+
+    def test_multiple_test_cases(self):
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code
+
+        def side_effect(cmd, **kwargs):
+            m = MagicMock()
+            m.returncode = 0
+            inp = kwargs.get('input', '')
+            m.stdout = inp.strip() + '\n' if inp else '\n'
+            m.stderr = ''
+            return m
+
+        with patch('subprocess.run', side_effect=side_effect):
+            results = execute_code('python', 'x = input(); print(x)', [
+                {'input': 'hello', 'expected_output': 'hello'},
+                {'input': 'world', 'expected_output': 'bye'},
+            ])
+        assert results[0]['is_correct'] is True
+        assert results[1]['is_correct'] is False
+        assert len(results) == 2

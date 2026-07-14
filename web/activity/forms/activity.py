@@ -18,7 +18,7 @@ class ActivityListForm(forms.ModelForm):
     """
     class Meta:
         model = ActivityList
-        fields = ['title', 'description', 'max_attempts']
+        fields = ['title', 'description', 'max_attempts', 'manual_grading']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -33,6 +33,9 @@ class ActivityListForm(forms.ModelForm):
                 'class': 'form-control',
                 'min': '1',
                 'placeholder': 'Ex: 3 (deixe em branco para ilimitado)',
+            }),
+            'manual_grading': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
             }),
         }
 

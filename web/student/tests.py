@@ -271,11 +271,32 @@ class TestStudentActivityView:
     def test_starts_new_attempt_if_submitted_and_unlimited(
         self, authenticated_client, activity_link, enrolled, submitted_submission
     ):
+        # After an intentional submit, all activities (even unlimited) block retries
         response = authenticated_client.get(f'/student/activity/{activity_link.pk}/')
-        assert response.status_code == 200
-        assert Submission.objects.filter(
-            student=submitted_submission.student, activity_link=activity_link
-        ).count() == 2
+        assert response.status_code == 302
+        assert 'result' in response['Location']
+
+    def test_code_answer_uses_latest_execution_correctness(
+        self, authenticated_client, activity_link, enrolled, code_exercise, submission
+    ):
+        from student.models import CodeExecution
+        source = 'print("hello")'
+        CodeExecution.objects.create(
+            submission=submission,
+            exercise=code_exercise,
+            source_code=source,
+            results=[{'is_correct': True, 'status': 'correct'}],
+        )
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/',
+            {
+                'current_exercise_pk': code_exercise.pk,
+                'navigate_to_pk': code_exercise.pk,
+                'answer_text': source,
+            },
+        )
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=code_exercise)
+        assert answer.is_correct is True
 
     def test_get_with_exercise_param(self, authenticated_client, activity_link, enrolled, mc_exercise):
         ex, mc, opt_wrong, opt_correct = mc_exercise
@@ -1342,3 +1363,460 @@ class TestStudentFeedbackViewLimited:
             {'student_feedback': 'Feedback'},
         )
         assert response.status_code == 404
+
+
+# ─── CodeExecution model properties ──────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestCodeExecutionProperties:
+    def test_all_correct_true_when_all_pass(self, user, activity_link):
+        from student.models import CodeExecution
+        submission = Submission.objects.create(student=user, activity_link=activity_link)
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='code', statement='Q', points=1
+        )
+        CodeExercise.objects.create(exercise=ex, language='python')
+        exec_ = CodeExecution.objects.create(
+            submission=submission,
+            exercise=ex,
+            source_code='print(1)',
+            results=[
+                {'is_correct': True, 'status': 'correct'},
+                {'is_correct': True, 'status': 'correct'},
+            ],
+        )
+        assert exec_.all_correct is True
+        assert exec_.correct_count == 2
+        assert exec_.total_count == 2
+
+    def test_all_correct_false_when_some_fail(self, user, activity_link):
+        from student.models import CodeExecution
+        submission = Submission.objects.create(student=user, activity_link=activity_link)
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='code', statement='Q', points=1
+        )
+        CodeExercise.objects.create(exercise=ex, language='python')
+        exec_ = CodeExecution.objects.create(
+            submission=submission,
+            exercise=ex,
+            source_code='print(1)',
+            results=[
+                {'is_correct': True, 'status': 'correct'},
+                {'is_correct': False, 'status': 'wrong_answer'},
+            ],
+        )
+        assert exec_.all_correct is False
+        assert exec_.correct_count == 1
+        assert exec_.total_count == 2
+
+    def test_all_correct_false_when_results_empty(self, user, activity_link):
+        from student.models import CodeExecution
+        submission = Submission.objects.create(student=user, activity_link=activity_link)
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='code', statement='Q', points=1
+        )
+        CodeExercise.objects.create(exercise=ex, language='python')
+        exec_ = CodeExecution.objects.create(
+            submission=submission, exercise=ex, source_code='print(1)', results=[]
+        )
+        assert exec_.all_correct is False
+        assert exec_.correct_count == 0
+        assert exec_.total_count == 0
+
+
+# ─── _auto_grade via StudentSubmitView ───────────────────────────────────────
+
+@pytest.mark.django_db
+class TestAutoGradeOnSubmit:
+    def test_auto_grade_complete_code_correct(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        ex = Exercise.objects.create(
+            activity_list=activity, type='complete_code', statement='Q', points=1
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='x = ___', complete_code='x = 42'
+        )
+        sub = Submission.objects.create(student=user, activity_link=link)
+        ExerciseAnswer.objects.create(submission=sub, exercise=ex, answer_text='x = 42')
+        authenticated_client.post(f'/student/activity/{link.pk}/submit/')
+        answer = ExerciseAnswer.objects.get(submission=sub, exercise=ex)
+        assert answer.is_correct is True
+
+    def test_auto_grade_complete_code_wrong(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        ex = Exercise.objects.create(
+            activity_list=activity, type='complete_code', statement='Q', points=1
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='x = ___', complete_code='x = 42'
+        )
+        sub = Submission.objects.create(student=user, activity_link=link)
+        ExerciseAnswer.objects.create(submission=sub, exercise=ex, answer_text='x = 99')
+        authenticated_client.post(f'/student/activity/{link.pk}/submit/')
+        answer = ExerciseAnswer.objects.get(submission=sub, exercise=ex)
+        assert answer.is_correct is False
+
+    def test_auto_grade_code_dispatches_task(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        from unittest.mock import patch, MagicMock
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        ex = Exercise.objects.create(
+            activity_list=activity, type='code', statement='Q', points=1
+        )
+        CodeExercise.objects.create(exercise=ex, language='python')
+        sub = Submission.objects.create(student=user, activity_link=link)
+        ExerciseAnswer.objects.create(submission=sub, exercise=ex, answer_text='print("hello")')
+        with patch('student.tasks.execute_code_task') as mock_task:
+            mock_task.delay.return_value = MagicMock()
+            authenticated_client.post(f'/student/activity/{link.pk}/submit/')
+        mock_task.delay.assert_called_once_with(sub.pk, ex.pk, 'print("hello")')
+
+    def test_auto_grade_skips_annulled_exercise(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        ex = Exercise.objects.create(
+            activity_list=activity, type='complete_code', statement='Q', points=1, is_annulled=True
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='x = ___', complete_code='x = 42'
+        )
+        sub = Submission.objects.create(student=user, activity_link=link)
+        ExerciseAnswer.objects.create(submission=sub, exercise=ex, answer_text='x = 42')
+        authenticated_client.post(f'/student/activity/{link.pk}/submit/')
+        answer = ExerciseAnswer.objects.get(submission=sub, exercise=ex)
+        assert answer.is_correct is None
+
+    def test_auto_grade_complete_code_exception_caught_silently(
+        self, authenticated_client, user, group, activity, enrolled
+    ):
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        # complete_code exercise WITHOUT a CompleteCodeExercise record → raises on access
+        ex = Exercise.objects.create(
+            activity_list=activity, type='complete_code', statement='Q', points=1
+        )
+        sub = Submission.objects.create(student=user, activity_link=link)
+        ExerciseAnswer.objects.create(submission=sub, exercise=ex, answer_text='x = 42')
+        response = authenticated_client.post(f'/student/activity/{link.pk}/submit/')
+        assert response.status_code == 302
+
+
+# ─── StudentRunCodeView ───────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentRunCodeView:
+    def test_invalid_exercise_param_returns_error(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/run/',
+            {'exercise_pk': 'abc'},
+        )
+        assert response.status_code == 200
+        assert 'Exercício inválido' in response.content.decode()
+
+    def test_nonexistent_exercise_returns_404(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/run/',
+            {'exercise_pk': '99999'},
+        )
+        assert response.status_code == 404
+
+    def test_no_submission_returns_error(
+        self, authenticated_client, activity_link, enrolled, code_exercise
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/run/',
+            {'exercise_pk': str(code_exercise.pk), 'source_code': 'print(1)'},
+        )
+        assert response.status_code == 200
+        assert 'tentativa' in response.content.decode()
+
+    def test_max_executions_reached_returns_error(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        from student.models import CodeExecution
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='code', statement='Q', points=1
+        )
+        CodeExercise.objects.create(exercise=ex, language='python', max_executions=1)
+        CodeExecution.objects.create(
+            submission=submission, exercise=ex, source_code='x', results=[]
+        )
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/run/',
+            {'exercise_pk': str(ex.pk), 'source_code': 'print(1)'},
+        )
+        assert response.status_code == 200
+        assert 'Limite' in response.content.decode()
+
+    def test_empty_source_code_returns_error(
+        self, authenticated_client, activity_link, enrolled, code_exercise, submission
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/run/',
+            {'exercise_pk': str(code_exercise.pk), 'source_code': '   '},
+        )
+        assert response.status_code == 200
+        assert 'vazio' in response.content.decode()
+
+    def test_dispatches_task_and_returns_polling(
+        self, authenticated_client, activity_link, enrolled, code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        with patch('student.tasks.execute_code_task') as mock_task:
+            mock_task.delay.return_value = MagicMock(id='fake-task-id')
+            response = authenticated_client.post(
+                f'/student/activity/{activity_link.pk}/run/',
+                {'exercise_pk': str(code_exercise.pk), 'source_code': 'print("hello")'},
+            )
+        assert response.status_code == 200
+        mock_task.delay.assert_called_once()
+
+    def test_complete_code_exercise_dispatches_task(
+        self, authenticated_client, activity_link, enrolled, complete_code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        with patch('student.tasks.execute_code_task') as mock_task:
+            mock_task.delay.return_value = MagicMock(id='fake-task-id')
+            response = authenticated_client.post(
+                f'/student/activity/{activity_link.pk}/run/',
+                {
+                    'exercise_pk': str(complete_code_exercise.pk),
+                    'source_code': 'print("hello")',
+                },
+            )
+        assert response.status_code == 200
+        mock_task.delay.assert_called_once()
+
+
+# ─── StudentRunCodePollView ───────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentRunCodePollView:
+    def test_task_not_ready_returns_polling_spinner(
+        self, authenticated_client, activity_link, enrolled, code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        mock_result = MagicMock()
+        mock_result.ready.return_value = False
+        with patch('celery.result.AsyncResult', return_value=mock_result):
+            response = authenticated_client.get(
+                f'/student/activity/{activity_link.pk}/run/poll/fake-id/'
+                f'?exercise_pk={code_exercise.pk}',
+            )
+        assert response.status_code == 200
+
+    def test_task_error_returns_error_html(
+        self, authenticated_client, activity_link, enrolled, code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        mock_result = MagicMock()
+        mock_result.ready.return_value = True
+        mock_result.get.return_value = {'error': 'Algo deu errado'}
+        with patch('celery.result.AsyncResult', return_value=mock_result):
+            response = authenticated_client.get(
+                f'/student/activity/{activity_link.pk}/run/poll/fake-id/'
+                f'?exercise_pk={code_exercise.pk}',
+            )
+        assert response.status_code == 200
+        assert 'Algo deu errado' in response.content.decode()
+
+    def test_task_run_only_returns_stdout(
+        self, authenticated_client, activity_link, enrolled, complete_code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        mock_result = MagicMock()
+        mock_result.ready.return_value = True
+        mock_result.get.return_value = {
+            'run_only': True,
+            'stdout': 'hello',
+            'stderr': '',
+            'status': 'correct',
+        }
+        with patch('celery.result.AsyncResult', return_value=mock_result):
+            response = authenticated_client.get(
+                f'/student/activity/{activity_link.pk}/run/poll/fake-id/'
+                f'?exercise_pk={complete_code_exercise.pk}',
+            )
+        assert response.status_code == 200
+
+    def test_task_with_results_returns_result_html(
+        self, authenticated_client, activity_link, enrolled, code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        mock_result = MagicMock()
+        mock_result.ready.return_value = True
+        mock_result.get.return_value = {
+            'results': [{'stdin': '', 'expected_output': '1', 'stdout': '1', 'is_correct': True, 'status': 'correct', 'stderr': ''}],
+            'all_correct': True,
+            'correct_count': 1,
+            'total_count': 1,
+        }
+        with patch('celery.result.AsyncResult', return_value=mock_result):
+            response = authenticated_client.get(
+                f'/student/activity/{activity_link.pk}/run/poll/fake-id/'
+                f'?exercise_pk={code_exercise.pk}',
+            )
+        assert response.status_code == 200
+
+
+# ─── execute_code_task ────────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestExecuteCodeTask:
+    def _make_code_exercise(self, activity, with_test_case=True):
+        from activity.models import CodeTestCase
+        ex = Exercise.objects.create(
+            activity_list=activity, type='code', statement='Q', points=1
+        )
+        ce = CodeExercise.objects.create(exercise=ex, language='python')
+        if with_test_case:
+            CodeTestCase.objects.create(
+                exercise=ce, input='', expected_output='hello', order=1
+            )
+        return ex
+
+    def test_code_exercise_no_test_cases_returns_error(self, user, activity_link):
+        from student.tasks import execute_code_task
+        ex = self._make_code_exercise(activity_link.activity_list, with_test_case=False)
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        result = execute_code_task.run(sub.pk, ex.pk, 'print("hello")')
+        assert 'error' in result
+        assert 'casos de teste' in result['error']
+
+    def test_code_exercise_success(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        ex = self._make_code_exercise(activity_link.activity_list)
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        mock_results = [
+            {'stdin': '', 'expected_output': 'hello', 'stdout': 'hello',
+             'stderr': '', 'is_correct': True, 'status': 'correct'}
+        ]
+        with patch('common.executor.execute_code', return_value=mock_results):
+            result = execute_code_task.run(sub.pk, ex.pk, 'print("hello")')
+        assert result['all_correct'] is True
+        assert result['total_count'] == 1
+
+    def test_code_exercise_compilation_error(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        from common.executor import CompilationError
+        ex = self._make_code_exercise(activity_link.activity_list)
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        with patch('common.executor.execute_code', side_effect=CompilationError('syntax error')):
+            result = execute_code_task.run(sub.pk, ex.pk, 'bad code')
+        assert 'error' in result
+        assert 'compilação' in result['error']
+
+    def test_code_exercise_language_not_supported(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        from common.executor import LanguageNotSupportedError
+        ex = self._make_code_exercise(activity_link.activity_list)
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        with patch('common.executor.execute_code', side_effect=LanguageNotSupportedError('no')):
+            result = execute_code_task.run(sub.pk, ex.pk, 'x')
+        assert 'error' in result
+
+    def test_code_exercise_executor_error(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        from common.executor import ExecutorError
+        ex = self._make_code_exercise(activity_link.activity_list)
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        with patch('common.executor.execute_code', side_effect=ExecutorError('fail')):
+            result = execute_code_task.run(sub.pk, ex.pk, 'x')
+        assert 'error' in result
+
+    def test_complete_code_exercise_success(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='___', complete_code='print(1)'
+        )
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        mock_results = [
+            {'stdin': '', 'expected_output': '', 'stdout': '1',
+             'stderr': '', 'is_correct': True, 'status': 'correct'}
+        ]
+        with patch('common.executor.execute_code', return_value=mock_results):
+            result = execute_code_task.run(sub.pk, ex.pk, 'print(1)')
+        assert result['run_only'] is True
+        assert result['stdout'] == '1'
+
+    def test_complete_code_compilation_error(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        from common.executor import CompilationError
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='___', complete_code='x'
+        )
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        with patch('common.executor.execute_code', side_effect=CompilationError('err')):
+            result = execute_code_task.run(sub.pk, ex.pk, 'bad')
+        assert 'error' in result
+
+    def test_complete_code_language_not_supported(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        from common.executor import LanguageNotSupportedError
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='___', complete_code='x'
+        )
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        with patch('common.executor.execute_code', side_effect=LanguageNotSupportedError('no')):
+            result = execute_code_task.run(sub.pk, ex.pk, 'x')
+        assert 'error' in result
+
+    def test_complete_code_executor_error(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        from common.executor import ExecutorError
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
+        )
+        CompleteCodeExercise.objects.create(
+            exercise=ex, language='python', starter_code='___', complete_code='x'
+        )
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        with patch('common.executor.execute_code', side_effect=ExecutorError('err')):
+            result = execute_code_task.run(sub.pk, ex.pk, 'x')
+        assert 'error' in result
+
+    def test_unsupported_exercise_type_returns_error(self, user, activity_link):
+        from student.tasks import execute_code_task
+        ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='discursive', statement='Q', points=1
+        )
+        DiscursiveExercise.objects.create(exercise=ex)
+        sub = Submission.objects.create(student=user, activity_link=activity_link)
+        result = execute_code_task.run(sub.pk, ex.pk, 'x')
+        assert 'error' in result
+        assert 'suporta execução' in result['error']
+
+    def test_outer_exception_returns_error(self, user, activity_link):
+        from unittest.mock import patch
+        from student.tasks import execute_code_task
+        with patch('student.models.Submission.objects') as mock_qs:
+            mock_qs.get.side_effect = Exception('unexpected')
+            result = execute_code_task.run(user.pk, 99999, 'x')
+        assert 'error' in result
+        assert 'Erro interno' in result['error']

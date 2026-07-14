@@ -8,7 +8,7 @@ Uso típico: combinados em ``EnhancedListView`` ou em views customizadas
 que herdam de ``CreateView``/``UpdateView``/``DetailView``.
 """
 from __future__ import annotations
-from typing import Any
+from typing import Any, cast
 from accounts.models import UserPreferences
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -18,7 +18,7 @@ from django.db import transaction
 from django.db.models import F, Model, QuerySet
 from django.db.models.functions import Lower
 from django.forms import BaseFormSet, BaseModelForm
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 
@@ -28,11 +28,18 @@ class AuthPermissionMixin(LoginRequiredMixin):
 
     Aplica ``@never_cache`` via ``method_decorator`` no ``dispatch``,
     impedindo que proxies ou browsers armazenem páginas protegidas.
+    Para requisições HTMX sem sessão ativa, retorna ``HX-Redirect``
+    em vez de um 302, evitando que a página de login seja injetada
+    dentro de um elemento HTMX.
     """
 
     @method_decorator(never_cache)
-    def dispatch(self, *args: Any, **kwargs: Any) -> HttpResponse:
-        return super().dispatch(*args, **kwargs)
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        if not request.user.is_authenticated and request.headers.get('HX-Request'):
+            response = HttpResponse(status=401)
+            response['HX-Redirect'] = self.get_login_url()
+            return response
+        return super().dispatch(request, *args, **kwargs)
 
 
 class HTMXLoginRequiredMixin(LoginRequiredMixin):
@@ -44,7 +51,7 @@ class HTMXLoginRequiredMixin(LoginRequiredMixin):
     no lado do cliente sem recarregar a página inteira.
     """
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         if not request.user.is_authenticated:
             if request.headers.get('HX-Request'):
                 response = HttpResponse(status=401)
@@ -70,7 +77,7 @@ class NavigationMixin:
         changed_namespace: ``True`` se o namespace mudou.
     """
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         match = request.resolver_match
 
         current = {
@@ -80,7 +87,7 @@ class NavigationMixin:
 
         last = request.session.get('last_route')
 
-        request._navigation = {
+        request._navigation = {  # type: ignore[attr-defined]
             'current': current,
             'last': last,
             'changed_view': bool(last and last['view'] != current['view']),
@@ -89,7 +96,7 @@ class NavigationMixin:
 
         request.session['last_route'] = current
 
-        return super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)  # type: ignore[misc]
 
 
 class FilteringMixin:
@@ -107,7 +114,8 @@ class FilteringMixin:
         model: Modelo Django da view; obrigatório para construir a chave de sessão.
     """
     allowed_fields: list[str] | dict[str, str] | None = None
-    model = None
+    model: type[Model] | None = None
+    request: HttpRequest
 
     def get_filtering_session_key(self) -> str:
         """Retorna a chave de sessão exclusiva para o filtro desta view.
@@ -181,8 +189,8 @@ class FilteringMixin:
             q = self.request.GET.get('q')
 
         elif session := self.has_filtering(return_data=True):
-            search_field = session.get('search_field')
-            q = session.get('q')
+            search_field = session.get('search_field')  # type: ignore[union-attr]
+            q = session.get('q')  # type: ignore[union-attr]
         else:
             return queryset
 
@@ -218,7 +226,8 @@ class OrderingMixin:
     """
     ordering = '-id'
     allowed_fields: list[str] | dict[str, str] | None = None
-    model = None
+    model: type[Model] | None = None
+    request: HttpRequest
 
     def get_ordering_session_key(self) -> str:
         """Retorna a chave de sessão exclusiva para a ordenação desta view.
@@ -290,8 +299,8 @@ class OrderingMixin:
             order = self.request.GET.get('order')
 
         elif session := self.has_ordering(return_data=True):
-            sort = session.get('sort')
-            order = session.get('order')
+            sort = session.get('sort')  # type: ignore[union-attr]
+            order = session.get('order')  # type: ignore[union-attr]
 
         else:
             return self.ordering
@@ -339,6 +348,7 @@ class ViewTypeMixin:
     """
     default_view_type = 'cards'
     view_types = ['table', 'cards']
+    request: HttpRequest
 
     def get_view_type(self) -> str:
         """Determina e persiste o tipo de visualização ativo.
@@ -375,7 +385,7 @@ class ViewTypeMixin:
                 prefs.preferences = preferences
                 prefs.save()
 
-                self.request._set_cookies = cookie
+                self.request._set_cookies = cookie  # type: ignore[attr-defined]
 
             return view_type
 
@@ -396,6 +406,7 @@ class EnrichObjectMixin:
 
     As subclasses devem sobrescrever ambos os métodos abstratos.
     """
+    request: HttpRequest
 
     def has_object_enrich_actions(self, user: User, obj: Model) -> bool:
         """Determina se o usuário tem permissão para ver ações no objeto.
@@ -444,7 +455,7 @@ class EnrichObjectMixin:
         Returns:
             O mesmo dicionário com ``ui_actions`` adicionado em cada objeto.
         """
-        user = self.request.user
+        user = cast(User, self.request.user)
 
         if "object_list" in context:
             for obj in context["object_list"]:
@@ -464,7 +475,7 @@ class ActionsMixin(EnrichObjectMixin):
     """
 
     def get_context_data(self, **kwargs) -> dict:
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)  # type: ignore[misc]
         return self.apply_enrichment(context)
 
 
@@ -493,18 +504,18 @@ class ObjectAccessRequiredMixin:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         """Verifica acesso ao objeto antes de despachar a requisição.
 
         Raises:
             PermissionDenied: Se ``has_object_access`` retornar ``False``.
         """
-        obj = self.get_object()
+        obj = self.get_object()  # type: ignore[attr-defined]
 
-        if not self.has_object_access(request.user, obj):
+        if not self.has_object_access(cast(User, request.user), obj):
             raise PermissionDenied
 
-        return super().dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)  # type: ignore[misc]
 
 
 class PaginationMixin:
@@ -519,6 +530,7 @@ class PaginationMixin:
     """
     paginate_by = 10
     page_param = 'page'
+    request: HttpRequest
 
     def paginate_queryset(self, queryset: QuerySet) -> dict:
         """Pagina o queryset e retorna o contexto de paginação.
@@ -567,6 +579,7 @@ class InlineFormsetMixin:
     formset_model: type[Model] | None = None
     formset_prefix: str = 'options'
     formset_related_name: str | None = None
+    request: HttpRequest
 
     def get_formset(self, instance: Model | None = None) -> BaseFormSet:
         """Instancia o formset com ou sem dados do POST.
@@ -601,7 +614,7 @@ class InlineFormsetMixin:
 
             kwargs['data'] = self.request.POST
 
-        return self.formset_class(**kwargs)
+        return self.formset_class(**kwargs)  # type: ignore[call-arg, arg-type]
 
     def get_context_data(self, **kwargs) -> dict:
         """Adiciona o formset ao contexto do template.
@@ -612,7 +625,7 @@ class InlineFormsetMixin:
         Returns:
             Dicionário de contexto com a chave definida em formset_context_name.
         """
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)  # type: ignore[misc]
 
         if self.formset_context_name not in context:
             parent_instance = self.get_formset_parent_instance()
@@ -646,7 +659,7 @@ class InlineFormsetMixin:
             with transaction.atomic():
                 self.object.save()
                 self.save_parent_instance(parent_instance)
-                formset.save()
+                formset.save()  # type: ignore[attr-defined]
 
             return self.render_success()
 
@@ -662,7 +675,7 @@ class InlineFormsetMixin:
             HttpResponse renderizado com o contexto de erro.
         """
         context = self.get_context_data(form=form)
-        return self.render_to_response(context)
+        return self.render_to_response(context)  # type: ignore[attr-defined]
 
     def get_formset_parent_instance(self) -> Model:
         """Retorna a instância pai do formset (ex: MultipleChoiceExercise).
@@ -683,7 +696,7 @@ class InlineFormsetMixin:
 
         try:
             return getattr(self.object, self.formset_related_name)
-        except (AttributeError, self.formset_model.DoesNotExist):
+        except (AttributeError, self.formset_model.DoesNotExist):  # type: ignore[attr-defined]
             return self.formset_model(exercise=self.object)
 
     def save_parent_instance(self, instance: Model) -> None:
@@ -805,7 +818,7 @@ class SecondaryFormMixin:
         Returns:
             Dicionário de contexto com a chave definida em secondary_form_context_name.
         """
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)  # type: ignore[misc]
         if self.secondary_form_context_name not in context:
             secondary_instance = self.get_secondary_instance()
             context[self.secondary_form_context_name] = self.get_secondary_form(
@@ -861,7 +874,7 @@ class SecondaryFormMixin:
             form=form,
             **{self.secondary_form_context_name: secondary_form}
         )
-        return self.render_to_response(context)
+        return self.render_to_response(context)  # type: ignore[attr-defined]
 
     def render_success(self) -> HttpResponse:  # pragma: no cover
         """Retorna a resposta após salvar com sucesso.

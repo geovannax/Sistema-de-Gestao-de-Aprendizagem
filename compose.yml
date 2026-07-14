@@ -118,6 +118,48 @@ services:
       lms-network:
         ipv4_address: ${WEB_IPV4_ADDRESS:-172.20.0.3}
 
+  celery:
+    image: python:3.14
+    container_name: ${CELERY_CONTAINER_NAME:-lms-celery}
+    restart: ${CELERY_RESTART_POLICY:-no}
+    working_dir: /app
+    entrypoint: /bin/bash
+    cap_add:
+      - NET_ADMIN
+    environment:
+      PYTHONUNBUFFERED: 1
+      TZ: America/Sao_Paulo
+      DJANGO_SETTINGS_MODULE: core.settings
+      WEB_SECRET_KEY: ${WEB_SECRET_KEY}
+      WEB_DEBUG: ${WEB_DEBUG:-false}
+      <<: *web-common-env
+    command:
+      - -c
+      - |
+        apt-get update -y -qq
+        apt-get install -y --no-install-recommends netcat-openbsd nodejs gcc g++ default-jdk iptables
+
+        python -m venv /venv
+        source /venv/bin/activate
+        pip install -q -r requirements.txt
+
+        until nc -z -w5 $$POSTGRES_CONTAINER_NAME $$POSTGRES_PORT; do
+          echo "Aguardando PostgreSQL..."; sleep 3
+        done
+
+        # Bloqueia saída de rede do usuário nobody (isolamento do código dos alunos)
+        iptables -A OUTPUT -m owner --uid-owner 65534 -j DROP || true
+
+        /venv/bin/celery -A core worker -l info --concurrency=8
+    volumes:
+      - ./web:/app:rw
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      lms-network:
+        ipv4_address: ${CELERY_IPV4_ADDRESS:-172.20.0.6}
+
   nginx:
     image: nginx
     container_name: ${NGINX_CONTAINER_NAME}

@@ -10,10 +10,13 @@
     margin-bottom: 1rem;
 }
 
-.grade-card.auto-graded      { border-left: 4px solid var(--gray-300); }
-.grade-card.manual-correct   { border-left: 4px solid #10b981; }
-.grade-card.manual-incorrect { border-left: 4px solid #ef4444; }
-.grade-card.manual-pending   { border-left: 4px solid #f59e0b; }
+.grade-card.auto-graded          { border-left: 4px solid var(--gray-400); }
+.grade-card.auto-graded.correct  { border-left-color: var(--success); }
+.grade-card.auto-graded.incorrect{ border-left-color: var(--danger); }
+.grade-card.auto-graded.pending  { border-left-color: var(--warning); }
+.grade-card.manual-correct       { border-left: 4px solid var(--success); }
+.grade-card.manual-incorrect     { border-left: 4px solid var(--danger); }
+.grade-card.manual-pending       { border-left: 4px solid var(--warning); }
 
 .exercise-num {
     font-size: 0.75rem;

@@ -66,7 +66,37 @@
         {% endif %}
         <form method="post" action="{{ request.path }}">
             {% csrf_token %}
-            {% include "global/partials/generic/create_or_update/_form.html" %}
+
+            <div class="form-group">
+                {{ form.title.label_tag }}
+                {% if form.title.errors %}<div class="field-error">{% for e in form.title.errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+                {{ form.title }}
+                {% if form.title.help_text %}<div class="field-hint mb-3">{{ form.title.help_text }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label_tag }}
+                {% if form.description.errors %}<div class="field-error">{% for e in form.description.errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+                {{ form.description }}
+                {% if form.description.help_text %}<div class="field-hint mb-3">{{ form.description.help_text }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.max_attempts.label_tag }}
+                {% if form.max_attempts.errors %}<div class="field-error">{% for e in form.max_attempts.errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+                {{ form.max_attempts }}
+                {% if form.max_attempts.help_text %}<div class="field-hint mb-3">{{ form.max_attempts.help_text }}</div>{% endif %}
+            </div>
+
+            <label class="terms-card d-flex gap-2 align-items-center px-3 py-2 rounded-2 mb-3" for="{{ form.manual_grading.id_for_label }}">
+                {{ form.manual_grading }}
+                <div class="text">
+                    <strong>{{ form.manual_grading.label }} <span class="fw-normal text-muted" style="font-size:.85rem">(opcional)</span></strong>
+                    {% if form.manual_grading.help_text %}
+                    <p class="mb-0">{{ form.manual_grading.help_text }}</p>
+                    {% endif %}
+                </div>
+            </label>
 
             <div class="d-flex justify-content-between align-items-center gap-3 mt-3">
                 {% if not is_update_flow %}

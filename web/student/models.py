@@ -28,7 +28,7 @@ class Submission(models.Model):
     activity_link = models.ForeignKey(ActivityListGroup, on_delete=models.CASCADE, related_name='submissions')
     attempt_number = models.PositiveIntegerField(default=1, verbose_name='Tentativa')
     started_at = models.DateTimeField(auto_now_add=True, verbose_name='Iniciado em')
-    submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='Submetido em')
+    submitted_at = models.DateTimeField(null=True, blank=True, verbose_name='Submetido em')  # type: ignore[misc]
     is_abandoned = models.BooleanField(default=False, verbose_name='Abandonada')
     student_feedback = models.TextField(blank=True, default='', verbose_name='Feedback do aluno')
     teacher_comment = models.TextField(blank=True, default='', verbose_name='Comentário do professor')
@@ -62,14 +62,14 @@ class ExerciseAnswer(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='answers')
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='student_answers')
     answer_text = models.TextField(blank=True, default='', verbose_name='Resposta')
-    selected_option = models.ForeignKey(
+    selected_option = models.ForeignKey(  # type: ignore[misc]
         ExerciseOption,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         verbose_name='Opção selecionada',
     )
-    is_correct = models.BooleanField(null=True, verbose_name='Correta')
+    is_correct = models.BooleanField(null=True, verbose_name='Correta')  # type: ignore[misc]
     answered_at = models.DateTimeField(auto_now=True, verbose_name='Respondido em')
     student_observation = models.TextField(blank=True, default='', verbose_name='Observação do aluno')
     teacher_comment = models.TextField(blank=True, default='', verbose_name='Comentário do professor')
@@ -83,3 +83,47 @@ class ExerciseAnswer(models.Model):
         ]
         verbose_name = 'Resposta'
         verbose_name_plural = 'Respostas'
+
+
+class CodeExecution(models.Model):
+    """Registro de cada clique em 'Executar' de um aluno.
+
+    Armazena o código enviado e os resultados por caso de teste.
+    Permite ao professor ver a evolução do código do aluno.
+    """
+
+    submission = models.ForeignKey(
+        Submission,
+        on_delete=models.CASCADE,
+        related_name='code_executions',
+        verbose_name='Submissão',
+    )
+    exercise = models.ForeignKey(
+        'activity.Exercise',
+        on_delete=models.CASCADE,
+        related_name='code_executions',
+        verbose_name='Exercício',
+    )
+    source_code = models.TextField(verbose_name='Código enviado')
+    results = models.JSONField(default=list, verbose_name='Resultados')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Executado em')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Execução de código'
+        verbose_name_plural = 'Execuções de código'
+
+    @property
+    def all_correct(self) -> bool:
+        """Indica se todos os casos de teste passaram e a lista de resultados não é vazia."""
+        return bool(self.results) and all(r.get('is_correct') for r in self.results)
+
+    @property
+    def correct_count(self) -> int:
+        """Retorna o número de casos de teste que passaram."""
+        return sum(1 for r in self.results if r.get('is_correct'))
+
+    @property
+    def total_count(self) -> int:
+        """Retorna o número total de casos de teste executados."""
+        return len(self.results)

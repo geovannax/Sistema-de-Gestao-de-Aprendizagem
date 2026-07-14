@@ -12,7 +12,7 @@ from django.db.models import QuerySet
 from django.views.generic import ListView
 
 
-class EnhancedListView(
+class EnhancedListView(  # type: ignore[misc]
     NavigationMixin,
     FilteringMixin,
     OrderingMixin,
@@ -79,7 +79,7 @@ class EnhancedListView(
             'create_url': self.create_url,
             'detail_url': self.detail_url,
             'view_type': self.get_view_type(),
-            **self.has_filtering(return_context=True),
-            **self.has_ordering(return_context=True),
+            **self.has_filtering(return_context=True),  # type: ignore[dict-item]
+            **self.has_ordering(return_context=True),  # type: ignore[dict-item]
         })
         return context

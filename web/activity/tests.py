@@ -141,6 +141,13 @@ class TestNormalizeCode:
         result = normalize_code('x = 1', 'cobol')
         assert 'x' in result and '1' in result
 
+    def test_lexer_exception_falls_back_to_whitespace_join(self):
+        from unittest.mock import patch
+        from activity.utils import normalize_code
+        with patch('activity.utils.get_lexer_by_name', side_effect=Exception('unsupported')):
+            result = normalize_code('x  =  1', 'python')
+        assert result == 'x=1'
+
 
 # ─── CompleteCodeExerciseForm tests ──────────────────────────────────────────
 
