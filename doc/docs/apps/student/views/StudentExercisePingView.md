@@ -1,0 +1,3 @@
+# StudentExercisePingView
+
+::: student.views.StudentExercisePingView

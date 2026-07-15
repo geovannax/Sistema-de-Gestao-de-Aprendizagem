@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import timedelta
+from typing import Any
 
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
@@ -172,7 +173,7 @@ class GroupInvite(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-    def save(self, *args, **kwargs) -> None:
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Define ``expires_at`` para 7 dias no futuro se não informado."""
         if not self.expires_at:
             self.expires_at = timezone.now() + timedelta(days=7)

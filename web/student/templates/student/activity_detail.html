@@ -339,6 +339,15 @@
         return v ? v.split('=')[1] : '';
     }
 
+    /* ── Exercise timer ping ──────────────────────────────── */
+    function pingView(exercisePk) {
+        var fd = new FormData();
+        fd.append('csrfmiddlewaretoken', getCsrf());
+        fd.append('exercise_pk', exercisePk);
+        fetch('{% url "student:activity_exercise_ping" activity_link.pk %}', { method: 'POST', body: fd })
+            .catch(function () {});
+    }
+
     /* ── Gather answer data from a slide ──────────────────── */
     function getSlideData(idx) {
         var slide = slides[idx];
@@ -431,6 +440,7 @@
         current = idx;
         slides[current].classList.add('visible');
 
+        pingView(slides[current].dataset.exercisePk);
         initEditorForSlide(current);
         updateUI();
     }
@@ -501,6 +511,7 @@
     /* ── Init ─────────────────────────────────────────────── */
     initEditorForSlide(current);
     updateUI();
+    pingView(slides[current].dataset.exercisePk);
 
     /* ── Executar: injeta valor do CodeMirror antes do HTMX POST ── */
     document.addEventListener('htmx:configRequest', function (e) {

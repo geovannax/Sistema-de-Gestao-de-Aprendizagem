@@ -6,6 +6,28 @@ register = template.Library()
 
 
 @register.filter
+def duration(seconds: int | None) -> str:
+    """Formata segundos como string legível (ex.: '2min 30s', '45s', '1h 5min').
+
+    Args:
+        seconds: Total de segundos inteiro ou ``None``.
+
+    Returns:
+        String formatada ou ``'—'`` quando ``seconds`` for falso.
+    """
+    if not seconds:
+        return '—'
+    seconds = int(seconds)
+    h, remainder = divmod(seconds, 3600)
+    m, s = divmod(remainder, 60)
+    if h:
+        return f'{h}h {m}min' if m else f'{h}h'
+    if m:
+        return f'{m}min {s}s' if s else f'{m}min'
+    return f'{s}s'
+
+
+@register.filter
 def get_attr(obj: object, attr: str) -> object:
     """Retorna o valor de um atributo de um objeto pelo nome.
 
@@ -75,8 +97,10 @@ def get_item(obj: object, key: str) -> object:
         Valor encontrado ou ``'-'`` se não existir.
     """
     try:
-        if hasattr(obj, key):
+        if isinstance(obj, dict):
+            return obj.get(key)
+        if isinstance(key, str) and hasattr(obj, key):
             return getattr(obj, key)
-        return obj.get(key) if isinstance(obj, dict) else '-'
-    except:  # pragma: no cover
+        return '-'
+    except Exception:  # pragma: no cover
         return '-'

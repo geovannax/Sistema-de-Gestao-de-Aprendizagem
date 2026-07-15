@@ -1,5 +1,5 @@
 {% extends "global/partials/base.html" %}
-{% load static %}
+{% load static common_filters %}
 
 {% block title %}Correção — {{ submission.student.get_full_name|default:submission.student.username }}{% endblock title %}
 
@@ -41,7 +41,10 @@
                 {% if exercise.type == 'multiple_choice' %}
                     <div class="grade-card auto-graded {% if answer %}{% if answer.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="exercise-num">Questão {{ forloop.counter }} · Múltipla Escolha · Auto-corrigida</div>
+                            <div class="exercise-num">
+                                Questão {{ forloop.counter }} · Múltipla Escolha · Auto-corrigida
+                                {% if answer %}<span class="text-muted fw-normal ms-2" style="font-size:.82rem"><i class="bi bi-clock me-1"></i>{{ answer.time_spent_seconds|duration }}</span>{% endif %}
+                            </div>
                             {% if answer %}
                                 {% if answer.is_correct %}
                                     <span class="d-flex align-items-center gap-1 text-success" style="font-size:.9rem;"><i class="bi bi-check-circle-fill"></i>Correta</span>
@@ -94,6 +97,7 @@
                                 {% elif exercise.type == 'complete_code' %}Completar Código
                                 {% endif %}
                                 · {% if exercise.type == 'discursive' or activity_link.activity_list.manual_grading %}Correção manual{% else %}Auto-corrigida{% endif %}
+                                {% if answer %}<span class="text-muted fw-normal ms-2" style="font-size:.82rem"><i class="bi bi-clock me-1"></i>{{ answer.time_spent_seconds|duration }}</span>{% endif %}
                             </div>
                             {% if not exercise.type == 'discursive' and not activity_link.activity_list.manual_grading %}
                                 {% if answer %}

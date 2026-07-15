@@ -163,6 +163,7 @@ nav:
               - CompilationError: apps/common/executor/CompilationError.md
               - execute_code: apps/common/executor/execute_code.md
           - filters:
+              - duration: apps/common/filters/duration.md
               - get_attr: apps/common/filters/get_attr.md
               - get_attr_with_truncate: apps/common/filters/get_attr_with_truncate.md
               - get_model_only_fields: apps/common/filters/get_model_only_fields.md
@@ -200,6 +201,7 @@ nav:
               - GroupSharingForm: apps/group/forms/GroupSharingForm.md
       - student:
           - Visão Geral: apps/student/index.md
+          - Tempo por Exercício: apps/student/tempo_por_exercicio.md
           - models:
               - Submission: apps/student/models/Submission.md
               - ExerciseAnswer: apps/student/models/ExerciseAnswer.md
@@ -215,6 +217,7 @@ nav:
               - StudentAbandonView: apps/student/views/StudentAbandonView.md
               - StudentRunCodeView: apps/student/views/StudentRunCodeView.md
               - StudentRunCodePollView: apps/student/views/StudentRunCodePollView.md
+              - StudentExercisePingView: apps/student/views/StudentExercisePingView.md
               - TeacherSubmissionsView: apps/student/views/TeacherSubmissionsView.md
               - TeacherGradeView: apps/student/views/TeacherGradeView.md
           - tasks:

@@ -68,27 +68,57 @@ class StudentDashboardView(AuthPermissionMixin, TemplateView):
         self,
         enrollments: list[GroupStudent],
         activity_links: list[ActivityListGroup],
+        completed_link_ids: set[int],
     ) -> None:
-        """Agrega os totais de atividades por status em cada matrícula."""
+        """Agrega os totais de atividades pendentes por status em cada matrícula."""
         totals_by_group = {
             enrollment.group_id: {'open': 0, 'future': 0, 'closed': 0}
             for enrollment in enrollments
         }
         for activity_link in activity_links:
+            if activity_link.pk in completed_link_ids:
+                continue
             status = self.get_activity_status(activity_link)
             totals_by_group[activity_link.group_id][status] += 1
         for enrollment in enrollments:
             enrollment.activity_totals = totals_by_group[enrollment.group_id]
+
+    def get_completed_link_ids(self, activity_links: list[ActivityListGroup]) -> set[int]:
+        """Retorna IDs de atividades concluídas, espelhando a lógica do StudentGroupDetailView.
+
+        - Sem max_attempts: qualquer submitted_at conta (inclui abandonadas), igual a latest_submitted.
+        - Com max_attempts: apenas submissões não abandonadas (is_abandoned=False), igual a latest_intentional.
+        """
+        link_ids = [link.pk for link in activity_links]
+        unlimited_ids = {link.pk for link in activity_links if link.activity_list.max_attempts is None}
+        limited_ids = {link.pk for link in activity_links if link.activity_list.max_attempts is not None}
+
+        completed: set[int] = set()
+
+        if unlimited_ids:
+            completed |= set(
+                Submission.objects
+                .filter(student=self.request.user, submitted_at__isnull=False, activity_link_id__in=unlimited_ids)
+                .values_list('activity_link_id', flat=True)
+            )
+        if limited_ids:
+            completed |= set(
+                Submission.objects
+                .filter(student=self.request.user, submitted_at__isnull=False, is_abandoned=False, activity_link_id__in=limited_ids)
+                .values_list('activity_link_id', flat=True)
+            )
+        return completed
 
     def get_context_data(self, **kwargs: Any) -> dict:
         context = super().get_context_data(**kwargs)
         enrollments = list(self.get_enrollments())
         group_ids = [enrollment.group_id for enrollment in enrollments]
         activity_links = list(self.get_activity_links(group_ids))
+        completed_link_ids = self.get_completed_link_ids(activity_links)
         view_type = self.request.GET.get('view_type', 'cards')
         if view_type not in ['cards', 'table']:
             view_type = 'cards'
-        self.add_activity_totals(enrollments, activity_links)
+        self.add_activity_totals(enrollments, activity_links, completed_link_ids)
         context.update({
             'page_title': 'Área do Aluno',
             'page_description': 'Acompanhe suas turmas e atividades disponíveis em um só lugar.',
@@ -240,20 +270,62 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
 
         return links
 
+    def _annotate_scores(self, completed_links: list) -> None:
+        """Anota pontuação e contagem de acertos em cada atividade concluída."""
+        from decimal import Decimal
+        from django.db.models import Case, DecimalField, IntegerField, Sum, When
+
+        sub_pks = [l.latest_submission.pk for l in completed_links if l.latest_submission]
+        if not sub_pks:
+            return
+
+        rows = (
+            ExerciseAnswer.objects
+            .filter(submission_id__in=sub_pks, exercise__is_annulled=False)
+            .values('submission_id')
+            .annotate(
+                total=Count('id'),
+                correct=Sum(Case(When(is_correct=True, then=1), default=0, output_field=IntegerField())),
+                pending=Sum(Case(When(is_correct=None, then=1), default=0, output_field=IntegerField())),
+                points_earned=Sum(
+                    Case(When(is_correct=True, then='exercise__points'), default=Decimal(0), output_field=DecimalField())
+                ),
+                points_total=Sum('exercise__points', output_field=DecimalField()),
+            )
+        )
+        scores = {r['submission_id']: r for r in rows}
+        for link in completed_links:
+            if link.latest_submission:
+                s = scores.get(link.latest_submission.pk, {
+                    'total': 0, 'correct': 0, 'pending': 0,
+                    'points_earned': Decimal(0), 'points_total': Decimal(0),
+                })
+                link.score_total = s['total']
+                link.score_correct = s['correct']
+                link.score_pending = s['pending']
+                link.score_pct = round(s['correct'] / s['total'] * 100) if s['total'] else None
+                link.score_points_earned = s['points_earned'] or Decimal(0)
+                link.score_points_total = s['points_total'] or Decimal(0)
+
     def get_context_data(self, **kwargs: Any) -> dict:
+        """Monta o contexto da página de detalhes da turma do aluno.
+
+        Returns:
+            Dicionário com ``enrollment``, ``group``, ``activity_links``,
+            ``pending_links`` e ``completed_links`` (com pontuação anotada).
+        """
         context = super().get_context_data(**kwargs)
         enrollment = self.get_enrollment()
         activity_links = self.get_activity_links(enrollment.group)
-        # Pending: working on current attempt OR has never submitted
         pending_links = [
             l for l in activity_links
             if l.in_progress_submission is not None or l.latest_submission is None
         ]
-        # Completed: has at least one submitted attempt and no current in-progress
         completed_links = [
             l for l in activity_links
             if l.latest_submission is not None and l.in_progress_submission is None
         ]
+        self._annotate_scores(completed_links)
         context.update({
             'enrollment': enrollment,
             'group': enrollment.group,
@@ -988,6 +1060,75 @@ class TeacherGradeView(_TeacherAccessMixin, View):
         return redirect('student:activity_submissions', link_pk=activity_link.pk)
 
 
+class StudentExercisePingView(_ActivityAccessMixin, View):
+    """Registra a chegada do aluno em um slide de exercício.
+
+    Fecha o timer do exercício anterior (acumulando segundos em
+    :attr:`~student.models.ExerciseAnswer.time_spent_seconds`) e abre o
+    timer do novo. O cliente nunca envia um valor de tempo — apenas informa
+    o pk do exercício em que chegou; o servidor calcula o elapsed com seus
+    próprios timestamps de sessão.
+    """
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Processa o ping de chegada e atualiza o timer acumulado do exercício anterior."""
+        exercise_pk = request.POST.get('exercise_pk')
+        if not exercise_pk:
+            return HttpResponse(status=400)
+
+        try:
+            exercise_pk = int(exercise_pk)
+        except ValueError:
+            return HttpResponse(status=400)
+
+        activity_link = self.get_activity_link()
+        submission = Submission.objects.filter(
+            student=request.user,
+            activity_link=activity_link,
+            submitted_at__isnull=True,
+        ).first()
+
+        if not submission:
+            return HttpResponse(status=204)
+
+        self._close_and_open(request, activity_link.pk, submission, exercise_pk)
+        return HttpResponse(status=204)
+
+    @staticmethod
+    def _close_and_open(
+        request: HttpRequest,
+        link_pk: int,
+        submission: 'Submission',
+        new_exercise_pk: int,
+    ) -> None:
+        """Fecha o timer do exercício anterior e abre o do novo.
+
+        Reutilizado por :class:`StudentSubmitView` para fechar o último timer.
+        """
+        from django.db.models import F
+
+        session_key = f'exercise_timer_{link_pk}'
+        now = timezone.now()
+        prev = request.session.get(session_key)
+
+        if prev and prev.get('exercise_pk') != new_exercise_pk:
+            try:
+                entered_at = timezone.datetime.fromisoformat(prev['entered_at'])
+                elapsed = int((now - entered_at).total_seconds())
+                if elapsed > 0:
+                    ExerciseAnswer.objects.filter(
+                        submission=submission,
+                        exercise_id=prev['exercise_pk'],
+                    ).update(time_spent_seconds=F('time_spent_seconds') + elapsed)
+            except (KeyError, ValueError, TypeError):
+                pass
+
+        request.session[session_key] = {
+            'exercise_pk': new_exercise_pk,
+            'entered_at': now.isoformat(),
+        }
+
+
 class StudentSubmitView(_ActivityAccessMixin, View):
     """Submissão final de uma atividade pelo aluno.
 
@@ -1012,6 +1153,8 @@ class StudentSubmitView(_ActivityAccessMixin, View):
         if not submission:
             raise Http404
 
+        self._close_last_timer(request, activity_link, submission)
+
         if not activity_link.activity_list.manual_grading:
             self._auto_grade(submission)
 
@@ -1019,6 +1162,29 @@ class StudentSubmitView(_ActivityAccessMixin, View):
         submission.save(update_fields=['submitted_at'])
 
         return redirect('student:activity_result', link_pk=self.kwargs['link_pk'])
+
+    def _close_last_timer(
+        self,
+        request: HttpRequest,
+        activity_link: ActivityListGroup,
+        submission: Submission,
+    ) -> None:
+        """Fecha o timer do último exercício ativo antes da entrega."""
+        session_key = f'exercise_timer_{activity_link.pk}'
+        prev = request.session.pop(session_key, None)
+        if not prev:
+            return
+        try:
+            from django.db.models import F
+            entered_at = timezone.datetime.fromisoformat(prev['entered_at'])
+            elapsed = int((timezone.now() - entered_at).total_seconds())
+            if elapsed > 0:
+                ExerciseAnswer.objects.filter(
+                    submission=submission,
+                    exercise_id=prev['exercise_pk'],
+                ).update(time_spent_seconds=F('time_spent_seconds') + elapsed)
+        except (KeyError, ValueError, TypeError):
+            pass
 
     def _auto_grade(self, submission: Submission) -> None:
         """Dispara correção automática para exercícios de código (via Celery) e código completo.

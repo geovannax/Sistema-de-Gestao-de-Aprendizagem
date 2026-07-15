@@ -12,10 +12,10 @@ from typing import Any, cast
 from accounts.models import UserPreferences
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured, PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import F, Model, QuerySet
+from django.db.models import CharField, F, Model, QuerySet, TextField
 from django.db.models.functions import Lower
 from django.forms import BaseFormSet, BaseModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseBase
@@ -215,8 +215,9 @@ class OrderingMixin:
     """Adiciona ordenação persistida em sessão a qualquer ListView.
 
     A ordenação é armazenada na sessão com uma chave derivada do ``app_label``
-    e do nome da view. Ao ordenar, aplica ``Lower(F(campo))`` para garantir
-    ordenação case-insensitive em campos de texto.
+    e do nome da view. Em campos de texto (``CharField``/``TextField``) aplica
+    ``Lower(F(campo))`` para ordenação case-insensitive; nos demais tipos
+    (FK, inteiros, datas) usa ordenação direta sem ``Lower``.
 
     Attributes:
         ordering: Ordenação padrão aplicada quando nenhum parâmetro é fornecido.
@@ -271,12 +272,13 @@ class OrderingMixin:
 
         Limpa a ordenação quando ``clear_order=1`` está na query string ou
         quando o usuário muda de view. Persiste ``sort`` e ``order`` na sessão.
-        Aplica ``Lower(F(campo))`` para ordenação case-insensitive.
+        Aplica ``Lower(F(campo))`` apenas para ``CharField``/``TextField``;
+        para FK e outros tipos numéricos usa ordenação direta via string.
 
         Returns:
-            Tupla de expressões de ordenação (ex: ``(Lower(F('name')),)``)
-            quando há parâmetros válidos, ou string de ordenação padrão
-            (ex: ``'-id'``).
+            Tupla de expressões de ordenação (ex: ``(Lower(F('name')),)``,
+            ``('-created_at',)``) quando há parâmetros válidos, ou string de
+            ordenação padrão (ex: ``'-id'``).
 
         Raises:
             ImproperlyConfigured: Se ``allowed_fields`` ou ``model`` não
@@ -309,8 +311,16 @@ class OrderingMixin:
             key = self.get_ordering_session_key()
             self.request.session[key] = {'sort': sort, 'order': order}
 
-            expr = Lower(F(sort))
-            return (expr.desc(),) if order == 'desc' else (expr,)
+            try:
+                field = self.model._meta.get_field(sort.split('__')[0])
+                is_text = isinstance(field, (CharField, TextField))
+            except FieldDoesNotExist:
+                is_text = False
+
+            if is_text:
+                expr = Lower(F(sort))
+                return (expr.desc(),) if order == 'desc' else (expr,)
+            return (f'-{sort}',) if order == 'desc' else (sort,)
 
         return self.ordering
 
@@ -474,7 +484,7 @@ class ActionsMixin(EnrichObjectMixin):
     eliminando a necessidade de chamar ``apply_enrichment`` manualmente.
     """
 
-    def get_context_data(self, **kwargs) -> dict:
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)  # type: ignore[misc]
         return self.apply_enrichment(context)
 
@@ -616,7 +626,7 @@ class InlineFormsetMixin:
 
         return self.formset_class(**kwargs)  # type: ignore[call-arg, arg-type]
 
-    def get_context_data(self, **kwargs) -> dict:
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Adiciona o formset ao contexto do template.
 
         Só instancia o formset se ainda não estiver no contexto,
@@ -809,7 +819,7 @@ class SecondaryFormMixin:
 
         return self.secondary_form_class(**kwargs)
 
-    def get_context_data(self, **kwargs) -> dict:
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Adiciona o formulário secundário ao contexto do template.
 
         Só instancia o formulário se ainda não estiver no contexto,

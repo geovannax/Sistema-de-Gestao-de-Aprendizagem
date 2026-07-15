@@ -213,11 +213,12 @@ class TestExecutorNormalize:
 
 
 class TestExecutorMakePreexec:
-    @pytest.mark.skipif(sys.platform == 'linux', reason='only tests non-Linux path')
     def test_returns_none_on_non_linux(self):
-        from common.executor import _make_preexec
+        from unittest.mock import patch
+        import common.executor as mod
         from pathlib import Path
-        result = _make_preexec(Path('.'))
+        with patch.object(mod, '_IS_LINUX', False):
+            result = mod._make_preexec(Path('.'))
         assert result is None
 
     def test_linux_path_with_mocked_platform(self):
@@ -430,3 +431,35 @@ class TestExecutor:
         assert results[0]['is_correct'] is True
         assert results[1]['is_correct'] is False
         assert len(results) == 2
+
+
+# ─── duration filter ─────────────────────────────────────────────────────────
+
+class TestDurationFilter:
+    def test_none_returns_dash(self):
+        from common.templatetags.common_filters import duration
+        assert duration(None) == '—'
+
+    def test_zero_returns_dash(self):
+        from common.templatetags.common_filters import duration
+        assert duration(0) == '—'
+
+    def test_seconds_only(self):
+        from common.templatetags.common_filters import duration
+        assert duration(45) == '45s'
+
+    def test_minutes_and_seconds(self):
+        from common.templatetags.common_filters import duration
+        assert duration(90) == '1min 30s'
+
+    def test_minutes_only(self):
+        from common.templatetags.common_filters import duration
+        assert duration(60) == '1min'
+
+    def test_hours_and_minutes(self):
+        from common.templatetags.common_filters import duration
+        assert duration(3660) == '1h 1min'
+
+    def test_hours_only(self):
+        from common.templatetags.common_filters import duration
+        assert duration(3600) == '1h'

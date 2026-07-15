@@ -1,4 +1,11 @@
-"""Modelos do app student."""
+"""Modelos do app student.
+
+Define a estrutura de dados para submissões de alunos, respostas por exercício
+e execuções de código. :class:`Submission` representa a tentativa do aluno em
+uma atividade; :class:`ExerciseAnswer` armazena a resposta individual por
+exercício dentro desta tentativa; :class:`CodeExecution` registra cada
+clique em "Executar" com os resultados por caso de teste.
+"""
 from __future__ import annotations
 
 from activity.models import ActivityListGroup, Exercise, ExerciseOption
@@ -71,6 +78,7 @@ class ExerciseAnswer(models.Model):
     )
     is_correct = models.BooleanField(null=True, verbose_name='Correta')  # type: ignore[misc]
     answered_at = models.DateTimeField(auto_now=True, verbose_name='Respondido em')
+    time_spent_seconds = models.PositiveIntegerField(default=0, verbose_name='Tempo gasto (s)')
     student_observation = models.TextField(blank=True, default='', verbose_name='Observação do aluno')
     teacher_comment = models.TextField(blank=True, default='', verbose_name='Comentário do professor')
 

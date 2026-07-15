@@ -4,8 +4,9 @@ Define os tipos de exercício suportados, seus metadados de exibição (label,
 ícone, cor, URLs de criação/edição) e as choices de linguagem de programação
 usadas pelos modelos e formulários.
 """
+from __future__ import annotations
 
-EXERCISE_TYPES = {
+EXERCISE_TYPES: dict[str, dict[str, str]] = {
     'discursive': {
         'label': 'Discursiva',
         'icon': 'bi-chat-left-text',
@@ -41,11 +42,11 @@ EXERCISE_TYPES = {
 }
 
 # Gerar choices para o banco de dados (apenas label)
-EXERCISE_TYPE_CHOICES = [
+EXERCISE_TYPE_CHOICES: list[tuple[str, str]] = [
     (key, data['label']) for key, data in EXERCISE_TYPES.items()
 ]
 
-LANGUAGE_CHOICES = [
+LANGUAGE_CHOICES: list[tuple[str, str]] = [
     ('python', 'Python'),
     ('javascript', 'JavaScript'),
     ('java', 'Java'),

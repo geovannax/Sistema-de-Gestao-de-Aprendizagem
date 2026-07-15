@@ -1074,3 +1074,143 @@ class TestActivityArchiveOpenPeriod:
         from activity.models import ActivityArchived
         archived = ActivityArchived.objects.filter(activity_list=activity, user=activity_user).first()
         assert archived is None or not archived.is_archived
+
+
+@pytest.mark.django_db
+class TestActivityStatsView:
+    def test_stats_empty_no_submissions(self, activity_client, activity, activity_user):
+        group = Group.objects.create(
+            name='Stats Group', description='x' * 15, shift='Manhã', created_by=activity_user
+        )
+        ActivityListGroup.objects.create(group=group, activity_list=activity)
+        response = activity_client.get(f'/activity/stats/{activity.pk}/')
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx['students_submitted'] == 0
+        assert ctx['total_submissions'] == 0
+        assert ctx['avg_points'] is None
+
+    def test_stats_with_submissions_and_answers(self, activity_client, activity, activity_user):
+        from django.utils import timezone
+        from group.models import GroupStudent
+        from student.models import ExerciseAnswer, Submission
+
+        group = Group.objects.create(
+            name='Stats Full', description='x' * 15, shift='Tarde', created_by=activity_user
+        )
+        student = User.objects.create_user(username='stats_student', password='pass')
+        GroupStudent.objects.create(group=group, student=student, is_active=True)
+
+        e1 = Exercise.objects.create(
+            activity_list=activity, type='discursive', statement='Q1', points=10,
+        )
+        DiscursiveExercise.objects.create(exercise=e1, min_words=0)
+
+        mc_ex = Exercise.objects.create(
+            activity_list=activity, type='multiple_choice', statement='MC1', points=5,
+        )
+        mc = MultipleChoiceExercise.objects.create(exercise=mc_ex)
+        opt_correct = ExerciseOption.objects.create(exercise=mc, text='Certo', is_correct=True)
+        ExerciseOption.objects.create(exercise=mc, text='Errado', is_correct=False)
+
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        sub = Submission.objects.create(
+            student=student, activity_link=link, submitted_at=timezone.now()
+        )
+        ExerciseAnswer.objects.create(
+            submission=sub, exercise=e1, answer_text='resposta', is_correct=True,
+        )
+        ExerciseAnswer.objects.create(
+            submission=sub, exercise=mc_ex, selected_option=opt_correct, is_correct=True,
+        )
+
+        response = activity_client.get(f'/activity/stats/{activity.pk}/')
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx['students_submitted'] == 1
+        assert ctx['completion_pct'] == 100
+        assert ctx['avg_points'] is not None
+        assert len(ctx['group_stats']) == 1
+
+    def test_stats_unauthorized(self, activity_client, activity_user):
+        other = User.objects.create_user(username='other_stats', password='pass')
+        other_activity = ActivityList.objects.create(title='Other', created_by=other)
+        response = activity_client.get(f'/activity/stats/{other_activity.pk}/')
+        assert response.status_code == 403
+
+    def test_stats_covers_distribution_and_exercise_tags(self, activity_client, activity, activity_user):
+        """Covers all distribution buckets (0–25, 25–50, 50–75, 75–100) and exercise tags."""
+        from django.utils import timezone
+        from group.models import GroupStudent
+        from student.models import ExerciseAnswer, Submission
+
+        group = Group.objects.create(
+            name='Tags Group', description='x' * 15, shift='Manhã', created_by=activity_user
+        )
+
+        # 4 exercises at 5 pts each → pct increments of 25
+        exs = [
+            Exercise.objects.create(
+                activity_list=activity, type='discursive', statement=f'Q{i}', points=5,
+            )
+            for i in range(4)
+        ]
+        for ex in exs:
+            DiscursiveExercise.objects.create(exercise=ex, min_words=0)
+
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+
+        def make_student_sub(username, correct_mask, time_list):
+            st = User.objects.create_user(username=username, password='x')
+            GroupStudent.objects.create(group=group, student=st, is_active=True)
+            sub = Submission.objects.create(student=st, activity_link=link, submitted_at=timezone.now())
+            for ex, correct, t in zip(exs, correct_mask, time_list):
+                ExerciseAnswer.objects.create(
+                    submission=sub, exercise=ex,
+                    is_correct=correct, time_spent_seconds=t,
+                )
+            return sub
+
+        # pct = 0/4 → 0% → distribution[0] (pct < 25)
+        make_student_sub('s_dist0', [False, False, False, False], [200, 200, 0, 0])
+        # pct = 1/4 → 25% → distribution[1] (25 <= pct < 50)
+        make_student_sub('s_dist1', [True, False, False, False], [200, 200, 0, 0])
+        # pct = 2/4 → 50% → distribution[2] (50 <= pct < 75)
+        make_student_sub('s_dist2', [True, True, False, False], [200, 0, 300, 0])
+
+        response = activity_client.get(f'/activity/stats/{activity.pk}/')
+        assert response.status_code == 200
+        ctx = response.context
+
+        # distribution buckets
+        dist = {d['label']: d['count'] for d in ctx['distribution']}
+        assert dist['0–25%'] == 1    # s_dist0
+        assert dist['25–50%'] == 1   # s_dist1
+        assert dist['50–75%'] == 1   # s_dist2
+
+        # exercise tags: avg accuracy & time depend on the 3 students above
+        # Ex0 (Q0): s_dist0 wrong, s_dist1 correct, s_dist2 correct → acc=67%, avg_t=200s → 'Trabalhosa'
+        # Ex1 (Q1): s_dist0 wrong, s_dist1 wrong, s_dist2 correct → acc=33%, avg_t=133s → 'Difícil'
+        # Ex2 (Q2): all wrong → acc=0%, avg_t=0 → 'Confusa'
+        # Ex3 (Q3): all wrong → acc=0%, avg_t=0 → 'Confusa'  (duplicate OK)
+        tags = {row['exercise_id']: row['tag'] for row in ctx['exercise_rows']}
+        assert tags[exs[0].pk] == 'Trabalhosa'
+        assert tags[exs[1].pk] == 'Difícil'
+        assert tags[exs[2].pk] == 'Confusa'
+
+        # Also verify 'OK' tag: need acc in 40-80% and avg_t <= 180
+        # Ex3 all wrong → 'Confusa'; we need a new exercise
+        ex_ok = Exercise.objects.create(
+            activity_list=activity, type='discursive', statement='Q_ok', points=5,
+        )
+        DiscursiveExercise.objects.create(exercise=ex_ok, min_words=0)
+
+        # Add answers for the 3 students to ex_ok: 2/3 correct → acc=67%, avg_t=0 → 'OK'
+        for sub_username, correct in [('s_dist0', True), ('s_dist1', True), ('s_dist2', False)]:
+            sub = Submission.objects.get(student__username=sub_username, activity_link=link)
+            ExerciseAnswer.objects.create(submission=sub, exercise=ex_ok, is_correct=correct)
+
+        response2 = activity_client.get(f'/activity/stats/{activity.pk}/')
+        assert response2.status_code == 200
+        tags2 = {row['exercise_id']: row['tag'] for row in response2.context['exercise_rows']}
+        assert tags2[ex_ok.pk] == 'OK'

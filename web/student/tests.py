@@ -165,6 +165,25 @@ class TestStudentDashboard:
         response = authenticated_client.get('/student/')
         assert response.status_code == 200
 
+    def test_dashboard_skips_completed_in_totals(self, authenticated_client, user, group):
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        activity = ActivityList.objects.create(title='Done Act', created_by=user)
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        Submission.objects.create(student=user, activity_link=link, submitted_at=timezone.now())
+        response = authenticated_client.get('/student/')
+        assert response.status_code == 200
+
+    def test_dashboard_limited_activity_completed(self, authenticated_client, user, group):
+        GroupStudent.objects.create(group=group, student=user, is_active=True)
+        activity = ActivityList.objects.create(title='Limited', created_by=user, max_attempts=2)
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        Submission.objects.create(
+            student=user, activity_link=link,
+            submitted_at=timezone.now(), is_abandoned=False,
+        )
+        response = authenticated_client.get('/student/')
+        assert response.status_code == 200
+
 
 # ─── Group Detail ─────────────────────────────────────────────────────────────
 
@@ -1820,3 +1839,124 @@ class TestExecuteCodeTask:
             result = execute_code_task.run(user.pk, 99999, 'x')
         assert 'error' in result
         assert 'Erro interno' in result['error']
+
+
+# ─── Submit view — _close_last_timer ─────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentSubmitViewTimer:
+    def test_submit_with_timer_updates_time_spent(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        ExerciseAnswer.objects.create(submission=submission, exercise=discursive_exercise)
+        session = authenticated_client.session
+        session[f'exercise_timer_{activity_link.pk}'] = {
+            'exercise_pk': discursive_exercise.pk,
+            'entered_at': (timezone.now() - timedelta(seconds=5)).isoformat(),
+        }
+        session.save()
+
+        response = authenticated_client.post(f'/student/activity/{activity_link.pk}/submit/')
+        assert response.status_code == 302
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=discursive_exercise)
+        assert answer.time_spent_seconds >= 5
+
+    def test_submit_with_invalid_timer_silenced(
+        self, authenticated_client, activity_link, enrolled, submission
+    ):
+        session = authenticated_client.session
+        session[f'exercise_timer_{activity_link.pk}'] = {'bad': 'data'}
+        session.save()
+
+        response = authenticated_client.post(f'/student/activity/{activity_link.pk}/submit/')
+        assert response.status_code == 302
+
+
+# ─── Exercise Ping View ───────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestStudentExercisePingView:
+    def test_missing_exercise_pk_returns_400(self, authenticated_client, activity_link, enrolled):
+        response = authenticated_client.post(f'/student/activity/{activity_link.pk}/ping/', {})
+        assert response.status_code == 400
+
+    def test_invalid_exercise_pk_returns_400(self, authenticated_client, activity_link, enrolled):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/ping/', {'exercise_pk': 'abc'}
+        )
+        assert response.status_code == 400
+
+    def test_no_open_submission_returns_204(self, authenticated_client, activity_link, enrolled):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/ping/', {'exercise_pk': '1'}
+        )
+        assert response.status_code == 204
+
+    def test_with_open_submission_returns_204(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/ping/',
+            {'exercise_pk': str(discursive_exercise.pk)},
+        )
+        assert response.status_code == 204
+
+    def test_switches_exercise_and_accumulates_time(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        ExerciseAnswer.objects.create(submission=submission, exercise=discursive_exercise)
+        ex2 = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='discursive',
+            statement='Q2', points=5,
+        )
+
+        session = authenticated_client.session
+        session[f'exercise_timer_{activity_link.pk}'] = {
+            'exercise_pk': discursive_exercise.pk,
+            'entered_at': (timezone.now() - timedelta(seconds=10)).isoformat(),
+        }
+        session.save()
+
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/ping/', {'exercise_pk': str(ex2.pk)}
+        )
+        assert response.status_code == 204
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=discursive_exercise)
+        assert answer.time_spent_seconds >= 10
+
+    def test_same_exercise_ping_does_not_update_time(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        ExerciseAnswer.objects.create(submission=submission, exercise=discursive_exercise)
+        session = authenticated_client.session
+        session[f'exercise_timer_{activity_link.pk}'] = {
+            'exercise_pk': discursive_exercise.pk,
+            'entered_at': (timezone.now() - timedelta(seconds=10)).isoformat(),
+        }
+        session.save()
+
+        authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/ping/',
+            {'exercise_pk': str(discursive_exercise.pk)},
+        )
+        answer = ExerciseAnswer.objects.get(submission=submission, exercise=discursive_exercise)
+        assert answer.time_spent_seconds == 0
+
+    def test_invalid_session_timer_silenced(
+        self, authenticated_client, activity_link, enrolled, submission, discursive_exercise
+    ):
+        ex2 = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='discursive',
+            statement='Q3', points=5,
+        )
+        session = authenticated_client.session
+        session[f'exercise_timer_{activity_link.pk}'] = {
+            'exercise_pk': discursive_exercise.pk,
+            'entered_at': 'not-a-valid-datetime',
+        }
+        session.save()
+
+        response = authenticated_client.post(
+            f'/student/activity/{activity_link.pk}/ping/', {'exercise_pk': str(ex2.pk)}
+        )
+        assert response.status_code == 204

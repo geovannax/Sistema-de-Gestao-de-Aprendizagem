@@ -136,7 +136,9 @@ class ActivityListBaseView(EnhancedListView):
 
 
 class ActivityListView(AuthPermissionMixin, ActivityListBaseView):
-    page_title = 'Atividades Ativas'    
+    """Listagem das atividades ativas criadas pelo professor autenticado."""
+
+    page_title = 'Atividades Ativas'
     create_url = 'activity:create'
 
 
@@ -700,7 +702,7 @@ class ActivityDetailBaseView:
             'count_all_exercises': activity.exercises.count(),
             'total_points': total_points,
             'nav_tabs': self.set_nav_tabs(),
-            'count_groups': activity.list_groups.all().count(),
+            'count_groups': activity.list_groups.filter(group__deleted_at__isnull=True).count(),
             'edit_url': reverse('activity:update', kwargs={'pk': activity.pk}) if can_edit else None,
             'preview_url': reverse('activity:preview', kwargs={'pk': activity.pk}),
         })
@@ -725,7 +727,7 @@ class ActivityDetailBaseView:
                 'url': 'activity:stats',
                 'pk': self.object.pk,
                 'icon': 'bi-bar-chart',
-                'active': self.__class__.__name__ == 'ActivityDetailView'
+                'active': self.__class__.__name__ == 'ActivityStatsView'
             }, {
                 'title': 'Revisão',
                 'url': 'activity:detail',
@@ -767,8 +769,227 @@ class ActivityDetailBaseView:
         }
 
 
-class ActivityDetailView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
-    pass
+class ActivityStatsView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
+    """Aba de estatísticas cross-turma de uma ActivityList."""
+
+    template_name = 'activity/stats_tab.html'
+
+    def get_context_data(self, **kwargs: Any) -> dict:
+        import statistics as stats_lib
+        from decimal import Decimal
+        from django.db.models import Avg, Case, DecimalField, IntegerField, Sum, When
+        from group.models import GroupStudent
+        from student.models import ExerciseAnswer, Submission
+
+        context = super().get_context_data(**kwargs)
+        activity = self.object
+
+        links = (
+            ActivityListGroup.objects
+            .filter(activity_list=activity, group__deleted_at__isnull=True)
+            .select_related('group')
+        )
+
+        submissions = Submission.objects.filter(
+            activity_link__activity_list=activity,
+            submitted_at__isnull=False,
+            is_abandoned=False,
+        )
+
+        # ── Alcance e engajamento ──────────────────────────────────────────
+        group_ids = links.values_list('group_id', flat=True)
+        students_reached = (
+            GroupStudent.objects
+            .filter(group_id__in=group_ids, is_active=True, group__deleted_at__isnull=True)
+            .values('student').distinct().count()
+        )
+        students_submitted = submissions.values('student').distinct().count()
+        students_started = (
+            Submission.objects
+            .filter(activity_link__in=links)
+            .values('student').distinct().count()
+        )
+        students_abandoned = students_started - students_submitted
+        completion_pct = round(students_submitted / students_reached * 100) if students_reached else 0
+
+        # ── Pontuação e aproveitamento por submissão ───────────────────────
+        sub_scores = list(
+            ExerciseAnswer.objects
+            .filter(submission__in=submissions, exercise__is_annulled=False)
+            .values('submission_id')
+            .annotate(
+                points_earned=Sum(
+                    Case(When(is_correct=True, then='exercise__points'),
+                         default=Decimal(0), output_field=DecimalField())
+                ),
+                points_total=Sum('exercise__points', output_field=DecimalField()),
+                correct=Sum(Case(When(is_correct=True, then=1), default=0, output_field=IntegerField())),
+                total=Count('id'),
+                pending=Sum(Case(When(is_correct=None, then=1), default=0, output_field=IntegerField())),
+            )
+        )
+
+        points_list = [float(s['points_earned'] or 0) for s in sub_scores if s['points_total']]
+        avg_points = round(sum(points_list) / len(points_list), 2) if points_list else None
+        median_points = round(stats_lib.median(points_list), 2) if points_list else None
+
+        pct_list = [round(float(s['points_earned'] or 0) / float(s['points_total']) * 100) for s in sub_scores if s['points_total']]
+        avg_pct = round(sum(pct_list) / len(pct_list)) if pct_list else None
+        median_pct = round(stats_lib.median(pct_list)) if pct_list else None
+
+        pending_total = sum(s['pending'] or 0 for s in sub_scores)
+        total_submissions = len(sub_scores)
+
+        # ── Tempo total por submissão ──────────────────────────────────────
+        time_per_sub = list(
+            ExerciseAnswer.objects
+            .filter(submission__in=submissions)
+            .values('submission_id')
+            .annotate(total_time=Sum('time_spent_seconds'))
+        )
+        time_list = [t['total_time'] or 0 for t in time_per_sub]
+        avg_time_total = round(sum(time_list) / len(time_list)) if time_list else None
+        median_time_total = round(stats_lib.median(time_list)) if time_list else None
+
+        # ── Distribuição de notas (% aproveitamento) ───────────────────────
+        distribution = [
+            {'label': '0–25%',   'count': 0, 'color': '#dc3545'},
+            {'label': '25–50%',  'count': 0, 'color': '#fd7e14'},
+            {'label': '50–75%',  'count': 0, 'color': '#0dcaf0'},
+            {'label': '75–100%', 'count': 0, 'color': '#198754'},
+        ]
+        for pct in pct_list:
+            if pct < 25:
+                distribution[0]['count'] += 1
+            elif pct < 50:
+                distribution[1]['count'] += 1
+            elif pct < 75:
+                distribution[2]['count'] += 1
+            else:
+                distribution[3]['count'] += 1
+        max_dist = max((d['count'] for d in distribution), default=1) or 1
+        for d in distribution:
+            d['bar_pct'] = round(d['count'] / max_dist * 100)
+
+        # ── Por exercício ──────────────────────────────────────────────────
+        exercises = list(activity.exercises.filter(is_annulled=False).order_by('order'))
+        exercise_ids = [ex.pk for ex in exercises]
+
+        exercise_rows = list(
+            ExerciseAnswer.objects
+            .filter(submission__in=submissions, exercise_id__in=exercise_ids)
+            .values('exercise_id', 'exercise__order', 'exercise__statement',
+                    'exercise__points', 'exercise__type')
+            .annotate(
+                total_answers=Count('id'),
+                correct_count=Sum(Case(When(is_correct=True, then=1), default=0, output_field=IntegerField())),
+                wrong_count=Sum(Case(When(is_correct=False, then=1), default=0, output_field=IntegerField())),
+                pending_count_ex=Sum(Case(When(is_correct=None, then=1), default=0, output_field=IntegerField())),
+                avg_time=Avg('time_spent_seconds'),
+            )
+            .order_by('exercise__order')
+        )
+
+        times_by_exercise: dict[int, list] = {}
+        for row in ExerciseAnswer.objects.filter(
+            submission__in=submissions, exercise_id__in=exercise_ids
+        ).values('exercise_id', 'time_spent_seconds'):
+            times_by_exercise.setdefault(row['exercise_id'], []).append(row['time_spent_seconds'])
+
+        for stat in exercise_rows:
+            times = times_by_exercise.get(stat['exercise_id'], [])
+            stat['median_time'] = round(stats_lib.median(times)) if times else 0
+            total = stat['total_answers']
+            correct = stat['correct_count'] or 0
+            acc = round(correct / total * 100) if total else None
+            stat['accuracy_pct'] = acc
+            stat['type_label'] = EXERCISE_TYPES.get(stat['exercise__type'], {}).get('label', stat['exercise__type'])
+            avg_t = float(stat['avg_time'] or 0)
+            if acc is None:  # pragma: no cover  — total_answers ≥ 1 sempre que o exercício aparece no queryset
+                stat['tag'], stat['tag_class'] = '—', 'secondary'
+            elif acc < 40 and avg_t > 120:
+                stat['tag'], stat['tag_class'] = 'Difícil', 'danger'
+            elif acc < 40:
+                stat['tag'], stat['tag_class'] = 'Confusa', 'warning'
+            elif avg_t > 180 and acc >= 60:
+                stat['tag'], stat['tag_class'] = 'Trabalhosa', 'secondary'
+            elif acc >= 80:
+                stat['tag'], stat['tag_class'] = 'Dominada', 'success'
+            else:
+                stat['tag'], stat['tag_class'] = 'OK', 'primary'
+
+        # ── Análise de distratores (múltipla escolha) ─────────────────────
+        mc_ids = {ex.pk for ex in exercises if ex.type == 'multiple_choice'}
+        mc_distractor_stats: dict[int, list] = {}
+        if mc_ids:
+            for row in ExerciseAnswer.objects.filter(
+                submission__in=submissions,
+                exercise_id__in=mc_ids,
+                selected_option__isnull=False,
+            ).values(
+                'exercise_id', 'selected_option_id',
+                'selected_option__text', 'selected_option__is_correct',
+            ).annotate(count=Count('id')).order_by('exercise_id', '-count'):
+                mc_distractor_stats.setdefault(row['exercise_id'], []).append(row)
+
+        # ── Por turma ──────────────────────────────────────────────────────
+        group_stats = []
+        for link in links:
+            link_subs = submissions.filter(activity_link=link)
+            g_students = GroupStudent.objects.filter(
+                group=link.group, is_active=True, group__deleted_at__isnull=True
+            ).count()
+            sub_count = link_subs.values('student').distinct().count()
+
+            link_scores = list(
+                ExerciseAnswer.objects
+                .filter(submission__in=link_subs, exercise__is_annulled=False)
+                .values('submission_id')
+                .annotate(
+                    points_earned=Sum(
+                        Case(When(is_correct=True, then='exercise__points'),
+                             default=Decimal(0), output_field=DecimalField())
+                    ),
+                    points_total=Sum('exercise__points', output_field=DecimalField()),
+                    correct=Sum(Case(When(is_correct=True, then=1), default=0, output_field=IntegerField())),
+                    total=Count('id'),
+                )
+            )
+            g_pcts = [round(float(s['points_earned'] or 0) / float(s['points_total']) * 100) for s in link_scores if s['points_total']]
+            g_points = [float(s['points_earned'] or 0) for s in link_scores if s['points_total']]
+            group_stats.append({
+                'group': link.group,
+                'link': link,
+                'students_reached': g_students,
+                'students_submitted': sub_count,
+                'completion_pct': round(sub_count / g_students * 100) if g_students else 0,
+                'avg_pct': round(sum(g_pcts) / len(g_pcts)) if g_pcts else None,
+                'median_pct': round(stats_lib.median(g_pcts)) if g_pcts else None,
+                'avg_points': round(sum(g_points) / len(g_points), 2) if g_points else None,
+            })
+
+        context.update({
+            'students_reached': students_reached,
+            'students_submitted': students_submitted,
+            'students_abandoned': students_abandoned,
+            'completion_pct': completion_pct,
+            'total_submissions': total_submissions,
+            'avg_points': avg_points,
+            'median_points': median_points,
+            'avg_pct': avg_pct,
+            'median_pct': median_pct,
+            'pending_total': pending_total,
+            'avg_time_total': avg_time_total,
+            'median_time_total': median_time_total,
+            'distribution': distribution,
+            'exercise_rows': exercise_rows,
+            'mc_distractor_stats': mc_distractor_stats,
+            'group_stats': group_stats,
+        })
+        return context
+
+
+ActivityDetailView = ActivityStatsView
 
 
 class ActivityReviewView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAccessRequiredMixin, DetailView):
@@ -788,14 +1009,18 @@ class ActivityReviewView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAcce
             .select_related('group')
             .annotate(
                 submission_count=Count(
-                    'submissions',
-                    filter=Q(submissions__submitted_at__isnull=False),
+                    'submissions__student',
+                    filter=Q(
+                        submissions__submitted_at__isnull=False,
+                        submissions__is_abandoned=False,
+                    ),
                     distinct=True,
                 ),
                 pending_count=Count(
                     'submissions__answers',
                     filter=Q(
                         submissions__submitted_at__isnull=False,
+                        submissions__is_abandoned=False,
                         submissions__answers__is_correct__isnull=True,
                     ),
                     distinct=True,

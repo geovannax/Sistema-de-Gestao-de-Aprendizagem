@@ -106,7 +106,7 @@ DATABASES = {
 }
 
 # Use SQLite for development and testing
-if DEBUG:
+if DEBUG:  # pragma: no cover
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -217,7 +217,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT   = ['json']
 CELERY_TIMEZONE         = 'America/Sao_Paulo'
 
-if DEBUG:
+if DEBUG:  # pragma: no cover
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_BROKER_URL        = 'memory://'
     CELERY_RESULT_BACKEND    = 'cache+memory://'

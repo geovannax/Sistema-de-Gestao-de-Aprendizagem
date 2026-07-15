@@ -60,14 +60,20 @@ LANGUAGE_CONFIG: dict[str, dict] = {
 
 
 class ExecutorError(Exception):
-    pass
+    """Erro base para falhas durante a execução de código do aluno."""
 
 
 class LanguageNotSupportedError(ExecutorError):
-    pass
+    """Linguagem de programação não reconhecida em ``LANGUAGE_CONFIG``."""
 
 
 class CompilationError(ExecutorError):
+    """Falha na etapa de compilação (C, C++ ou Java).
+
+    Attributes:
+        output: Saída combinada de stderr/stdout do compilador.
+    """
+
     def __init__(self, output: str) -> None:
         self.output = output
         super().__init__(output)

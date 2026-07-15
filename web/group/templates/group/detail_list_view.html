@@ -62,9 +62,9 @@
         margin-bottom: 0.25rem;
     }
 
-    .metric-change {
+    .metric-sub {
         font-size: 0.75rem;
-        color: var(--success);
+        color: var(--gray-500);
     }
 
     .progress-bar-one-container {
@@ -75,10 +75,12 @@
     }
 
     .progress-bar-one-label {
-        min-width: 120px;
         font-size: 0.85rem;
         font-weight: 500;
         color: var(--gray-700);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .progress-bar-one {
@@ -97,11 +99,11 @@
     }
 
     .progress-bar-one-value {
-        min-width: 40px;
-        text-align: right;
+        min-width: 36px;
         font-weight: 600;
         color: var(--blue-700);
         font-size: 0.85rem;
+        text-align: right;
     }
 
     .avatar {
@@ -113,6 +115,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        flex-shrink: 0;
     }
 
     .user-row {
@@ -121,6 +126,7 @@
         align-items: center;
         padding: 10px;
         border-bottom: 1px solid #eee;
+        gap: 1rem;
     }
 
     .progress {
@@ -135,138 +141,100 @@
         <i class="bi bi-graph-up"></i>
         KPIs Principais
     </div>
-    
+
     <div class="metric-grid">
         <div class="metric-card">
             <div class="metric-label">Taxa de Conclusão</div>
-            <div class="metric-value">68%</div>
-            <div class="metric-change">
-                <i class="bi bi-arrow-up"></i> +5% vs última semana
-            </div>
+            <div class="metric-value">{{ completion_pct }}%</div>
+            <div class="metric-sub">alunos que entregaram ao menos uma atividade</div>
         </div>
-        
+
         <div class="metric-card">
-            <div class="metric-label">Alunos Ativos</div>
-            <div class="metric-value">28/32</div>
-            <div class="metric-change">
-                87.5% de engajamento
-            </div>
+            <div class="metric-label">Alunos</div>
+            <div class="metric-value">{{ students_submitted }}/{{ students_enrolled }}</div>
+            <div class="metric-sub">entregaram / matriculados</div>
         </div>
-        
+
         <div class="metric-card">
-            <div class="metric-label">Atividades Entregues</div>
-            <div class="metric-value">42/62</div>
-            <div class="metric-change">
-                67.7% do total
-            </div>
+            <div class="metric-label">Atividades</div>
+            <div class="metric-value">{{ activities_count }}</div>
+            <div class="metric-sub">listas atribuídas a esta turma</div>
         </div>
-        
-        <div class="metric-card">
-            <div class="metric-label">Média de Nota</div>
-            <div class="metric-value">7.8</div>
-            <div class="metric-change">
-                Dentro do esperado
-            </div>
+
+        <div class="metric-card {% if pending_count > 0 %}border-warning{% endif %}">
+            <div class="metric-label">Correções Pendentes</div>
+            <div class="metric-value {% if pending_count > 0 %}text-warning{% endif %}">{{ pending_count }}</div>
+            <div class="metric-sub">respostas aguardando avaliação</div>
         </div>
     </div>
 </div>
 
-<!-- SEÇÃO 3: PERFORMANCE POR ATIVIDADE -->
+<!-- SEÇÃO 2: PERFORMANCE POR ATIVIDADE -->
+{% if activity_stats %}
 <div class="analytics-section">
     <div class="analytics-title">
         <i class="bi bi-list-check"></i>
         Performance por Atividade
     </div>
-    
+
     <div>
-        <!-- Atividade 1 -->
+        {% for link in activity_stats %}
         <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label">Atividade 1</div>
-            <div class="progress-bar-one">
-                <div class="progress-bar-one-fill" style="width: 85%;"></div>
+            <div class="progress-bar-one-label" title="{{ link.activity_list.title }}">
+                {{ link.activity_list.title }}
             </div>
-            <div class="progress-bar-one-value">85%</div>
-        </div>
-        
-        <!-- Atividade 2 -->
-        <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label">Atividade 2</div>
             <div class="progress-bar-one">
-                <div class="progress-bar-one-fill" style="width: 72%;"></div>
+                {% if students_enrolled %}
+                <div class="progress-bar-one-fill" style="width: {% widthratio link.submitted_count students_enrolled 100 %}%;"></div>
+                {% endif %}
             </div>
-            <div class="progress-bar-one-value">72%</div>
-        </div>
-        
-        <!-- Atividade 3 -->
-        <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label">Atividade 3</div>
-            <div class="progress-bar-one">
-                <div class="progress-bar-one-fill" style="width: 58%;"></div>
+            <div class="progress-bar-one-value">
+                {% if students_enrolled %}{% widthratio link.submitted_count students_enrolled 100 %}%{% else %}—{% endif %}
             </div>
-            <div class="progress-bar-one-value">58%</div>
         </div>
-        
-        <!-- Atividade 4 -->
-        <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label">Atividade 4</div>
-            <div class="progress-bar-one">
-                <div class="progress-bar-one-fill" style="width: 92%;"></div>
-            </div>
-            <div class="progress-bar-one-value">92%</div>
-        </div>
-        
-        <!-- Atividade 5 -->
-        <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label">Atividade 5</div>
-            <div class="progress-bar-one">
-                <div class="progress-bar-one-fill" style="width: 68%;"></div>
-            </div>
-            <div class="progress-bar-one-value">68%</div>
-        </div>
-        
-        <!-- Atividade 6 -->
-        <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label">Atividade 6</div>
-            <div class="progress-bar-one">
-                <div class="progress-bar-one-fill" style="width: 45%;"></div>
-            </div>
-            <div class="progress-bar-one-value">45%</div>
-        </div>
+        {% endfor %}
     </div>
 </div>
+{% endif %}
 
-<!-- ALUNOS -->
+<!-- SEÇÃO 3: ALUNOS EM RISCO -->
+{% if at_risk_students %}
 <div class="analytics-section">
     <div class="analytics-title">
         <i class="bi bi-people"></i>
         Alunos com maior risco de evasão
     </div>
 
+    {% for s in at_risk_students %}
     <div class="user-row">
-        <div class="d-flex gap-2 align-items-center">
-            <div class="avatar">JS</div>
-            João Silva
+        <div class="d-flex gap-2 align-items-center" style="min-width:0">
+            <div class="avatar">{{ s.initials }}</div>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.name }}</span>
         </div>
-        <div style="width:150px">
-            <div class="progress">
-                <div class="progress-bar bg-danger" style="width:80%"></div>
+        <div style="width:150px;flex-shrink:0">
+            <div class="progress mb-1">
+                <div class="progress-bar {% if s.risk_pct >= 80 %}bg-danger{% elif s.risk_pct >= 40 %}bg-warning{% else %}bg-info{% endif %}"
+                     style="width:{{ s.risk_pct }}%"></div>
+            </div>
+            <div style="font-size:.72rem;color:var(--gray-500);text-align:right">
+                {{ s.sub_count }}/{{ activities_count }} entregue{{ s.sub_count|pluralize:"s" }}
             </div>
         </div>
     </div>
-
-    <div class="user-row">
-        <div class="d-flex gap-2 align-items-center">
-            <div class="avatar">MC</div>
-            Maria Costa
-        </div>
-        <div style="width:150px">
-            <div class="progress">
-                <div class="progress-bar bg-warning" style="width:50%"></div>
-            </div>
-        </div>
-    </div>
-
+    {% endfor %}
 </div>
+{% elif students_enrolled %}
+<div class="analytics-section">
+    <div class="analytics-title">
+        <i class="bi bi-people"></i>
+        Alunos com maior risco de evasão
+    </div>
+    <p class="text-muted mb-0" style="font-size:.85rem">
+        <i class="bi bi-check-circle text-success me-1"></i>
+        Todos os alunos completaram as atividades disponíveis.
+    </p>
+</div>
+{% endif %}
 
 
 {% endblock info_right %}

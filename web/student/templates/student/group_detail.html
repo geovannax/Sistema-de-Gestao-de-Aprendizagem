@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
     <link rel="stylesheet" href="{% static 'global/css/empty-state.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/nav_tabs.css' %}">
     <link rel="stylesheet" href="{% static 'student/css/group_detail.css' %}">
 {% endblock extra_head %}
 
@@ -71,26 +72,42 @@
 
         <!-- RIGHT -->
         <div class="col-lg-8">
-            <div class="detail-left-card p-3 rounded-3">
-                <div class="detail-left-title mb-2">
-                    <i class="bi bi-list-check" style="color: var(--blue-500);"></i>
-                    Atividades da Turma
+            <div class="detail-left-card pt-3 px-3 mb-3 rounded-3">
+
+            <div class="detail-left-title mb-2">
+                <i class="bi bi-list-check" style="color: var(--blue-500);"></i>
+                Atividades
+            </div>
+
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs mb-0 pt-2 d-flex justify-content-between align-items-center">
+                <div class="d-flex">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-atividades" type="button">
+                            <i class="bi bi-hourglass-split"></i>
+                            <span>Pendentes</span>
+                            {% if pending_links %}<span class="badge rounded-pill ms-1" style="background:var(--warning);color:#000;font-size:.7rem">{{ pending_links|length }}</span>{% endif %}
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-notas" type="button">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Concluídas</span>
+                            {% if completed_links %}<span class="badge rounded-pill ms-1" style="background:var(--success);color:#fff;font-size:.7rem">{{ completed_links|length }}</span>{% endif %}
+                        </button>
+                    </li>
                 </div>
-                <hr class="mb-0 mt-1">
+            </ul>
 
-                {% if activity_links %}
+            <div class="tab-content py-3">
 
-                    <!-- Pendentes -->
+                <!-- TAB: Atividades -->
+                <div class="tab-pane fade show active" id="tab-atividades">
                     {% if pending_links %}
-                        <div class="section-divider mt-3">
-                            <i class="bi bi-hourglass-split text-warning"></i> Pendentes
-                        </div>
                         {% for link in pending_links %}
                             <div class="activity-item d-flex align-items-start justify-content-between gap-3">
                                 <div class="min-width-0 flex-grow-1">
-                                    <span class="status-badge status-{{ link.status_class }}">
-                                        {{ link.status_label }}
-                                    </span>
+                                    <span class="status-badge status-{{ link.status_class }}">{{ link.status_label }}</span>
                                     {% if link.in_progress_submission %}
                                         <span class="status-badge status-in-progress">Em andamento</span>
                                     {% endif %}
@@ -125,8 +142,7 @@
                                                 <i class="bi bi-slash-circle me-1"></i>Sem tentativas
                                             </span>
                                         {% else %}
-                                            <a href="{% url 'student:activity' link.pk %}"
-                                               class="btn btn-sm btn-primary rounded-5">
+                                            <a href="{% url 'student:activity' link.pk %}" class="btn btn-sm btn-primary rounded-5">
                                                 {% if link.in_progress_submission %}
                                                     <i class="bi bi-play-fill me-1"></i>Continuar
                                                 {% else %}
@@ -138,73 +154,101 @@
                                 </div>
                             </div>
                         {% endfor %}
-                    {% endif %}
-
-                    <!-- Concluídas -->
-                    {% if completed_links %}
-                        <div class="section-divider mt-3">
-                            <i class="bi bi-check-circle-fill text-success"></i> Concluídas
-                        </div>
-                        {% for link in completed_links %}
-                            <div class="activity-item d-flex align-items-start justify-content-between gap-3">
-                                <div class="min-width-0 flex-grow-1">
-                                    <span class="status-badge status-{{ link.status_class }}">
-                                        {{ link.status_label }}
-                                    </span>
-                                    <span class="status-badge status-submitted">
-                                        <i class="bi bi-check-lg"></i> Entregue
-                                    </span>
-                                    {% if link.activity_list.max_attempts %}
-                                        <span class="status-badge" style="background:var(--gray-100);color:var(--gray-600)">
-                                            <i class="bi bi-arrow-repeat"></i>
-                                            {{ link.attempts_used }}/{{ link.activity_list.max_attempts }} tentativa{{ link.activity_list.max_attempts|pluralize:"," }}
-                                        </span>
-                                    {% endif %}
-                                    <div class="activity-title">{{ link.activity_list.title }}</div>
-                                    {% if link.activity_list.description %}
-                                        <div class="activity-description">{{ link.activity_list.description }}</div>
-                                    {% endif %}
-                                    <div class="activity-period">
-                                        <i class="bi bi-send-check"></i>
-                                        Submetida em {{ link.latest_submission.submitted_at|date:"d/m/Y \à\s H:i" }}
-                                    </div>
-                                </div>
-                                <div class="flex-shrink-0 pt-1 d-flex flex-column gap-1 align-items-end">
-                                    <a href="{% url 'student:activity_result' link.pk %}"
-                                       class="btn btn-sm btn-outline-success rounded-5">
-                                        <i class="bi bi-eye me-1"></i>Ver Resultado
-                                    </a>
-                                    {% if link.can_retry %}
-                                        <a href="{% url 'student:activity' link.pk %}"
-                                           class="btn btn-sm btn-outline-primary rounded-5">
-                                            <i class="bi bi-arrow-repeat me-1"></i>Nova tentativa
-                                        </a>
-                                    {% endif %}
-                                    {% if link.latest_submission.teacher_comment %}
-                                        <a href="{% url 'student:activity_result' link.pk %}"
-                                           class="btn btn-sm btn-outline-info rounded-5">
-                                            <i class="bi bi-chat-quote me-1"></i>Feedback do professor
-                                        </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    {% if not pending_links and not completed_links %}
+                    {% else %}
                         <div class="empty-state mt-3 d-flex flex-column align-items-center py-4">
                             <i class="bi bi-inbox empty-state-icon"></i>
-                            <p class="empty-state-text mb-0">Nenhuma atividade publicada para esta turma.</p>
+                            <p class="empty-state-text mb-0">Nenhuma atividade pendente.</p>
                         </div>
                     {% endif %}
+                </div>
 
-                {% else %}
-                    <div class="empty-state mt-3 d-flex flex-column align-items-center py-4">
-                        <i class="bi bi-inbox empty-state-icon"></i>
-                        <p class="empty-state-text mb-0">Nenhuma atividade publicada para esta turma.</p>
-                    </div>
-                {% endif %}
+                <!-- TAB: Notas -->
+                <div class="tab-pane fade" id="tab-notas">
+                    {% if completed_links %}
+                        <div class="table-responsive mt-3">
+                            <table class="table table-sm align-middle" style="font-size:.9rem">
+                                <thead>
+                                    <tr style="border-bottom:2px solid var(--gray-200)">
+                                        <th class="fw-semibold ps-0" style="color:var(--gray-600)">Atividade</th>
+                                        <th class="fw-semibold text-center" style="color:var(--gray-600)">Acertos</th>
+                                        <th class="fw-semibold text-center" style="color:var(--gray-600);min-width:110px">Aproveitamento</th>
+                                        <th class="fw-semibold text-center" style="color:var(--gray-600)">Nota</th>
+                                        <th class="fw-semibold text-center" style="color:var(--gray-600);white-space:nowrap">Entregue em</th>
+                                        <th class="fw-semibold text-center" style="color:var(--gray-600)">Situação</th>
+                                        <th class="fw-semibold text-end pe-0" style="color:var(--gray-600)"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for link in completed_links %}
+                                    <tr style="border-bottom:1px solid var(--gray-100)">
+                                        <td class="ps-0">
+                                            <div class="fw-medium">{{ link.activity_list.title }}</div>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if link.score_total %}
+                                                <span class="fw-semibold">{{ link.score_correct }}</span>
+                                                <span class="text-muted">/{{ link.score_total }}</span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center" style="min-width:110px">
+                                            {% if link.score_pct is not None %}
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="progress flex-grow-1" style="height:6px;background:var(--gray-100)">
+                                                        <div class="progress-bar {% if link.score_pct >= 70 %}bg-success{% elif link.score_pct >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                             style="width:{{ link.score_pct }}%"></div>
+                                                    </div>
+                                                    <span class="fw-semibold" style="font-size:.8rem;min-width:32px">{{ link.score_pct }}%</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if link.score_points_total %}
+                                                <span class="fw-bold">{{ link.score_points_earned|floatformat:"-2" }}</span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center text-muted" style="font-size:.82rem;white-space:nowrap">
+                                            {{ link.latest_submission.submitted_at|date:"d/m/Y H:i" }}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if link.score_pending %}
+                                                <span class="status-badge" style="background:var(--warning-light,#fff3cd);color:var(--warning-dark,#856404)">
+                                                    <i class="bi bi-hourglass-split"></i> Correção pendente
+                                                </span>
+                                            {% elif link.score_total %}
+                                                <span class="status-badge status-submitted">
+                                                    <i class="bi bi-check-lg"></i> Corrigida
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted" style="font-size:.82rem">Sem respostas</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-0">
+                                            <a href="{% url 'student:activity_result' link.pk %}"
+                                               class="btn btn-sm btn-outline-success rounded-5">
+                                                <i class="bi bi-eye me-1"></i>Ver resultado
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state mt-3 d-flex flex-column align-items-center py-4">
+                            <i class="bi bi-award empty-state-icon"></i>
+                            <p class="empty-state-text mb-0">Nenhuma atividade concluída ainda.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
             </div>
+            </div><!-- /detail-left-card -->
         </div>
 
     </div>

@@ -3833,6 +3833,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../filters/duration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    duration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../filters/get_attr/" class="md-nav__link">
         
   
@@ -5021,6 +5049,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../../student/tempo_por_exercicio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tempo por Exercício
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -5032,10 +5088,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5_3" >
         
           
-          <label class="md-nav__link" for="__nav_4_5_2" id="__nav_4_5_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5_3" id="__nav_4_5_3_label" tabindex="0">
             
   
   
@@ -5053,8 +5109,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_5_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5173,10 +5229,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5_4" >
         
           
-          <label class="md-nav__link" for="__nav_4_5_3" id="__nav_4_5_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5_4" id="__nav_4_5_4_label" tabindex="0">
             
   
   
@@ -5194,8 +5250,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_5_3">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5492,6 +5548,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../student/views/StudentExercisePingView/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StudentExercisePingView
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../student/views/TeacherSubmissionsView/" class="md-nav__link">
         
   
@@ -5566,10 +5650,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_5_4" id="__nav_4_5_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5_5" id="__nav_4_5_5_label" tabindex="0">
             
   
   
@@ -5587,8 +5671,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_5_4">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_5_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -5778,8 +5862,9 @@
 
         <p>Adiciona ordenação persistida em sessão a qualquer ListView.</p>
 <p>A ordenação é armazenada na sessão com uma chave derivada do <code>app_label</code>
-e do nome da view. Ao ordenar, aplica <code>Lower(F(campo))</code> para garantir
-ordenação case-insensitive em campos de texto.</p>
+e do nome da view. Em campos de texto (<code>CharField</code>/<code>TextField</code>) aplica
+<code>Lower(F(campo))</code> para ordenação case-insensitive; nos demais tipos
+(FK, inteiros, datas) usa ordenação direta sem <code>Lower</code>.</p>
 
 
 <p><span class="doc-section-title">Attributes:</span></p>
@@ -5887,24 +5972,24 @@ Padrão: <code>'-id'</code>.</p>
 
 
             <details class="mkdocstrings-source">
-              <summary>Source code in <code>common\mixins.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-232">232</a></span>
-<span class="normal"><a href="#__codelineno-0-233">233</a></span>
+              <summary>Source code in <code>common/mixins.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-233">233</a></span>
 <span class="normal"><a href="#__codelineno-0-234">234</a></span>
 <span class="normal"><a href="#__codelineno-0-235">235</a></span>
 <span class="normal"><a href="#__codelineno-0-236">236</a></span>
 <span class="normal"><a href="#__codelineno-0-237">237</a></span>
 <span class="normal"><a href="#__codelineno-0-238">238</a></span>
 <span class="normal"><a href="#__codelineno-0-239">239</a></span>
-<span class="normal"><a href="#__codelineno-0-240">240</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-232" name="__codelineno-0-232"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_ordering_session_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna a chave de sessão exclusiva para a ordenação desta view.</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">        String no formato ``{app_label}_{NomeDaView}_ordering``.</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>    <span class="n">app_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>    <span class="n">view_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>    <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">app_label</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">view_name</span><span class="si">}</span><span class="s1">_ordering&#39;</span>
+<span class="normal"><a href="#__codelineno-0-240">240</a></span>
+<span class="normal"><a href="#__codelineno-0-241">241</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-233" name="__codelineno-0-233"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_ordering_session_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna a chave de sessão exclusiva para a ordenação desta view.</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a><span class="sd">        String no formato ``{app_label}_{NomeDaView}_ordering``.</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>    <span class="n">app_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>    <span class="n">view_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>    <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">app_label</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">view_name</span><span class="si">}</span><span class="s1">_ordering&#39;</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -6024,9 +6109,8 @@ injetar no contexto do template (<code>has_ordering_session</code>).</p>
 
 
             <details class="mkdocstrings-source">
-              <summary>Source code in <code>common\mixins.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-242">242</a></span>
-<span class="normal"><a href="#__codelineno-0-243">243</a></span>
+              <summary>Source code in <code>common/mixins.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-243">243</a></span>
 <span class="normal"><a href="#__codelineno-0-244">244</a></span>
 <span class="normal"><a href="#__codelineno-0-245">245</a></span>
 <span class="normal"><a href="#__codelineno-0-246">246</a></span>
@@ -6050,32 +6134,33 @@ injetar no contexto do template (<code>has_ordering_session</code>).</p>
 <span class="normal"><a href="#__codelineno-0-264">264</a></span>
 <span class="normal"><a href="#__codelineno-0-265">265</a></span>
 <span class="normal"><a href="#__codelineno-0-266">266</a></span>
-<span class="normal"><a href="#__codelineno-0-267">267</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-242" name="__codelineno-0-242"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">return_context</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verifica ou retorna o estado da ordenação ativa na sessão.</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a><span class="sd">        return_data: Se ``True``, retorna os dados da ordenação salva em</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a><span class="sd">            sessão (``dict`` com ``sort`` e ``order``) ou ``False``.</span>
-<a id="__codelineno-0-248" name="__codelineno-0-248"></a><span class="sd">        return_context: Se ``True``, retorna um dicionário pronto para</span>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="sd">            injetar no contexto do template (``has_ordering_session``).</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-252" name="__codelineno-0-252"></a><span class="sd">        - ``bool`` indicando se há ordenação ativa (padrão).</span>
-<a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">        - ``dict`` com os dados da ordenação quando ``return_data=True``.</span>
-<a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">        - ``dict`` de contexto quando ``return_context=True``.</span>
-<a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-256" name="__codelineno-0-256"></a>    <span class="k">if</span> <span class="n">return_context</span><span class="p">:</span>
-<a id="__codelineno-0-257" name="__codelineno-0-257"></a>        <span class="k">return</span> <span class="p">{</span>
-<a id="__codelineno-0-258" name="__codelineno-0-258"></a>            <span class="s1">&#39;has_ordering_session&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-<a id="__codelineno-0-259" name="__codelineno-0-259"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">(),</span>
-<a id="__codelineno-0-260" name="__codelineno-0-260"></a>                <span class="kc">False</span>
-<a id="__codelineno-0-261" name="__codelineno-0-261"></a>            <span class="p">),</span>
-<a id="__codelineno-0-262" name="__codelineno-0-262"></a>        <span class="p">}</span>
-<a id="__codelineno-0-263" name="__codelineno-0-263"></a>
-<a id="__codelineno-0-264" name="__codelineno-0-264"></a>    <span class="k">if</span> <span class="n">return_data</span><span class="p">:</span>
-<a id="__codelineno-0-265" name="__codelineno-0-265"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">(),</span> <span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-0-266" name="__codelineno-0-266"></a>
-<a id="__codelineno-0-267" name="__codelineno-0-267"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span>
+<span class="normal"><a href="#__codelineno-0-267">267</a></span>
+<span class="normal"><a href="#__codelineno-0-268">268</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-243" name="__codelineno-0-243"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">return_context</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verifica ou retorna o estado da ordenação ativa na sessão.</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a><span class="sd">        return_data: Se ``True``, retorna os dados da ordenação salva em</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a><span class="sd">            sessão (``dict`` com ``sort`` e ``order``) ou ``False``.</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a><span class="sd">        return_context: Se ``True``, retorna um dicionário pronto para</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="sd">            injetar no contexto do template (``has_ordering_session``).</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a><span class="sd">        - ``bool`` indicando se há ordenação ativa (padrão).</span>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a><span class="sd">        - ``dict`` com os dados da ordenação quando ``return_data=True``.</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a><span class="sd">        - ``dict`` de contexto quando ``return_context=True``.</span>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a>    <span class="k">if</span> <span class="n">return_context</span><span class="p">:</span>
+<a id="__codelineno-0-258" name="__codelineno-0-258"></a>        <span class="k">return</span> <span class="p">{</span>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a>            <span class="s1">&#39;has_ordering_session&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">(),</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>                <span class="kc">False</span>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>            <span class="p">),</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>        <span class="p">}</span>
+<a id="__codelineno-0-264" name="__codelineno-0-264"></a>
+<a id="__codelineno-0-265" name="__codelineno-0-265"></a>    <span class="k">if</span> <span class="n">return_data</span><span class="p">:</span>
+<a id="__codelineno-0-266" name="__codelineno-0-266"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">(),</span> <span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-267" name="__codelineno-0-267"></a>
+<a id="__codelineno-0-268" name="__codelineno-0-268"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -6096,7 +6181,8 @@ injetar no contexto do template (<code>has_ordering_session</code>).</p>
         <p>Calcula a ordenação atual com base na query string ou na sessão.</p>
 <p>Limpa a ordenação quando <code>clear_order=1</code> está na query string ou
 quando o usuário muda de view. Persiste <code>sort</code> e <code>order</code> na sessão.
-Aplica <code>Lower(F(campo))</code> para ordenação case-insensitive.</p>
+Aplica <code>Lower(F(campo))</code> apenas para <code>CharField</code>/<code>TextField</code>;
+para FK e outros tipos numéricos usa ordenação direta via string.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
@@ -6114,7 +6200,7 @@ Aplica <code>Lower(F(campo))</code> para ordenação case-insensitive.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Tupla de expressões de ordenação (ex: <code>(Lower(F('name')),)</code>)</p>
+                <p>Tupla de expressões de ordenação (ex: <code>(Lower(F('name')),)</code>,</p>
               </div>
             </td>
           </tr>
@@ -6124,7 +6210,7 @@ Aplica <code>Lower(F(campo))</code> para ordenação case-insensitive.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>quando há parâmetros válidos, ou string de ordenação padrão</p>
+                <p><code>('-created_at',)</code>) quando há parâmetros válidos, ou string de</p>
               </div>
             </td>
           </tr>
@@ -6134,7 +6220,7 @@ Aplica <code>Lower(F(campo))</code> para ordenação case-insensitive.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>(ex: <code>'-id'</code>).</p>
+                <p>ordenação padrão (ex: <code>'-id'</code>).</p>
               </div>
             </td>
           </tr>
@@ -6167,9 +6253,8 @@ estiverem definidos na view.</p>
 
 
             <details class="mkdocstrings-source">
-              <summary>Source code in <code>common\mixins.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-269">269</a></span>
-<span class="normal"><a href="#__codelineno-0-270">270</a></span>
+              <summary>Source code in <code>common/mixins.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-270">270</a></span>
 <span class="normal"><a href="#__codelineno-0-271">271</a></span>
 <span class="normal"><a href="#__codelineno-0-272">272</a></span>
 <span class="normal"><a href="#__codelineno-0-273">273</a></span>
@@ -6214,53 +6299,72 @@ estiverem definidos na view.</p>
 <span class="normal"><a href="#__codelineno-0-312">312</a></span>
 <span class="normal"><a href="#__codelineno-0-313">313</a></span>
 <span class="normal"><a href="#__codelineno-0-314">314</a></span>
-<span class="normal"><a href="#__codelineno-0-315">315</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calcula a ordenação atual com base na query string ou na sessão.</span>
-<a id="__codelineno-0-271" name="__codelineno-0-271"></a>
-<a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="sd">    Limpa a ordenação quando ``clear_order=1`` está na query string ou</span>
-<a id="__codelineno-0-273" name="__codelineno-0-273"></a><span class="sd">    quando o usuário muda de view. Persiste ``sort`` e ``order`` na sessão.</span>
-<a id="__codelineno-0-274" name="__codelineno-0-274"></a><span class="sd">    Aplica ``Lower(F(campo))`` para ordenação case-insensitive.</span>
-<a id="__codelineno-0-275" name="__codelineno-0-275"></a>
-<a id="__codelineno-0-276" name="__codelineno-0-276"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-277" name="__codelineno-0-277"></a><span class="sd">        Tupla de expressões de ordenação (ex: ``(Lower(F(&#39;name&#39;)),)``)</span>
-<a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="sd">        quando há parâmetros válidos, ou string de ordenação padrão</span>
-<a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">        (ex: ``&#39;-id&#39;``).</span>
-<a id="__codelineno-0-280" name="__codelineno-0-280"></a>
-<a id="__codelineno-0-281" name="__codelineno-0-281"></a><span class="sd">    Raises:</span>
-<a id="__codelineno-0-282" name="__codelineno-0-282"></a><span class="sd">        ImproperlyConfigured: Se ``allowed_fields`` ou ``model`` não</span>
-<a id="__codelineno-0-283" name="__codelineno-0-283"></a><span class="sd">            estiverem definidos na view.</span>
-<a id="__codelineno-0-284" name="__codelineno-0-284"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-285" name="__codelineno-0-285"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_fields</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
-<a id="__codelineno-0-286" name="__codelineno-0-286"></a>        <span class="k">raise</span> <span class="n">ImproperlyConfigured</span><span class="p">(</span>
-<a id="__codelineno-0-287" name="__codelineno-0-287"></a>            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> precisa de &#39;allowed_fields&#39; e &#39;model&#39;&quot;</span>
-<a id="__codelineno-0-288" name="__codelineno-0-288"></a>        <span class="p">)</span>
-<a id="__codelineno-0-289" name="__codelineno-0-289"></a>
-<a id="__codelineno-0-290" name="__codelineno-0-290"></a>    <span class="n">nav</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;_navigation&#39;</span><span class="p">,</span> <span class="p">{})</span>
-<a id="__codelineno-0-291" name="__codelineno-0-291"></a>    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clear_order&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ordering</span><span class="p">())</span> \
-<a id="__codelineno-0-292" name="__codelineno-0-292"></a>    <span class="ow">or</span> <span class="p">(</span><span class="n">nav</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;changed_view&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ordering</span><span class="p">()):</span>
-<a id="__codelineno-0-293" name="__codelineno-0-293"></a>        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">()</span>
-<a id="__codelineno-0-294" name="__codelineno-0-294"></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-<a id="__codelineno-0-295" name="__codelineno-0-295"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span>
-<a id="__codelineno-0-296" name="__codelineno-0-296"></a>
-<a id="__codelineno-0-297" name="__codelineno-0-297"></a>    <span class="k">if</span> <span class="s1">&#39;sort&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span> <span class="ow">and</span> <span class="s1">&#39;order&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
-<a id="__codelineno-0-298" name="__codelineno-0-298"></a>        <span class="n">sort</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-299" name="__codelineno-0-299"></a>        <span class="n">order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;order&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-300" name="__codelineno-0-300"></a>
-<a id="__codelineno-0-301" name="__codelineno-0-301"></a>    <span class="k">elif</span> <span class="n">session</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ordering</span><span class="p">(</span><span class="n">return_data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<a id="__codelineno-0-302" name="__codelineno-0-302"></a>        <span class="n">sort</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort&#39;</span><span class="p">)</span>  <span class="c1"># type: ignore[union-attr]</span>
-<a id="__codelineno-0-303" name="__codelineno-0-303"></a>        <span class="n">order</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;order&#39;</span><span class="p">)</span>  <span class="c1"># type: ignore[union-attr]</span>
-<a id="__codelineno-0-304" name="__codelineno-0-304"></a>
-<a id="__codelineno-0-305" name="__codelineno-0-305"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-306" name="__codelineno-0-306"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span>
-<a id="__codelineno-0-307" name="__codelineno-0-307"></a>
-<a id="__codelineno-0-308" name="__codelineno-0-308"></a>    <span class="k">if</span> <span class="n">sort</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_fields</span> <span class="ow">and</span> <span class="n">order</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;asc&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">]:</span>
-<a id="__codelineno-0-309" name="__codelineno-0-309"></a>        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">()</span>
-<a id="__codelineno-0-310" name="__codelineno-0-310"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sort&#39;</span><span class="p">:</span> <span class="n">sort</span><span class="p">,</span> <span class="s1">&#39;order&#39;</span><span class="p">:</span> <span class="n">order</span><span class="p">}</span>
-<a id="__codelineno-0-311" name="__codelineno-0-311"></a>
-<a id="__codelineno-0-312" name="__codelineno-0-312"></a>        <span class="n">expr</span> <span class="o">=</span> <span class="n">Lower</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="n">sort</span><span class="p">))</span>
-<a id="__codelineno-0-313" name="__codelineno-0-313"></a>        <span class="k">return</span> <span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">desc</span><span class="p">(),)</span> <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;desc&#39;</span> <span class="k">else</span> <span class="p">(</span><span class="n">expr</span><span class="p">,)</span>
-<a id="__codelineno-0-314" name="__codelineno-0-314"></a>
-<a id="__codelineno-0-315" name="__codelineno-0-315"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span>
+<span class="normal"><a href="#__codelineno-0-315">315</a></span>
+<span class="normal"><a href="#__codelineno-0-316">316</a></span>
+<span class="normal"><a href="#__codelineno-0-317">317</a></span>
+<span class="normal"><a href="#__codelineno-0-318">318</a></span>
+<span class="normal"><a href="#__codelineno-0-319">319</a></span>
+<span class="normal"><a href="#__codelineno-0-320">320</a></span>
+<span class="normal"><a href="#__codelineno-0-321">321</a></span>
+<span class="normal"><a href="#__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#__codelineno-0-323">323</a></span>
+<span class="normal"><a href="#__codelineno-0-324">324</a></span>
+<span class="normal"><a href="#__codelineno-0-325">325</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-271" name="__codelineno-0-271"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calcula a ordenação atual com base na query string ou na sessão.</span>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a>
+<a id="__codelineno-0-273" name="__codelineno-0-273"></a><span class="sd">    Limpa a ordenação quando ``clear_order=1`` está na query string ou</span>
+<a id="__codelineno-0-274" name="__codelineno-0-274"></a><span class="sd">    quando o usuário muda de view. Persiste ``sort`` e ``order`` na sessão.</span>
+<a id="__codelineno-0-275" name="__codelineno-0-275"></a><span class="sd">    Aplica ``Lower(F(campo))`` apenas para ``CharField``/``TextField``;</span>
+<a id="__codelineno-0-276" name="__codelineno-0-276"></a><span class="sd">    para FK e outros tipos numéricos usa ordenação direta via string.</span>
+<a id="__codelineno-0-277" name="__codelineno-0-277"></a>
+<a id="__codelineno-0-278" name="__codelineno-0-278"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">        Tupla de expressões de ordenação (ex: ``(Lower(F(&#39;name&#39;)),)``,</span>
+<a id="__codelineno-0-280" name="__codelineno-0-280"></a><span class="sd">        ``(&#39;-created_at&#39;,)``) quando há parâmetros válidos, ou string de</span>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a><span class="sd">        ordenação padrão (ex: ``&#39;-id&#39;``).</span>
+<a id="__codelineno-0-282" name="__codelineno-0-282"></a>
+<a id="__codelineno-0-283" name="__codelineno-0-283"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-0-284" name="__codelineno-0-284"></a><span class="sd">        ImproperlyConfigured: Se ``allowed_fields`` ou ``model`` não</span>
+<a id="__codelineno-0-285" name="__codelineno-0-285"></a><span class="sd">            estiverem definidos na view.</span>
+<a id="__codelineno-0-286" name="__codelineno-0-286"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-287" name="__codelineno-0-287"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_fields</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
+<a id="__codelineno-0-288" name="__codelineno-0-288"></a>        <span class="k">raise</span> <span class="n">ImproperlyConfigured</span><span class="p">(</span>
+<a id="__codelineno-0-289" name="__codelineno-0-289"></a>            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> precisa de &#39;allowed_fields&#39; e &#39;model&#39;&quot;</span>
+<a id="__codelineno-0-290" name="__codelineno-0-290"></a>        <span class="p">)</span>
+<a id="__codelineno-0-291" name="__codelineno-0-291"></a>
+<a id="__codelineno-0-292" name="__codelineno-0-292"></a>    <span class="n">nav</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;_navigation&#39;</span><span class="p">,</span> <span class="p">{})</span>
+<a id="__codelineno-0-293" name="__codelineno-0-293"></a>    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clear_order&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ordering</span><span class="p">())</span> \
+<a id="__codelineno-0-294" name="__codelineno-0-294"></a>    <span class="ow">or</span> <span class="p">(</span><span class="n">nav</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;changed_view&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ordering</span><span class="p">()):</span>
+<a id="__codelineno-0-295" name="__codelineno-0-295"></a>        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">()</span>
+<a id="__codelineno-0-296" name="__codelineno-0-296"></a>        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<a id="__codelineno-0-297" name="__codelineno-0-297"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span>
+<a id="__codelineno-0-298" name="__codelineno-0-298"></a>
+<a id="__codelineno-0-299" name="__codelineno-0-299"></a>    <span class="k">if</span> <span class="s1">&#39;sort&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span> <span class="ow">and</span> <span class="s1">&#39;order&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
+<a id="__codelineno-0-300" name="__codelineno-0-300"></a>        <span class="n">sort</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-301" name="__codelineno-0-301"></a>        <span class="n">order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;order&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>
+<a id="__codelineno-0-303" name="__codelineno-0-303"></a>    <span class="k">elif</span> <span class="n">session</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ordering</span><span class="p">(</span><span class="n">return_data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<a id="__codelineno-0-304" name="__codelineno-0-304"></a>        <span class="n">sort</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort&#39;</span><span class="p">)</span>  <span class="c1"># type: ignore[union-attr]</span>
+<a id="__codelineno-0-305" name="__codelineno-0-305"></a>        <span class="n">order</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;order&#39;</span><span class="p">)</span>  <span class="c1"># type: ignore[union-attr]</span>
+<a id="__codelineno-0-306" name="__codelineno-0-306"></a>
+<a id="__codelineno-0-307" name="__codelineno-0-307"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-308" name="__codelineno-0-308"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span>
+<a id="__codelineno-0-309" name="__codelineno-0-309"></a>
+<a id="__codelineno-0-310" name="__codelineno-0-310"></a>    <span class="k">if</span> <span class="n">sort</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_fields</span> <span class="ow">and</span> <span class="n">order</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;asc&#39;</span><span class="p">,</span> <span class="s1">&#39;desc&#39;</span><span class="p">]:</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a>        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering_session_key</span><span class="p">()</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sort&#39;</span><span class="p">:</span> <span class="n">sort</span><span class="p">,</span> <span class="s1">&#39;order&#39;</span><span class="p">:</span> <span class="n">order</span><span class="p">}</span>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-315" name="__codelineno-0-315"></a>            <span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">sort</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<a id="__codelineno-0-316" name="__codelineno-0-316"></a>            <span class="n">is_text</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="p">(</span><span class="n">CharField</span><span class="p">,</span> <span class="n">TextField</span><span class="p">))</span>
+<a id="__codelineno-0-317" name="__codelineno-0-317"></a>        <span class="k">except</span> <span class="n">FieldDoesNotExist</span><span class="p">:</span>
+<a id="__codelineno-0-318" name="__codelineno-0-318"></a>            <span class="n">is_text</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-0-319" name="__codelineno-0-319"></a>
+<a id="__codelineno-0-320" name="__codelineno-0-320"></a>        <span class="k">if</span> <span class="n">is_text</span><span class="p">:</span>
+<a id="__codelineno-0-321" name="__codelineno-0-321"></a>            <span class="n">expr</span> <span class="o">=</span> <span class="n">Lower</span><span class="p">(</span><span class="n">F</span><span class="p">(</span><span class="n">sort</span><span class="p">))</span>
+<a id="__codelineno-0-322" name="__codelineno-0-322"></a>            <span class="k">return</span> <span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">desc</span><span class="p">(),)</span> <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;desc&#39;</span> <span class="k">else</span> <span class="p">(</span><span class="n">expr</span><span class="p">,)</span>
+<a id="__codelineno-0-323" name="__codelineno-0-323"></a>        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;-</span><span class="si">{</span><span class="n">sort</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,)</span> <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;desc&#39;</span> <span class="k">else</span> <span class="p">(</span><span class="n">sort</span><span class="p">,)</span>
+<a id="__codelineno-0-324" name="__codelineno-0-324"></a>
+<a id="__codelineno-0-325" name="__codelineno-0-325"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -6338,42 +6442,42 @@ estiverem definidos na view.</p>
 
 
             <details class="mkdocstrings-source">
-              <summary>Source code in <code>common\mixins.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-317">317</a></span>
-<span class="normal"><a href="#__codelineno-0-318">318</a></span>
-<span class="normal"><a href="#__codelineno-0-319">319</a></span>
-<span class="normal"><a href="#__codelineno-0-320">320</a></span>
-<span class="normal"><a href="#__codelineno-0-321">321</a></span>
-<span class="normal"><a href="#__codelineno-0-322">322</a></span>
-<span class="normal"><a href="#__codelineno-0-323">323</a></span>
-<span class="normal"><a href="#__codelineno-0-324">324</a></span>
-<span class="normal"><a href="#__codelineno-0-325">325</a></span>
-<span class="normal"><a href="#__codelineno-0-326">326</a></span>
-<span class="normal"><a href="#__codelineno-0-327">327</a></span>
+              <summary>Source code in <code>common/mixins.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-327">327</a></span>
 <span class="normal"><a href="#__codelineno-0-328">328</a></span>
 <span class="normal"><a href="#__codelineno-0-329">329</a></span>
 <span class="normal"><a href="#__codelineno-0-330">330</a></span>
 <span class="normal"><a href="#__codelineno-0-331">331</a></span>
 <span class="normal"><a href="#__codelineno-0-332">332</a></span>
 <span class="normal"><a href="#__codelineno-0-333">333</a></span>
-<span class="normal"><a href="#__codelineno-0-334">334</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-317" name="__codelineno-0-317"></a><span class="k">def</span><span class="w"> </span><span class="nf">apply_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryset</span><span class="p">:</span> <span class="n">QuerySet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuerySet</span><span class="p">:</span>
-<a id="__codelineno-0-318" name="__codelineno-0-318"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Aplica a ordenação calculada ao queryset.</span>
-<a id="__codelineno-0-319" name="__codelineno-0-319"></a>
-<a id="__codelineno-0-320" name="__codelineno-0-320"></a><span class="sd">    Utilizado em views que não herdam de ``ListView``, onde</span>
-<a id="__codelineno-0-321" name="__codelineno-0-321"></a><span class="sd">    ``get_ordering()`` não é chamado automaticamente pelo Django.</span>
-<a id="__codelineno-0-322" name="__codelineno-0-322"></a>
-<a id="__codelineno-0-323" name="__codelineno-0-323"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-324" name="__codelineno-0-324"></a><span class="sd">        queryset: QuerySet a ser ordenado.</span>
-<a id="__codelineno-0-325" name="__codelineno-0-325"></a>
-<a id="__codelineno-0-326" name="__codelineno-0-326"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="sd">        QuerySet com ``order_by`` aplicado.</span>
-<a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-329" name="__codelineno-0-329"></a>    <span class="n">ordering</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering</span><span class="p">()</span>
-<a id="__codelineno-0-330" name="__codelineno-0-330"></a>
-<a id="__codelineno-0-331" name="__codelineno-0-331"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ordering</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-<a id="__codelineno-0-332" name="__codelineno-0-332"></a>        <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="o">*</span><span class="n">ordering</span><span class="p">)</span>
-<a id="__codelineno-0-333" name="__codelineno-0-333"></a>
-<a id="__codelineno-0-334" name="__codelineno-0-334"></a>    <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">ordering</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-334">334</a></span>
+<span class="normal"><a href="#__codelineno-0-335">335</a></span>
+<span class="normal"><a href="#__codelineno-0-336">336</a></span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span>
+<span class="normal"><a href="#__codelineno-0-338">338</a></span>
+<span class="normal"><a href="#__codelineno-0-339">339</a></span>
+<span class="normal"><a href="#__codelineno-0-340">340</a></span>
+<span class="normal"><a href="#__codelineno-0-341">341</a></span>
+<span class="normal"><a href="#__codelineno-0-342">342</a></span>
+<span class="normal"><a href="#__codelineno-0-343">343</a></span>
+<span class="normal"><a href="#__codelineno-0-344">344</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="k">def</span><span class="w"> </span><span class="nf">apply_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queryset</span><span class="p">:</span> <span class="n">QuerySet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuerySet</span><span class="p">:</span>
+<a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Aplica a ordenação calculada ao queryset.</span>
+<a id="__codelineno-0-329" name="__codelineno-0-329"></a>
+<a id="__codelineno-0-330" name="__codelineno-0-330"></a><span class="sd">    Utilizado em views que não herdam de ``ListView``, onde</span>
+<a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">    ``get_ordering()`` não é chamado automaticamente pelo Django.</span>
+<a id="__codelineno-0-332" name="__codelineno-0-332"></a>
+<a id="__codelineno-0-333" name="__codelineno-0-333"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-334" name="__codelineno-0-334"></a><span class="sd">        queryset: QuerySet a ser ordenado.</span>
+<a id="__codelineno-0-335" name="__codelineno-0-335"></a>
+<a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-337" name="__codelineno-0-337"></a><span class="sd">        QuerySet com ``order_by`` aplicado.</span>
+<a id="__codelineno-0-338" name="__codelineno-0-338"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-339" name="__codelineno-0-339"></a>    <span class="n">ordering</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordering</span><span class="p">()</span>
+<a id="__codelineno-0-340" name="__codelineno-0-340"></a>
+<a id="__codelineno-0-341" name="__codelineno-0-341"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ordering</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+<a id="__codelineno-0-342" name="__codelineno-0-342"></a>        <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="o">*</span><span class="n">ordering</span><span class="p">)</span>
+<a id="__codelineno-0-343" name="__codelineno-0-343"></a>
+<a id="__codelineno-0-344" name="__codelineno-0-344"></a>    <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">ordering</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

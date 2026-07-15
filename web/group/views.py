@@ -18,6 +18,7 @@ from common.mixins import (
 from common.utils import get_btn_action
 from common.view.generic import EnhancedListView
 from activity.models import ActivityListGroup
+from student.models import ExerciseAnswer, Submission
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -361,6 +362,85 @@ class GroupDetailView(
             return True
         return False
 
+    def get_context_data(self, **kwargs: Any) -> dict:
+        """Calcula KPIs reais da turma: alunos, conclusão, atividades, pendências e risco."""
+        context = super().get_context_data(**kwargs)
+        group = self.object
+
+        students_enrolled = group.students.filter(is_active=True).count()
+
+        submitted_ids = set(
+            Submission.objects.filter(
+                activity_link__group=group,
+                submitted_at__isnull=False,
+                is_abandoned=False,
+            ).values_list('student_id', flat=True).distinct()
+        )
+        students_submitted = len(submitted_ids)
+        completion_pct = round(students_submitted / students_enrolled * 100) if students_enrolled else 0
+
+        activities = list(
+            ActivityListGroup.objects
+            .filter(group=group, activity_list__deleted_at__isnull=True)
+            .select_related('activity_list')
+            .annotate(
+                submitted_count=Count(
+                    'submissions__student',
+                    filter=Q(
+                        submissions__submitted_at__isnull=False,
+                        submissions__is_abandoned=False,
+                    ),
+                    distinct=True,
+                )
+            )
+            .order_by('assigned_at')
+        )
+        activities_count = len(activities)
+
+        pending_count = ExerciseAnswer.objects.filter(
+            submission__activity_link__group=group,
+            submission__submitted_at__isnull=False,
+            submission__is_abandoned=False,
+            is_correct__isnull=True,
+        ).count()
+
+        enrolled_qs = group.students.filter(is_active=True).select_related('student').annotate(
+            sub_count=Count(
+                'student__submissions__activity_link',
+                filter=Q(
+                    student__submissions__activity_link__group=group,
+                    student__submissions__submitted_at__isnull=False,
+                    student__submissions__is_abandoned=False,
+                ),
+                distinct=True,
+            )
+        )
+        at_risk = []
+        for gs in enrolled_qs:
+            risk_pct = round((1 - gs.sub_count / activities_count) * 100) if activities_count else 0
+            if risk_pct <= 0:
+                continue
+            first, last = gs.student.first_name, gs.student.last_name
+            initials = (first[:1] + last[:1]).upper() if first else gs.student.username[:2].upper()
+            at_risk.append({
+                'name': gs.student.get_full_name() or gs.student.username,
+                'initials': initials,
+                'sub_count': gs.sub_count,
+                'risk_pct': risk_pct,
+            })
+        at_risk.sort(key=lambda x: -x['risk_pct'])
+
+        context.update({
+            'students_enrolled': students_enrolled,
+            'students_submitted': students_submitted,
+            'completion_pct': completion_pct,
+            'activities_count': activities_count,
+            'pending_count': pending_count,
+            'activity_stats': activities,
+            'at_risk_students': at_risk[:5],
+        })
+        return context
+
 
 class GroupReviewView(
     AuthPermissionMixin,
@@ -392,14 +472,18 @@ class GroupReviewView(
             .select_related('activity_list')
             .annotate(
                 submission_count=Count(
-                    'submissions',
-                    filter=Q(submissions__submitted_at__isnull=False),
+                    'submissions__student',
+                    filter=Q(
+                        submissions__submitted_at__isnull=False,
+                        submissions__is_abandoned=False,
+                    ),
                     distinct=True,
                 ),
                 pending_count=Count(
                     'submissions__answers',
                     filter=Q(
                         submissions__submitted_at__isnull=False,
+                        submissions__is_abandoned=False,
                         submissions__answers__is_correct__isnull=True,
                     ),
                     distinct=True,

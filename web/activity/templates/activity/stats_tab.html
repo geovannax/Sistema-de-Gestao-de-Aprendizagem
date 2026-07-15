@@ -1,0 +1,397 @@
+{% extends "activity/detail.html" %}
+{% load static %}
+{% load common_filters %}
+
+{% block info_right %}
+
+{% if not students_reached %}
+<div class="empty-state d-flex flex-column align-items-center py-5">
+    <i class="bi bi-bar-chart empty-state-icon"></i>
+    <p class="empty-state-text mb-0">Nenhuma turma com alunos matriculados ainda.</p>
+</div>
+{% else %}
+
+<style>
+    .stat-card {
+        background: var(--gray-50, #f8f9fa);
+        border: 1px solid var(--gray-200, #e9ecef);
+        border-left: 4px solid var(--blue-500);
+        border-radius: .5rem;
+        padding: .9rem 1rem;
+    }
+    .stat-card .stat-label {
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: var(--gray-500);
+        font-weight: 600;
+        margin-bottom: .2rem;
+    }
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        line-height: 1.1;
+    }
+    .stat-card .stat-sub {
+        font-size: .75rem;
+        color: var(--gray-500);
+        margin-top: .15rem;
+    }
+    .stat-card .stat-icon {
+        font-size: 1.3rem;
+        opacity: .25;
+    }
+    .section-title {
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+        font-weight: 700;
+        color: var(--gray-500);
+        margin-bottom: .75rem;
+        margin-top: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+    .dist-bar-wrap { display: flex; align-items: center; gap: .6rem; margin-bottom: .45rem; }
+    .dist-bar-label { font-size: .8rem; min-width: 52px; color: var(--gray-600); font-weight: 500; }
+    .dist-bar-track { flex: 1; height: 16px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+    .dist-bar-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+    .dist-bar-count { font-size: .8rem; font-weight: 600; min-width: 28px; text-align: right; color: var(--gray-700); }
+    .ex-acc-bar { height: 6px; border-radius: 3px; background: var(--gray-100); overflow: hidden; }
+    .ex-acc-fill { height: 100%; border-radius: 3px; }
+    .tag { display: inline-flex; align-items: center; padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 600; }
+    .tag-danger   { background: #f8d7da; color: #842029; }
+    .tag-warning  { background: #fff3cd; color: #664d03; }
+    .tag-secondary{ background: #e2e3e5; color: #41464b; }
+    .tag-success  { background: #d1e7dd; color: #0a3622; }
+    .tag-primary  { background: #cfe2ff; color: #084298; }
+    .distractor-row { display: flex; align-items: center; gap: .5rem; margin-bottom: .3rem; font-size: .82rem; }
+    .distractor-bar-track { flex: 1; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+    .distractor-bar-fill  { height: 100%; border-radius: 4px; }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 1 · CARDS DE VISÃO GERAL
+═══════════════════════════════════════════════════════════ -->
+<div class="section-title mt-3">
+    <i class="bi bi-grid-3x3-gap"></i> Visão Geral
+</div>
+
+<div class="row g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Alunos alcançados</div>
+                    <div class="stat-value">{{ students_reached }}</div>
+                    <div class="stat-sub">matriculados nas turmas</div>
+                </div>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Entregaram</div>
+                    <div class="stat-value">{{ students_submitted }}</div>
+                    <div class="stat-sub">
+                        <div class="progress mt-1" style="height:4px;background:var(--gray-200)">
+                            <div class="progress-bar bg-success" style="width:{{ completion_pct }}%"></div>
+                        </div>
+                        {{ completion_pct }}% de conclusão
+                    </div>
+                </div>
+                <i class="bi bi-check-circle stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Abandonos</div>
+                    <div class="stat-value {% if students_abandoned > 0 %}text-danger{% endif %}">{{ students_abandoned }}</div>
+                    <div class="stat-sub">iniciaram mas não entregaram</div>
+                </div>
+                <i class="bi bi-x-circle stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Correções pendentes</div>
+                    <div class="stat-value {% if pending_total > 0 %}text-warning{% endif %}">{{ pending_total }}</div>
+                    <div class="stat-sub">respostas aguardando professor</div>
+                </div>
+                <i class="bi bi-hourglass-split stat-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 2 · NOTA E APROVEITAMENTO
+═══════════════════════════════════════════════════════════ -->
+<div class="section-title">
+    <i class="bi bi-award"></i> Nota & Aproveitamento
+</div>
+
+<div class="row g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Média de nota</div>
+            <div class="stat-value">{% if avg_points is not None %}{{ avg_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">pontos ganhos (média aritmética)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Mediana de nota</div>
+            <div class="stat-value">{% if median_points is not None %}{{ median_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">menos afetada por notas extremas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Média de aproveitamento</div>
+            <div class="stat-value">{% if avg_pct is not None %}{{ avg_pct }}%{% else %}—{% endif %}</div>
+            <div class="stat-sub">pontos obtidos / pontos possíveis</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Mediana de aproveitamento</div>
+            <div class="stat-value">{% if median_pct is not None %}{{ median_pct }}%{% else %}—{% endif %}</div>
+            <div class="stat-sub">pontos obtidos / pontos possíveis</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 3 · TEMPO
+═══════════════════════════════════════════════════════════ -->
+<div class="section-title">
+    <i class="bi bi-clock"></i> Tempo de realização
+</div>
+
+<div class="row g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Tempo médio total</div>
+            <div class="stat-value" style="font-size:1.1rem">{% if avg_time_total is not None %}{{ avg_time_total|duration }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">por entrega (todos os exercícios)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Tempo mediano total</div>
+            <div class="stat-value" style="font-size:1.1rem">{% if median_time_total is not None %}{{ median_time_total|duration }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">metade levou mais, metade menos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Total de entregas</div>
+            <div class="stat-value">{{ total_submissions }}</div>
+            <div class="stat-sub">submissões analisadas</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 4 · DISTRIBUIÇÃO DE NOTAS
+═══════════════════════════════════════════════════════════ -->
+{% if distribution %}
+<div class="section-title">
+    <i class="bi bi-bar-chart-line"></i> Distribuição de aproveitamento
+</div>
+<div class="stat-card">
+    {% for d in distribution %}
+    <div class="dist-bar-wrap">
+        <span class="dist-bar-label">{{ d.label }}</span>
+        <div class="dist-bar-track">
+            <div class="dist-bar-fill" style="width:{{ d.bar_pct }}%;background:{{ d.color }}"></div>
+        </div>
+        <span class="dist-bar-count">{{ d.count }}</span>
+    </div>
+    {% endfor %}
+    <div class="text-muted mt-2" style="font-size:.75rem">Total de {{ total_submissions }} entrega{{ total_submissions|pluralize:"s" }}</div>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 5 · ANÁLISE POR EXERCÍCIO
+═══════════════════════════════════════════════════════════ -->
+{% if exercise_rows %}
+<div class="section-title">
+    <i class="bi bi-list-ol"></i> Análise por exercício
+</div>
+<div class="table-responsive">
+    <table class="table table-sm align-middle" style="font-size:.84rem">
+        <thead>
+            <tr style="border-bottom:2px solid var(--gray-200)">
+                <th class="ps-0 fw-semibold" style="color:var(--gray-600);width:2rem">#</th>
+                <th class="fw-semibold" style="color:var(--gray-600)">Enunciado</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Tipo</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600);min-width:120px">Taxa de acerto</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Tempo médio</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Mediana</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">
+                    Classificação
+                    <i class="bi bi-info-circle ms-1"
+                       style="cursor:pointer;opacity:.55;font-size:.8rem;vertical-align:middle"
+                       data-bs-toggle="popover"
+                       data-bs-trigger="hover focus"
+                       data-bs-html="true"
+                       data-bs-placement="left"
+                       data-bs-title="Legenda das classificações"
+                       data-bs-content="
+                           <div style='font-size:.78rem;line-height:1.8'>
+                             <span class='tag tag-danger'>Difícil</span>&nbsp; acerto &lt;40% e tempo &gt;2min<br>
+                             <span class='tag tag-warning'>Confusa</span>&nbsp; acerto &lt;40% e tempo ≤2min<br>
+                             <span class='tag tag-secondary'>Trabalhosa</span>&nbsp; acerto ≥60% e tempo &gt;3min<br>
+                             <span class='tag tag-success'>Dominada</span>&nbsp; acerto ≥80%<br>
+                             <span class='tag tag-primary'>OK</span>&nbsp; acerto 40–79%
+                           </div>"></i>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in exercise_rows %}
+            <tr style="border-bottom:1px solid var(--gray-100)">
+                <td class="ps-0 text-muted">{{ stat.exercise__order }}</td>
+                <td style="max-width:200px">
+                    <span title="{{ stat.exercise__statement }}">
+                        {{ stat.exercise__statement|truncatechars:60 }}
+                    </span>
+                    {% if stat.exercise__points %}
+                        <span class="text-muted ms-1" style="font-size:.75rem">({{ stat.exercise__points|floatformat:"-2" }} pt)</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <span class="status-badge" style="background:var(--gray-100);color:var(--gray-600)">
+                        {{ stat.type_label }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    {% if stat.accuracy_pct is not None %}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="ex-acc-bar flex-grow-1">
+                                <div class="ex-acc-fill {% if stat.accuracy_pct >= 70 %}bg-success{% elif stat.accuracy_pct >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width:{{ stat.accuracy_pct }}%"></div>
+                            </div>
+                            <span class="fw-semibold" style="min-width:36px;font-size:.8rem">{{ stat.accuracy_pct }}%</span>
+                        </div>
+                        <div class="text-muted" style="font-size:.72rem">
+                            {{ stat.correct_count }}/{{ stat.total_answers }} corretas
+                            {% if stat.pending_count_ex %} · {{ stat.pending_count_ex }} pendente{{ stat.pending_count_ex|pluralize:"," }}{% endif %}
+                        </div>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td class="text-center text-muted">{{ stat.avg_time|duration }}</td>
+                <td class="text-center text-muted">{{ stat.median_time|duration }}</td>
+                <td class="text-center">
+                    <span class="tag tag-{{ stat.tag_class }}">{{ stat.tag }}</span>
+                </td>
+            </tr>
+            {% if mc_distractor_stats and stat.exercise_id in mc_distractor_stats %}
+            <tr style="background:var(--gray-50,#f8f9fa)">
+                <td></td>
+                <td colspan="6" class="pb-2">
+                    <div style="font-size:.75rem;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:.35rem">
+                        <i class="bi bi-pie-chart me-1"></i>Distribuição de respostas
+                    </div>
+                    {% with options=mc_distractor_stats|get_item:stat.exercise_id %}
+                    {% for opt in options %}
+                    {% with total_opt=stat.total_answers %}
+                    <div class="distractor-row">
+                        <i class="bi {% if opt.selected_option__is_correct %}bi-check-circle-fill text-success{% else %}bi-x-circle text-danger{% endif %}" style="font-size:.85rem;flex-shrink:0"></i>
+                        <span style="min-width:180px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ opt.selected_option__text }}">{{ opt.selected_option__text|truncatechars:40 }}</span>
+                        <div class="distractor-bar-track">
+                            {% if total_opt %}<div class="distractor-bar-fill {% if opt.selected_option__is_correct %}bg-success{% else %}bg-danger{% endif %}" style="width:{% widthratio opt.count total_opt 100 %}%;opacity:.7"></div>{% endif %}
+                        </div>
+                        <span class="fw-semibold" style="min-width:28px;text-align:right">{{ opt.count }}</span>
+                        <span class="text-muted" style="font-size:.72rem">{% if total_opt %}({% widthratio opt.count total_opt 100 %}%){% endif %}</span>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                    {% endwith %}
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 6 · COMPARATIVO POR TURMA
+═══════════════════════════════════════════════════════════ -->
+{% if group_stats|length > 1 %}
+<div class="section-title">
+    <i class="bi bi-diagram-3"></i> Comparativo por turma
+</div>
+<div class="table-responsive">
+    <table class="table table-sm align-middle" style="font-size:.84rem">
+        <thead>
+            <tr style="border-bottom:2px solid var(--gray-200)">
+                <th class="ps-0 fw-semibold" style="color:var(--gray-600)">Turma</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Alcançados</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Entregaram</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600);min-width:110px">Conclusão</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Média %</th>
+                <th class="fw-semibold text-center" style="color:var(--gray-600)">Mediana %</th>
+                <th class="fw-semibold text-center pe-0" style="color:var(--gray-600)">Média nota</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for gs in group_stats %}
+            <tr style="border-bottom:1px solid var(--gray-100)">
+                <td class="ps-0 fw-medium">{{ gs.group.name }}</td>
+                <td class="text-center">{{ gs.students_reached }}</td>
+                <td class="text-center">{{ gs.students_submitted }}</td>
+                <td class="text-center" style="min-width:110px">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height:6px;background:var(--gray-100)">
+                            <div class="progress-bar {% if gs.completion_pct >= 70 %}bg-success{% elif gs.completion_pct >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                                 style="width:{{ gs.completion_pct }}%"></div>
+                        </div>
+                        <span style="font-size:.8rem;font-weight:600;min-width:36px">{{ gs.completion_pct }}%</span>
+                    </div>
+                </td>
+                <td class="text-center">{% if gs.avg_pct is not None %}{{ gs.avg_pct }}%{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td class="text-center">{% if gs.median_pct is not None %}{{ gs.median_pct }}%{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td class="text-center pe-0">{% if gs.avg_points is not None %}{{ gs.avg_points|floatformat:"-2" }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif group_stats|length == 1 %}
+<div class="section-title">
+    <i class="bi bi-diagram-3"></i> Comparativo por turma
+</div>
+<p class="text-muted" style="font-size:.85rem">Atividade aplicada em apenas uma turma — comparativo disponível com 2 ou mais turmas.</p>
+{% endif %}
+
+{% endif %}{# /students_reached #}
+
+{% endblock info_right %}
+
+{% block extra_script %}
+{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
+    new bootstrap.Popover(el, { sanitize: false });
+});
+</script>
+{% endblock extra_script %}
