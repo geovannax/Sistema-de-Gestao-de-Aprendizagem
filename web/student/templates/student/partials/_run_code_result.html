@@ -6,6 +6,12 @@
     </div>
     <div style="background:#1e1b1b;padding:.6rem .75rem">
         <pre class="mb-0" style="font-size:.8rem;color:#ffa198;white-space:pre-wrap;line-height:1.5">{{ error }}</pre>
+        {% if needs_reload %}
+        <button onclick="window._actAllowLeave=true;window.location.reload()"
+                style="margin-top:.6rem;background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;padding:.3rem .75rem;font-size:.78rem;cursor:pointer">
+            <i class="bi bi-arrow-clockwise me-1"></i>Recarregar página
+        </button>
+        {% endif %}
     </div>
 </div>
 

@@ -57,6 +57,12 @@ def execute_code_task(
             except ExecutorError as exc:
                 return {'error': str(exc)}
             r = run_results[0]
+            CodeExecution.objects.create(
+                submission=submission,
+                exercise=exercise,
+                source_code=source_code,
+                results=[],
+            )
             return {
                 'run_only': True,
                 'stdout': r['stdout'],

@@ -126,7 +126,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
 }
 
 /* ── Card — mesmo estilo de .form-card ────────────────────── */
@@ -136,7 +135,7 @@
     border-radius: 0.5rem;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
-    margin: 0 auto;
+    margin: auto;
 }
 
 .act-stripe { height: 4px; }

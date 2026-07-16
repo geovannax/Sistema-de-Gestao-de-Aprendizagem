@@ -193,6 +193,85 @@
                         {% else %}
                             <p class="no-answer">Aluno não respondeu esta questão.</p>
                         {% endif %}
+
+                        {% if exercise.type == 'code' or exercise.type == 'complete_code' %}
+                            <button type="button"
+                                    class="timeline-toggle"
+                                    onclick="tlToggle(this, 'tl-{{ exercise.pk }}')"
+                                    aria-expanded="false">
+                                <i class="bi bi-clock-history"></i>
+                                Ver timeline de execuções
+                                {% if exercise.code_executions_list %}
+                                    <span class="tl-exec-count">{{ exercise.code_executions_list|length }} execuç{{ exercise.code_executions_list|length|pluralize:"ão,ões" }}</span>
+                                {% else %}
+                                    <span class="tl-exec-count" style="background:#f1f5f9;color:#94a3b8;">sem execuções</span>
+                                {% endif %}
+                                <i class="bi bi-chevron-down tl-arrow"></i>
+                            </button>
+                            <div class="timeline-panel" id="tl-{{ exercise.pk }}">
+                                <div class="tl-inner">
+                                    {% if exercise.code_executions_list %}
+                                        <div class="tl-section-label">Histórico de execuções</div>
+                                        <div class="tl-stack">
+                                            {% for ce in exercise.code_executions_list %}
+                                            <div class="tl-version">
+                                                <div class="tl-vmeta">
+                                                    <span class="tl-vts">{{ ce.created_at|time:"H:i:s" }}</span>
+                                                    <span class="tl-vnum">exec {{ ce.exec_num }}</span>
+                                                </div>
+                                                <div class="tl-conn">
+                                                    <div class="tl-dot {% if ce.all_correct %}tl-dot-ok{% else %}tl-dot-fail{% endif %}"></div>
+                                                    <div class="tl-vline"></div>
+                                                </div>
+                                                <div class="tl-vcode">
+                                                    {% if ce.is_baseline %}
+                                                        <div class="tl-full-code">
+                                                            <div class="tl-fc-hdr">solution.py — baseline</div>
+                                                            {% for line in ce.source_code.splitlines %}
+                                                            <div class="tl-fc-line">
+                                                                <span class="tl-fc-ln">{{ forloop.counter }}</span>
+                                                                <span class="tl-fc-ct">{{ line }}</span>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="tl-diff-block">
+                                                            <div class="tl-diff-hdr">
+                                                                <span class="tl-dh-from">exec {{ ce.exec_num|add:"-1" }}</span>
+                                                                <span>→</span>
+                                                                <span class="tl-dh-to">exec {{ ce.exec_num }}</span>
+                                                            </div>
+                                                            {% for dl in ce.diff %}
+                                                            <div class="tl-dl {{ dl.t }}">
+                                                                <div class="tl-dl-gut">
+                                                                    <span class="tl-dl-ln">{{ dl.ol }}</span>
+                                                                    <span class="tl-dl-ln">{{ dl.nl }}</span>
+                                                                    <span class="tl-dl-sign">{% if dl.t == 'add' %}+{% elif dl.t == 'rem' %}-{% endif %}</span>
+                                                                </div>
+                                                                <span class="tl-dl-ct">{{ dl.c }}</span>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if ce.results %}
+                                                    <div class="tl-tc-row">
+                                                        {% for r in ce.results %}
+                                                        <span class="tl-tc-tag {% if r.is_correct %}tl-tc-ok{% else %}tl-tc-fail{% endif %}">
+                                                            TC{{ forloop.counter }}: {% if r.is_correct %}✓{% else %}✗{% endif %}
+                                                        </span>
+                                                        {% endfor %}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p class="no-answer">Aluno não utilizou o botão Executar neste exercício.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endwith %}
@@ -232,6 +311,14 @@
                 }
             });
         });
+
+        function tlToggle(btn, panelId) {
+            const panel = document.getElementById(panelId);
+            const isOpen = panel.classList.contains('open');
+            panel.classList.toggle('open', !isOpen);
+            btn.classList.toggle('open', !isOpen);
+            btn.setAttribute('aria-expanded', String(!isOpen));
+        }
     </script>
 
 {% endblock main_content %}

@@ -1,6 +1,7 @@
 """Views do app student."""
 from __future__ import annotations
 
+import difflib
 from typing import Any
 
 from activity.models import ActivityListGroup, Exercise, ExerciseOption
@@ -974,6 +975,27 @@ class TeacherGradeView(_TeacherAccessMixin, View):
 
     template_name = 'student/teacher_grade.html'
 
+    @staticmethod
+    def _compute_exec_diff(prev: str, curr: str) -> list[dict]:
+        """Diff linha a linha entre duas versões de código (para o painel de timeline)."""
+        prev_lines = prev.splitlines()
+        curr_lines = curr.splitlines()
+        lines: list[dict] = []
+        for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, prev_lines, curr_lines).get_opcodes():
+            if tag == 'equal':
+                for k in range(i2 - i1):
+                    lines.append({'t': 'ctx', 'ol': i1 + k + 1, 'nl': j1 + k + 1, 'c': prev_lines[i1 + k]})
+            elif tag in ('replace', 'delete'):
+                for k in range(i2 - i1):
+                    lines.append({'t': 'rem', 'ol': i1 + k + 1, 'nl': '', 'c': prev_lines[i1 + k]})
+                if tag == 'replace':
+                    for k in range(j2 - j1):
+                        lines.append({'t': 'add', 'ol': '', 'nl': j1 + k + 1, 'c': curr_lines[j1 + k]})
+            elif tag == 'insert':
+                for k in range(j2 - j1):
+                    lines.append({'t': 'add', 'ol': '', 'nl': j1 + k + 1, 'c': curr_lines[j1 + k]})
+        return lines
+
     def _get_submission(self, activity_link: ActivityListGroup) -> Submission:
         """Retorna a submissão entregue para correção ou levanta 404.
 
@@ -1010,8 +1032,19 @@ class TeacherGradeView(_TeacherAccessMixin, View):
             a.exercise_id: a
             for a in submission.answers.select_related('selected_option').all()
         }
+
+        execs_by_exercise: dict[int, list] = {}
+        for ce in submission.code_executions.order_by('created_at'):
+            execs_by_exercise.setdefault(ce.exercise_id, []).append(ce)
+
         for ex in exercises:
             ex.answer = answers.get(ex.pk)
+            execs = execs_by_exercise.get(ex.pk, [])
+            for i, ce in enumerate(execs):
+                ce.exec_num = i + 1
+                ce.is_baseline = i == 0
+                ce.diff = None if i == 0 else self._compute_exec_diff(execs[i - 1].source_code, ce.source_code)
+            ex.code_executions_list = execs
 
         return {
             'activity_link': activity_link,
@@ -1483,7 +1516,8 @@ class StudentRunCodeView(_ActivityAccessMixin, View):
 
         if not submission:
             return render(request, 'student/partials/_run_code_result.html', {
-                'error': 'Nenhuma tentativa em andamento. Recarregue a página para continuar.',
+                'error': 'Nenhuma tentativa em andamento.',
+                'needs_reload': True,
                 'exercise_pk': exercise_pk,
             })
 

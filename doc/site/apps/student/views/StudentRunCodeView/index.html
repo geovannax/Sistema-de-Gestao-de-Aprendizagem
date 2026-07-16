@@ -5838,40 +5838,7 @@ limite atingido) retorna <code>_run_code_result.html</code> com a mensagem de er
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>student/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1443">1443</a></span>
-<span class="normal"><a href="#__codelineno-0-1444">1444</a></span>
-<span class="normal"><a href="#__codelineno-0-1445">1445</a></span>
-<span class="normal"><a href="#__codelineno-0-1446">1446</a></span>
-<span class="normal"><a href="#__codelineno-0-1447">1447</a></span>
-<span class="normal"><a href="#__codelineno-0-1448">1448</a></span>
-<span class="normal"><a href="#__codelineno-0-1449">1449</a></span>
-<span class="normal"><a href="#__codelineno-0-1450">1450</a></span>
-<span class="normal"><a href="#__codelineno-0-1451">1451</a></span>
-<span class="normal"><a href="#__codelineno-0-1452">1452</a></span>
-<span class="normal"><a href="#__codelineno-0-1453">1453</a></span>
-<span class="normal"><a href="#__codelineno-0-1454">1454</a></span>
-<span class="normal"><a href="#__codelineno-0-1455">1455</a></span>
-<span class="normal"><a href="#__codelineno-0-1456">1456</a></span>
-<span class="normal"><a href="#__codelineno-0-1457">1457</a></span>
-<span class="normal"><a href="#__codelineno-0-1458">1458</a></span>
-<span class="normal"><a href="#__codelineno-0-1459">1459</a></span>
-<span class="normal"><a href="#__codelineno-0-1460">1460</a></span>
-<span class="normal"><a href="#__codelineno-0-1461">1461</a></span>
-<span class="normal"><a href="#__codelineno-0-1462">1462</a></span>
-<span class="normal"><a href="#__codelineno-0-1463">1463</a></span>
-<span class="normal"><a href="#__codelineno-0-1464">1464</a></span>
-<span class="normal"><a href="#__codelineno-0-1465">1465</a></span>
-<span class="normal"><a href="#__codelineno-0-1466">1466</a></span>
-<span class="normal"><a href="#__codelineno-0-1467">1467</a></span>
-<span class="normal"><a href="#__codelineno-0-1468">1468</a></span>
-<span class="normal"><a href="#__codelineno-0-1469">1469</a></span>
-<span class="normal"><a href="#__codelineno-0-1470">1470</a></span>
-<span class="normal"><a href="#__codelineno-0-1471">1471</a></span>
-<span class="normal"><a href="#__codelineno-0-1472">1472</a></span>
-<span class="normal"><a href="#__codelineno-0-1473">1473</a></span>
-<span class="normal"><a href="#__codelineno-0-1474">1474</a></span>
-<span class="normal"><a href="#__codelineno-0-1475">1475</a></span>
-<span class="normal"><a href="#__codelineno-0-1476">1476</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1476">1476</a></span>
 <span class="normal"><a href="#__codelineno-0-1477">1477</a></span>
 <span class="normal"><a href="#__codelineno-0-1478">1478</a></span>
 <span class="normal"><a href="#__codelineno-0-1479">1479</a></span>
@@ -5920,89 +5887,124 @@ limite atingido) retorna <code>_run_code_result.html</code> com a mensagem de er
 <span class="normal"><a href="#__codelineno-0-1522">1522</a></span>
 <span class="normal"><a href="#__codelineno-0-1523">1523</a></span>
 <span class="normal"><a href="#__codelineno-0-1524">1524</a></span>
-<span class="normal"><a href="#__codelineno-0-1525">1525</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1443" name="__codelineno-0-1443"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-1444" name="__codelineno-0-1444"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Valida o exercício, verifica limite de execuções e enfileira a tarefa Celery.</span>
-<a id="__codelineno-0-1445" name="__codelineno-0-1445"></a>
-<a id="__codelineno-0-1446" name="__codelineno-0-1446"></a><span class="sd">    Retorna o fragmento de polling ``_run_code_polling.html`` com a URL de</span>
-<a id="__codelineno-0-1447" name="__codelineno-0-1447"></a><span class="sd">    verificação de status. Em caso de erro (exercício inválido, código vazio,</span>
-<a id="__codelineno-0-1448" name="__codelineno-0-1448"></a><span class="sd">    limite atingido) retorna ``_run_code_result.html`` com a mensagem de erro.</span>
-<a id="__codelineno-0-1449" name="__codelineno-0-1449"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-1450" name="__codelineno-0-1450"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">student.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute_code_task</span>
-<a id="__codelineno-0-1451" name="__codelineno-0-1451"></a>
-<a id="__codelineno-0-1452" name="__codelineno-0-1452"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
-<a id="__codelineno-0-1453" name="__codelineno-0-1453"></a>
-<a id="__codelineno-0-1454" name="__codelineno-0-1454"></a>    <span class="n">exercise_pk_str</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-1455" name="__codelineno-0-1455"></a>        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exercise_pk&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;current_exercise_pk&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-1456" name="__codelineno-0-1456"></a>    <span class="p">)</span>
-<a id="__codelineno-0-1457" name="__codelineno-0-1457"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">exercise_pk_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
-<a id="__codelineno-0-1458" name="__codelineno-0-1458"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-1459" name="__codelineno-0-1459"></a>                      <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Exercício inválido.&#39;</span><span class="p">})</span>
-<a id="__codelineno-0-1460" name="__codelineno-0-1460"></a>
-<a id="__codelineno-0-1461" name="__codelineno-0-1461"></a>    <span class="n">exercise_pk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exercise_pk_str</span><span class="p">)</span>
-<a id="__codelineno-0-1462" name="__codelineno-0-1462"></a>
-<a id="__codelineno-0-1463" name="__codelineno-0-1463"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-1464" name="__codelineno-0-1464"></a>        <span class="n">exercise</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-1465" name="__codelineno-0-1465"></a>            <span class="n">Exercise</span><span class="o">.</span><span class="n">objects</span>
-<a id="__codelineno-0-1466" name="__codelineno-0-1466"></a>            <span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;code_exercise&#39;</span><span class="p">,</span> <span class="s1">&#39;complete_code_exercise&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-1467" name="__codelineno-0-1467"></a>            <span class="o">.</span><span class="n">get</span><span class="p">(</span>
-<a id="__codelineno-0-1468" name="__codelineno-0-1468"></a>                <span class="n">pk</span><span class="o">=</span><span class="n">exercise_pk</span><span class="p">,</span>
-<a id="__codelineno-0-1469" name="__codelineno-0-1469"></a>                <span class="n">activity_list</span><span class="o">=</span><span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="p">,</span>
-<a id="__codelineno-0-1470" name="__codelineno-0-1470"></a>                <span class="n">type__in</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;complete_code&#39;</span><span class="p">],</span>
-<a id="__codelineno-0-1471" name="__codelineno-0-1471"></a>                <span class="n">is_annulled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-1472" name="__codelineno-0-1472"></a>            <span class="p">)</span>
-<a id="__codelineno-0-1473" name="__codelineno-0-1473"></a>        <span class="p">)</span>
-<a id="__codelineno-0-1474" name="__codelineno-0-1474"></a>    <span class="k">except</span> <span class="n">Exercise</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
-<a id="__codelineno-0-1475" name="__codelineno-0-1475"></a>        <span class="k">raise</span> <span class="n">Http404</span>
-<a id="__codelineno-0-1476" name="__codelineno-0-1476"></a>
-<a id="__codelineno-0-1477" name="__codelineno-0-1477"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-1478" name="__codelineno-0-1478"></a>        <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-1479" name="__codelineno-0-1479"></a>        <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-1480" name="__codelineno-0-1480"></a>        <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-1481" name="__codelineno-0-1481"></a>        <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-1482" name="__codelineno-0-1482"></a>    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-<a id="__codelineno-0-1483" name="__codelineno-0-1483"></a>
-<a id="__codelineno-0-1484" name="__codelineno-0-1484"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">submission</span><span class="p">:</span>
-<a id="__codelineno-0-1485" name="__codelineno-0-1485"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span> <span class="p">{</span>
-<a id="__codelineno-0-1486" name="__codelineno-0-1486"></a>            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Nenhuma tentativa em andamento. Recarregue a página para continuar.&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-1487" name="__codelineno-0-1487"></a>            <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
-<a id="__codelineno-0-1488" name="__codelineno-0-1488"></a>        <span class="p">})</span>
-<a id="__codelineno-0-1489" name="__codelineno-0-1489"></a>
-<a id="__codelineno-0-1490" name="__codelineno-0-1490"></a>    <span class="n">max_exec</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-1491" name="__codelineno-0-1491"></a>        <span class="n">exercise</span><span class="o">.</span><span class="n">code_exercise</span><span class="o">.</span><span class="n">max_executions</span>
-<a id="__codelineno-0-1492" name="__codelineno-0-1492"></a>        <span class="k">if</span> <span class="n">exercise</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;code&#39;</span>
-<a id="__codelineno-0-1493" name="__codelineno-0-1493"></a>        <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-1494" name="__codelineno-0-1494"></a>    <span class="p">)</span>
-<a id="__codelineno-0-1495" name="__codelineno-0-1495"></a>    <span class="k">if</span> <span class="n">max_exec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-1496" name="__codelineno-0-1496"></a>        <span class="n">used</span> <span class="o">=</span> <span class="n">CodeExecution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-1497" name="__codelineno-0-1497"></a>            <span class="n">submission</span><span class="o">=</span><span class="n">submission</span><span class="p">,</span> <span class="n">exercise</span><span class="o">=</span><span class="n">exercise</span>
-<a id="__codelineno-0-1498" name="__codelineno-0-1498"></a>        <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<a id="__codelineno-0-1499" name="__codelineno-0-1499"></a>        <span class="k">if</span> <span class="n">used</span> <span class="o">&gt;=</span> <span class="n">max_exec</span><span class="p">:</span>
-<a id="__codelineno-0-1500" name="__codelineno-0-1500"></a>            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span> <span class="p">{</span>
-<a id="__codelineno-0-1501" name="__codelineno-0-1501"></a>                <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Limite de </span><span class="si">{</span><span class="n">max_exec</span><span class="si">}</span><span class="s1"> execuções atingido para este exercício.&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-1502" name="__codelineno-0-1502"></a>                <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
-<a id="__codelineno-0-1503" name="__codelineno-0-1503"></a>            <span class="p">})</span>
-<a id="__codelineno-0-1504" name="__codelineno-0-1504"></a>
-<a id="__codelineno-0-1505" name="__codelineno-0-1505"></a>    <span class="n">source_code</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-1506" name="__codelineno-0-1506"></a>        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source_code&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;answer_text&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-1507" name="__codelineno-0-1507"></a>    <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<a id="__codelineno-0-1508" name="__codelineno-0-1508"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">source_code</span><span class="p">:</span>
-<a id="__codelineno-0-1509" name="__codelineno-0-1509"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span> <span class="p">{</span>
-<a id="__codelineno-0-1510" name="__codelineno-0-1510"></a>            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;O código não pode estar vazio.&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-1511" name="__codelineno-0-1511"></a>            <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
-<a id="__codelineno-0-1512" name="__codelineno-0-1512"></a>        <span class="p">})</span>
-<a id="__codelineno-0-1513" name="__codelineno-0-1513"></a>
-<a id="__codelineno-0-1514" name="__codelineno-0-1514"></a>    <span class="n">task</span> <span class="o">=</span> <span class="n">execute_code_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">submission</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="n">exercise</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="n">source_code</span><span class="p">)</span>
-<a id="__codelineno-0-1515" name="__codelineno-0-1515"></a>
-<a id="__codelineno-0-1516" name="__codelineno-0-1516"></a>    <span class="n">poll_url</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-1517" name="__codelineno-0-1517"></a>        <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;student:activity_run_code_poll&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-1518" name="__codelineno-0-1518"></a>                <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;link_pk&#39;</span><span class="p">:</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">})</span>
-<a id="__codelineno-0-1519" name="__codelineno-0-1519"></a>        <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;?exercise_pk=</span><span class="si">{</span><span class="n">exercise_pk</span><span class="si">}</span><span class="s1">&#39;</span>
-<a id="__codelineno-0-1520" name="__codelineno-0-1520"></a>    <span class="p">)</span>
-<a id="__codelineno-0-1521" name="__codelineno-0-1521"></a>
-<a id="__codelineno-0-1522" name="__codelineno-0-1522"></a>    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_polling.html&#39;</span><span class="p">,</span> <span class="p">{</span>
-<a id="__codelineno-0-1523" name="__codelineno-0-1523"></a>        <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
-<a id="__codelineno-0-1524" name="__codelineno-0-1524"></a>        <span class="s1">&#39;poll_url&#39;</span><span class="p">:</span> <span class="n">poll_url</span><span class="p">,</span>
-<a id="__codelineno-0-1525" name="__codelineno-0-1525"></a>    <span class="p">})</span>
+<span class="normal"><a href="#__codelineno-0-1525">1525</a></span>
+<span class="normal"><a href="#__codelineno-0-1526">1526</a></span>
+<span class="normal"><a href="#__codelineno-0-1527">1527</a></span>
+<span class="normal"><a href="#__codelineno-0-1528">1528</a></span>
+<span class="normal"><a href="#__codelineno-0-1529">1529</a></span>
+<span class="normal"><a href="#__codelineno-0-1530">1530</a></span>
+<span class="normal"><a href="#__codelineno-0-1531">1531</a></span>
+<span class="normal"><a href="#__codelineno-0-1532">1532</a></span>
+<span class="normal"><a href="#__codelineno-0-1533">1533</a></span>
+<span class="normal"><a href="#__codelineno-0-1534">1534</a></span>
+<span class="normal"><a href="#__codelineno-0-1535">1535</a></span>
+<span class="normal"><a href="#__codelineno-0-1536">1536</a></span>
+<span class="normal"><a href="#__codelineno-0-1537">1537</a></span>
+<span class="normal"><a href="#__codelineno-0-1538">1538</a></span>
+<span class="normal"><a href="#__codelineno-0-1539">1539</a></span>
+<span class="normal"><a href="#__codelineno-0-1540">1540</a></span>
+<span class="normal"><a href="#__codelineno-0-1541">1541</a></span>
+<span class="normal"><a href="#__codelineno-0-1542">1542</a></span>
+<span class="normal"><a href="#__codelineno-0-1543">1543</a></span>
+<span class="normal"><a href="#__codelineno-0-1544">1544</a></span>
+<span class="normal"><a href="#__codelineno-0-1545">1545</a></span>
+<span class="normal"><a href="#__codelineno-0-1546">1546</a></span>
+<span class="normal"><a href="#__codelineno-0-1547">1547</a></span>
+<span class="normal"><a href="#__codelineno-0-1548">1548</a></span>
+<span class="normal"><a href="#__codelineno-0-1549">1549</a></span>
+<span class="normal"><a href="#__codelineno-0-1550">1550</a></span>
+<span class="normal"><a href="#__codelineno-0-1551">1551</a></span>
+<span class="normal"><a href="#__codelineno-0-1552">1552</a></span>
+<span class="normal"><a href="#__codelineno-0-1553">1553</a></span>
+<span class="normal"><a href="#__codelineno-0-1554">1554</a></span>
+<span class="normal"><a href="#__codelineno-0-1555">1555</a></span>
+<span class="normal"><a href="#__codelineno-0-1556">1556</a></span>
+<span class="normal"><a href="#__codelineno-0-1557">1557</a></span>
+<span class="normal"><a href="#__codelineno-0-1558">1558</a></span>
+<span class="normal"><a href="#__codelineno-0-1559">1559</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1476" name="__codelineno-0-1476"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-1477" name="__codelineno-0-1477"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Valida o exercício, verifica limite de execuções e enfileira a tarefa Celery.</span>
+<a id="__codelineno-0-1478" name="__codelineno-0-1478"></a>
+<a id="__codelineno-0-1479" name="__codelineno-0-1479"></a><span class="sd">    Retorna o fragmento de polling ``_run_code_polling.html`` com a URL de</span>
+<a id="__codelineno-0-1480" name="__codelineno-0-1480"></a><span class="sd">    verificação de status. Em caso de erro (exercício inválido, código vazio,</span>
+<a id="__codelineno-0-1481" name="__codelineno-0-1481"></a><span class="sd">    limite atingido) retorna ``_run_code_result.html`` com a mensagem de erro.</span>
+<a id="__codelineno-0-1482" name="__codelineno-0-1482"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-1483" name="__codelineno-0-1483"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">student.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">execute_code_task</span>
+<a id="__codelineno-0-1484" name="__codelineno-0-1484"></a>
+<a id="__codelineno-0-1485" name="__codelineno-0-1485"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
+<a id="__codelineno-0-1486" name="__codelineno-0-1486"></a>
+<a id="__codelineno-0-1487" name="__codelineno-0-1487"></a>    <span class="n">exercise_pk_str</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-1488" name="__codelineno-0-1488"></a>        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exercise_pk&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;current_exercise_pk&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-1489" name="__codelineno-0-1489"></a>    <span class="p">)</span>
+<a id="__codelineno-0-1490" name="__codelineno-0-1490"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">exercise_pk_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+<a id="__codelineno-0-1491" name="__codelineno-0-1491"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-1492" name="__codelineno-0-1492"></a>                      <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Exercício inválido.&#39;</span><span class="p">})</span>
+<a id="__codelineno-0-1493" name="__codelineno-0-1493"></a>
+<a id="__codelineno-0-1494" name="__codelineno-0-1494"></a>    <span class="n">exercise_pk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exercise_pk_str</span><span class="p">)</span>
+<a id="__codelineno-0-1495" name="__codelineno-0-1495"></a>
+<a id="__codelineno-0-1496" name="__codelineno-0-1496"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-1497" name="__codelineno-0-1497"></a>        <span class="n">exercise</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-1498" name="__codelineno-0-1498"></a>            <span class="n">Exercise</span><span class="o">.</span><span class="n">objects</span>
+<a id="__codelineno-0-1499" name="__codelineno-0-1499"></a>            <span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;code_exercise&#39;</span><span class="p">,</span> <span class="s1">&#39;complete_code_exercise&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-1500" name="__codelineno-0-1500"></a>            <span class="o">.</span><span class="n">get</span><span class="p">(</span>
+<a id="__codelineno-0-1501" name="__codelineno-0-1501"></a>                <span class="n">pk</span><span class="o">=</span><span class="n">exercise_pk</span><span class="p">,</span>
+<a id="__codelineno-0-1502" name="__codelineno-0-1502"></a>                <span class="n">activity_list</span><span class="o">=</span><span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="p">,</span>
+<a id="__codelineno-0-1503" name="__codelineno-0-1503"></a>                <span class="n">type__in</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;complete_code&#39;</span><span class="p">],</span>
+<a id="__codelineno-0-1504" name="__codelineno-0-1504"></a>                <span class="n">is_annulled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-1505" name="__codelineno-0-1505"></a>            <span class="p">)</span>
+<a id="__codelineno-0-1506" name="__codelineno-0-1506"></a>        <span class="p">)</span>
+<a id="__codelineno-0-1507" name="__codelineno-0-1507"></a>    <span class="k">except</span> <span class="n">Exercise</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+<a id="__codelineno-0-1508" name="__codelineno-0-1508"></a>        <span class="k">raise</span> <span class="n">Http404</span>
+<a id="__codelineno-0-1509" name="__codelineno-0-1509"></a>
+<a id="__codelineno-0-1510" name="__codelineno-0-1510"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-1511" name="__codelineno-0-1511"></a>        <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-1512" name="__codelineno-0-1512"></a>        <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-1513" name="__codelineno-0-1513"></a>        <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-1514" name="__codelineno-0-1514"></a>        <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-1515" name="__codelineno-0-1515"></a>    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-0-1516" name="__codelineno-0-1516"></a>
+<a id="__codelineno-0-1517" name="__codelineno-0-1517"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">submission</span><span class="p">:</span>
+<a id="__codelineno-0-1518" name="__codelineno-0-1518"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+<a id="__codelineno-0-1519" name="__codelineno-0-1519"></a>            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Nenhuma tentativa em andamento.&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-1520" name="__codelineno-0-1520"></a>            <span class="s1">&#39;needs_reload&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-1521" name="__codelineno-0-1521"></a>            <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
+<a id="__codelineno-0-1522" name="__codelineno-0-1522"></a>        <span class="p">})</span>
+<a id="__codelineno-0-1523" name="__codelineno-0-1523"></a>
+<a id="__codelineno-0-1524" name="__codelineno-0-1524"></a>    <span class="n">max_exec</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-1525" name="__codelineno-0-1525"></a>        <span class="n">exercise</span><span class="o">.</span><span class="n">code_exercise</span><span class="o">.</span><span class="n">max_executions</span>
+<a id="__codelineno-0-1526" name="__codelineno-0-1526"></a>        <span class="k">if</span> <span class="n">exercise</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;code&#39;</span>
+<a id="__codelineno-0-1527" name="__codelineno-0-1527"></a>        <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-1528" name="__codelineno-0-1528"></a>    <span class="p">)</span>
+<a id="__codelineno-0-1529" name="__codelineno-0-1529"></a>    <span class="k">if</span> <span class="n">max_exec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-1530" name="__codelineno-0-1530"></a>        <span class="n">used</span> <span class="o">=</span> <span class="n">CodeExecution</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-1531" name="__codelineno-0-1531"></a>            <span class="n">submission</span><span class="o">=</span><span class="n">submission</span><span class="p">,</span> <span class="n">exercise</span><span class="o">=</span><span class="n">exercise</span>
+<a id="__codelineno-0-1532" name="__codelineno-0-1532"></a>        <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<a id="__codelineno-0-1533" name="__codelineno-0-1533"></a>        <span class="k">if</span> <span class="n">used</span> <span class="o">&gt;=</span> <span class="n">max_exec</span><span class="p">:</span>
+<a id="__codelineno-0-1534" name="__codelineno-0-1534"></a>            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+<a id="__codelineno-0-1535" name="__codelineno-0-1535"></a>                <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Limite de </span><span class="si">{</span><span class="n">max_exec</span><span class="si">}</span><span class="s1"> execuções atingido para este exercício.&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-1536" name="__codelineno-0-1536"></a>                <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
+<a id="__codelineno-0-1537" name="__codelineno-0-1537"></a>            <span class="p">})</span>
+<a id="__codelineno-0-1538" name="__codelineno-0-1538"></a>
+<a id="__codelineno-0-1539" name="__codelineno-0-1539"></a>    <span class="n">source_code</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-1540" name="__codelineno-0-1540"></a>        <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source_code&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;answer_text&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-1541" name="__codelineno-0-1541"></a>    <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-0-1542" name="__codelineno-0-1542"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">source_code</span><span class="p">:</span>
+<a id="__codelineno-0-1543" name="__codelineno-0-1543"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_result.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+<a id="__codelineno-0-1544" name="__codelineno-0-1544"></a>            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;O código não pode estar vazio.&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-1545" name="__codelineno-0-1545"></a>            <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
+<a id="__codelineno-0-1546" name="__codelineno-0-1546"></a>        <span class="p">})</span>
+<a id="__codelineno-0-1547" name="__codelineno-0-1547"></a>
+<a id="__codelineno-0-1548" name="__codelineno-0-1548"></a>    <span class="n">task</span> <span class="o">=</span> <span class="n">execute_code_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">submission</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="n">exercise</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="n">source_code</span><span class="p">)</span>
+<a id="__codelineno-0-1549" name="__codelineno-0-1549"></a>
+<a id="__codelineno-0-1550" name="__codelineno-0-1550"></a>    <span class="n">poll_url</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-1551" name="__codelineno-0-1551"></a>        <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;student:activity_run_code_poll&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-1552" name="__codelineno-0-1552"></a>                <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;link_pk&#39;</span><span class="p">:</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">})</span>
+<a id="__codelineno-0-1553" name="__codelineno-0-1553"></a>        <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;?exercise_pk=</span><span class="si">{</span><span class="n">exercise_pk</span><span class="si">}</span><span class="s1">&#39;</span>
+<a id="__codelineno-0-1554" name="__codelineno-0-1554"></a>    <span class="p">)</span>
+<a id="__codelineno-0-1555" name="__codelineno-0-1555"></a>
+<a id="__codelineno-0-1556" name="__codelineno-0-1556"></a>    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_run_code_polling.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+<a id="__codelineno-0-1557" name="__codelineno-0-1557"></a>        <span class="s1">&#39;exercise_pk&#39;</span><span class="p">:</span> <span class="n">exercise_pk</span><span class="p">,</span>
+<a id="__codelineno-0-1558" name="__codelineno-0-1558"></a>        <span class="s1">&#39;poll_url&#39;</span><span class="p">:</span> <span class="n">poll_url</span><span class="p">,</span>
+<a id="__codelineno-0-1559" name="__codelineno-0-1559"></a>    <span class="p">})</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

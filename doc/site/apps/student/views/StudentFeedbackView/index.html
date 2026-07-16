@@ -5835,47 +5835,47 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>student/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1232">1232</a></span>
-<span class="normal"><a href="#__codelineno-0-1233">1233</a></span>
-<span class="normal"><a href="#__codelineno-0-1234">1234</a></span>
-<span class="normal"><a href="#__codelineno-0-1235">1235</a></span>
-<span class="normal"><a href="#__codelineno-0-1236">1236</a></span>
-<span class="normal"><a href="#__codelineno-0-1237">1237</a></span>
-<span class="normal"><a href="#__codelineno-0-1238">1238</a></span>
-<span class="normal"><a href="#__codelineno-0-1239">1239</a></span>
-<span class="normal"><a href="#__codelineno-0-1240">1240</a></span>
-<span class="normal"><a href="#__codelineno-0-1241">1241</a></span>
-<span class="normal"><a href="#__codelineno-0-1242">1242</a></span>
-<span class="normal"><a href="#__codelineno-0-1243">1243</a></span>
-<span class="normal"><a href="#__codelineno-0-1244">1244</a></span>
-<span class="normal"><a href="#__codelineno-0-1245">1245</a></span>
-<span class="normal"><a href="#__codelineno-0-1246">1246</a></span>
-<span class="normal"><a href="#__codelineno-0-1247">1247</a></span>
-<span class="normal"><a href="#__codelineno-0-1248">1248</a></span>
-<span class="normal"><a href="#__codelineno-0-1249">1249</a></span>
-<span class="normal"><a href="#__codelineno-0-1250">1250</a></span>
-<span class="normal"><a href="#__codelineno-0-1251">1251</a></span>
-<span class="normal"><a href="#__codelineno-0-1252">1252</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1232" name="__codelineno-0-1232"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-1233" name="__codelineno-0-1233"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Persiste ``student_feedback`` na submissão mais recente e redireciona para a turma.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-1234" name="__codelineno-0-1234"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
-<a id="__codelineno-0-1235" name="__codelineno-0-1235"></a>    <span class="n">max_att</span> <span class="o">=</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="o">.</span><span class="n">max_attempts</span>
-<a id="__codelineno-0-1236" name="__codelineno-0-1236"></a>
-<a id="__codelineno-0-1237" name="__codelineno-0-1237"></a>    <span class="n">qs</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-1238" name="__codelineno-0-1238"></a>        <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-1239" name="__codelineno-0-1239"></a>        <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-1240" name="__codelineno-0-1240"></a>        <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-1241" name="__codelineno-0-1241"></a>    <span class="p">)</span>
-<a id="__codelineno-0-1242" name="__codelineno-0-1242"></a>    <span class="k">if</span> <span class="n">max_att</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-1243" name="__codelineno-0-1243"></a>        <span class="n">qs</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-0-1244" name="__codelineno-0-1244"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-attempt_number&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-<a id="__codelineno-0-1245" name="__codelineno-0-1245"></a>
-<a id="__codelineno-0-1246" name="__codelineno-0-1246"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">submission</span><span class="p">:</span>
-<a id="__codelineno-0-1247" name="__codelineno-0-1247"></a>        <span class="k">raise</span> <span class="n">Http404</span>
-<a id="__codelineno-0-1248" name="__codelineno-0-1248"></a>
-<a id="__codelineno-0-1249" name="__codelineno-0-1249"></a>    <span class="n">submission</span><span class="o">.</span><span class="n">student_feedback</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;student_feedback&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<a id="__codelineno-0-1250" name="__codelineno-0-1250"></a>    <span class="n">submission</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">update_fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;student_feedback&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-1251" name="__codelineno-0-1251"></a>
-<a id="__codelineno-0-1252" name="__codelineno-0-1252"></a>    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:group_detail&#39;</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">activity_link</span><span class="o">.</span><span class="n">group</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1265">1265</a></span>
+<span class="normal"><a href="#__codelineno-0-1266">1266</a></span>
+<span class="normal"><a href="#__codelineno-0-1267">1267</a></span>
+<span class="normal"><a href="#__codelineno-0-1268">1268</a></span>
+<span class="normal"><a href="#__codelineno-0-1269">1269</a></span>
+<span class="normal"><a href="#__codelineno-0-1270">1270</a></span>
+<span class="normal"><a href="#__codelineno-0-1271">1271</a></span>
+<span class="normal"><a href="#__codelineno-0-1272">1272</a></span>
+<span class="normal"><a href="#__codelineno-0-1273">1273</a></span>
+<span class="normal"><a href="#__codelineno-0-1274">1274</a></span>
+<span class="normal"><a href="#__codelineno-0-1275">1275</a></span>
+<span class="normal"><a href="#__codelineno-0-1276">1276</a></span>
+<span class="normal"><a href="#__codelineno-0-1277">1277</a></span>
+<span class="normal"><a href="#__codelineno-0-1278">1278</a></span>
+<span class="normal"><a href="#__codelineno-0-1279">1279</a></span>
+<span class="normal"><a href="#__codelineno-0-1280">1280</a></span>
+<span class="normal"><a href="#__codelineno-0-1281">1281</a></span>
+<span class="normal"><a href="#__codelineno-0-1282">1282</a></span>
+<span class="normal"><a href="#__codelineno-0-1283">1283</a></span>
+<span class="normal"><a href="#__codelineno-0-1284">1284</a></span>
+<span class="normal"><a href="#__codelineno-0-1285">1285</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1265" name="__codelineno-0-1265"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-1266" name="__codelineno-0-1266"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Persiste ``student_feedback`` na submissão mais recente e redireciona para a turma.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-1267" name="__codelineno-0-1267"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
+<a id="__codelineno-0-1268" name="__codelineno-0-1268"></a>    <span class="n">max_att</span> <span class="o">=</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="o">.</span><span class="n">max_attempts</span>
+<a id="__codelineno-0-1269" name="__codelineno-0-1269"></a>
+<a id="__codelineno-0-1270" name="__codelineno-0-1270"></a>    <span class="n">qs</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-1271" name="__codelineno-0-1271"></a>        <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-1272" name="__codelineno-0-1272"></a>        <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-1273" name="__codelineno-0-1273"></a>        <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-1274" name="__codelineno-0-1274"></a>    <span class="p">)</span>
+<a id="__codelineno-0-1275" name="__codelineno-0-1275"></a>    <span class="k">if</span> <span class="n">max_att</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-1276" name="__codelineno-0-1276"></a>        <span class="n">qs</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-1277" name="__codelineno-0-1277"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-attempt_number&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-0-1278" name="__codelineno-0-1278"></a>
+<a id="__codelineno-0-1279" name="__codelineno-0-1279"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">submission</span><span class="p">:</span>
+<a id="__codelineno-0-1280" name="__codelineno-0-1280"></a>        <span class="k">raise</span> <span class="n">Http404</span>
+<a id="__codelineno-0-1281" name="__codelineno-0-1281"></a>
+<a id="__codelineno-0-1282" name="__codelineno-0-1282"></a>    <span class="n">submission</span><span class="o">.</span><span class="n">student_feedback</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;student_feedback&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-0-1283" name="__codelineno-0-1283"></a>    <span class="n">submission</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">update_fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;student_feedback&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-1284" name="__codelineno-0-1284"></a>
+<a id="__codelineno-0-1285" name="__codelineno-0-1285"></a>    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:group_detail&#39;</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">activity_link</span><span class="o">.</span><span class="n">group</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
