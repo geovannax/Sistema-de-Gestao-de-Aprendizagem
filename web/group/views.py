@@ -24,7 +24,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
-from django.db.models import Count, Exists, OuterRef, Q, QuerySet
+from django.db.models import Avg, Case, Count, DecimalField, Exists, IntegerField, OuterRef, Q, QuerySet, Sum, When
 from django.db.utils import IntegrityError
 from django.forms import BaseModelForm
 from django.http import HttpRequest, HttpResponse
@@ -363,20 +363,26 @@ class GroupDetailView(
         return False
 
     def get_context_data(self, **kwargs: Any) -> dict:
-        """Calcula KPIs reais da turma: alunos, conclusão, atividades, pendências e risco."""
+        """Calcula KPIs reais da turma: visão geral, nota, tempo, performance e risco."""
+        import statistics as stats_lib
+        from decimal import Decimal
         context = super().get_context_data(**kwargs)
         group = self.object
 
-        students_enrolled = group.students.filter(is_active=True).count()
-
-        submitted_ids = set(
-            Submission.objects.filter(
-                activity_link__group=group,
-                submitted_at__isnull=False,
-                is_abandoned=False,
-            ).values_list('student_id', flat=True).distinct()
+        submissions = Submission.objects.filter(
+            activity_link__group=group,
+            submitted_at__isnull=False,
+            is_abandoned=False,
         )
-        students_submitted = len(submitted_ids)
+
+        # ── Visão Geral ───────────────────────────────────────────────────
+        students_enrolled = group.students.filter(is_active=True).count()
+        students_submitted = submissions.values('student').distinct().count()
+        students_started = (
+            Submission.objects.filter(activity_link__group=group)
+            .values('student').distinct().count()
+        )
+        students_abandoned = students_started - students_submitted
         completion_pct = round(students_submitted / students_enrolled * 100) if students_enrolled else 0
 
         activities = list(
@@ -386,10 +392,7 @@ class GroupDetailView(
             .annotate(
                 submitted_count=Count(
                     'submissions__student',
-                    filter=Q(
-                        submissions__submitted_at__isnull=False,
-                        submissions__is_abandoned=False,
-                    ),
+                    filter=Q(submissions__submitted_at__isnull=False, submissions__is_abandoned=False),
                     distinct=True,
                 )
             )
@@ -397,13 +400,44 @@ class GroupDetailView(
         )
         activities_count = len(activities)
 
-        pending_count = ExerciseAnswer.objects.filter(
-            submission__activity_link__group=group,
-            submission__submitted_at__isnull=False,
-            submission__is_abandoned=False,
-            is_correct__isnull=True,
-        ).count()
+        # ── Nota & Aproveitamento ─────────────────────────────────────────
+        sub_scores = list(
+            ExerciseAnswer.objects
+            .filter(submission__in=submissions, exercise__is_annulled=False)
+            .values('submission_id')
+            .annotate(
+                points_earned=Sum(
+                    Case(When(is_correct=True, then='exercise__points'),
+                         default=Decimal(0), output_field=DecimalField())
+                ),
+                points_total=Sum('exercise__points', output_field=DecimalField()),
+                pending=Sum(Case(When(is_correct=None, then=1), default=0, output_field=IntegerField())),
+            )
+        )
+        points_list = [float(s['points_earned'] or 0) for s in sub_scores if s['points_total']]
+        avg_points = round(sum(points_list) / len(points_list), 2) if points_list else None
+        median_points = round(stats_lib.median(points_list), 2) if points_list else None
 
+        pct_list = [round(float(s['points_earned'] or 0) / float(s['points_total']) * 100) for s in sub_scores if s['points_total']]
+        avg_pct = round(sum(pct_list) / len(pct_list)) if pct_list else None
+        median_pct = round(stats_lib.median(pct_list)) if pct_list else None
+
+        pending_count = sum(s['pending'] or 0 for s in sub_scores)
+        total_submissions = submissions.count()
+
+        # ── Tempo de realização ───────────────────────────────────────────
+        time_per_sub = list(
+            ExerciseAnswer.objects
+            .filter(submission__in=submissions)
+            .values('submission_id')
+            .annotate(total_time=Sum('time_spent_seconds'))
+        )
+        time_list = [t['total_time'] or 0 for t in time_per_sub]
+        avg_time_total = round(sum(time_list) / len(time_list)) if time_list else None
+        median_time_total = round(stats_lib.median(time_list)) if time_list else None
+
+        # ── Alunos em risco ───────────────────────────────────────────────
+        submitted_ids = set(submissions.values_list('student_id', flat=True).distinct())
         enrolled_qs = group.students.filter(is_active=True).select_related('student').annotate(
             sub_count=Count(
                 'student__submissions__activity_link',
@@ -433,9 +467,17 @@ class GroupDetailView(
         context.update({
             'students_enrolled': students_enrolled,
             'students_submitted': students_submitted,
+            'students_abandoned': students_abandoned,
             'completion_pct': completion_pct,
             'activities_count': activities_count,
             'pending_count': pending_count,
+            'total_submissions': total_submissions,
+            'avg_points': avg_points,
+            'median_points': median_points,
+            'avg_pct': avg_pct,
+            'median_pct': median_pct,
+            'avg_time_total': avg_time_total,
+            'median_time_total': median_time_total,
             'activity_stats': activities,
             'at_risk_students': at_risk[:5],
         })

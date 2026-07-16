@@ -5879,29 +5879,29 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-741">741</a></span>
-<span class="normal"><a href="#__codelineno-0-742">742</a></span>
-<span class="normal"><a href="#__codelineno-0-743">743</a></span>
-<span class="normal"><a href="#__codelineno-0-744">744</a></span>
-<span class="normal"><a href="#__codelineno-0-745">745</a></span>
-<span class="normal"><a href="#__codelineno-0-746">746</a></span>
-<span class="normal"><a href="#__codelineno-0-747">747</a></span>
-<span class="normal"><a href="#__codelineno-0-748">748</a></span>
-<span class="normal"><a href="#__codelineno-0-749">749</a></span>
-<span class="normal"><a href="#__codelineno-0-750">750</a></span>
-<span class="normal"><a href="#__codelineno-0-751">751</a></span>
-<span class="normal"><a href="#__codelineno-0-752">752</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-741" name="__codelineno-0-741"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Group</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-742" name="__codelineno-0-742"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna a turma se o usuário for o criador ou tiver compartilhamento ativo.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-743" name="__codelineno-0-743"></a>    <span class="k">return</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-744" name="__codelineno-0-744"></a>        <span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">],</span>
-<a id="__codelineno-0-745" name="__codelineno-0-745"></a>        <span class="n">deleted_at__isnull</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-746" name="__codelineno-0-746"></a>    <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-747" name="__codelineno-0-747"></a>        <span class="n">Q</span><span class="p">(</span><span class="n">created_by</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="o">|</span>
-<a id="__codelineno-0-748" name="__codelineno-0-748"></a>        <span class="n">Q</span><span class="p">(</span>
-<a id="__codelineno-0-749" name="__codelineno-0-749"></a>            <span class="n">sharings__shared_with</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-750" name="__codelineno-0-750"></a>            <span class="n">sharings__is_active</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-751" name="__codelineno-0-751"></a>        <span class="p">)</span>
-<a id="__codelineno-0-752" name="__codelineno-0-752"></a>    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-783">783</a></span>
+<span class="normal"><a href="#__codelineno-0-784">784</a></span>
+<span class="normal"><a href="#__codelineno-0-785">785</a></span>
+<span class="normal"><a href="#__codelineno-0-786">786</a></span>
+<span class="normal"><a href="#__codelineno-0-787">787</a></span>
+<span class="normal"><a href="#__codelineno-0-788">788</a></span>
+<span class="normal"><a href="#__codelineno-0-789">789</a></span>
+<span class="normal"><a href="#__codelineno-0-790">790</a></span>
+<span class="normal"><a href="#__codelineno-0-791">791</a></span>
+<span class="normal"><a href="#__codelineno-0-792">792</a></span>
+<span class="normal"><a href="#__codelineno-0-793">793</a></span>
+<span class="normal"><a href="#__codelineno-0-794">794</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-783" name="__codelineno-0-783"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Group</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-784" name="__codelineno-0-784"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna a turma se o usuário for o criador ou tiver compartilhamento ativo.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-785" name="__codelineno-0-785"></a>    <span class="k">return</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-786" name="__codelineno-0-786"></a>        <span class="n">pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">],</span>
+<a id="__codelineno-0-787" name="__codelineno-0-787"></a>        <span class="n">deleted_at__isnull</span><span class="o">=</span><span class="kc">True</span>
+<a id="__codelineno-0-788" name="__codelineno-0-788"></a>    <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-789" name="__codelineno-0-789"></a>        <span class="n">Q</span><span class="p">(</span><span class="n">created_by</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="o">|</span>
+<a id="__codelineno-0-790" name="__codelineno-0-790"></a>        <span class="n">Q</span><span class="p">(</span>
+<a id="__codelineno-0-791" name="__codelineno-0-791"></a>            <span class="n">sharings__shared_with</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-792" name="__codelineno-0-792"></a>            <span class="n">sharings__is_active</span><span class="o">=</span><span class="kc">True</span>
+<a id="__codelineno-0-793" name="__codelineno-0-793"></a>        <span class="p">)</span>
+<a id="__codelineno-0-794" name="__codelineno-0-794"></a>    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5924,15 +5924,15 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-754">754</a></span>
-<span class="normal"><a href="#__codelineno-0-755">755</a></span>
-<span class="normal"><a href="#__codelineno-0-756">756</a></span>
-<span class="normal"><a href="#__codelineno-0-757">757</a></span>
-<span class="normal"><a href="#__codelineno-0-758">758</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-754" name="__codelineno-0-754"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_object_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Group</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-755" name="__codelineno-0-755"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna ``True`` para criador ou qualquer professor com acesso à turma.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-756" name="__codelineno-0-756"></a>    <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;created_by&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">created_by</span> <span class="o">==</span> <span class="n">user</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">():</span>
-<a id="__codelineno-0-757" name="__codelineno-0-757"></a>        <span class="k">return</span> <span class="kc">True</span>
-<a id="__codelineno-0-758" name="__codelineno-0-758"></a>    <span class="k">return</span> <span class="kc">False</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-796">796</a></span>
+<span class="normal"><a href="#__codelineno-0-797">797</a></span>
+<span class="normal"><a href="#__codelineno-0-798">798</a></span>
+<span class="normal"><a href="#__codelineno-0-799">799</a></span>
+<span class="normal"><a href="#__codelineno-0-800">800</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-796" name="__codelineno-0-796"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_object_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Group</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-797" name="__codelineno-0-797"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna ``True`` para criador ou qualquer professor com acesso à turma.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-798" name="__codelineno-0-798"></a>    <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;created_by&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">created_by</span> <span class="o">==</span> <span class="n">user</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">():</span>
+<a id="__codelineno-0-799" name="__codelineno-0-799"></a>        <span class="k">return</span> <span class="kc">True</span>
+<a id="__codelineno-0-800" name="__codelineno-0-800"></a>    <span class="k">return</span> <span class="kc">False</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5955,49 +5955,49 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-760">760</a></span>
-<span class="normal"><a href="#__codelineno-0-761">761</a></span>
-<span class="normal"><a href="#__codelineno-0-762">762</a></span>
-<span class="normal"><a href="#__codelineno-0-763">763</a></span>
-<span class="normal"><a href="#__codelineno-0-764">764</a></span>
-<span class="normal"><a href="#__codelineno-0-765">765</a></span>
-<span class="normal"><a href="#__codelineno-0-766">766</a></span>
-<span class="normal"><a href="#__codelineno-0-767">767</a></span>
-<span class="normal"><a href="#__codelineno-0-768">768</a></span>
-<span class="normal"><a href="#__codelineno-0-769">769</a></span>
-<span class="normal"><a href="#__codelineno-0-770">770</a></span>
-<span class="normal"><a href="#__codelineno-0-771">771</a></span>
-<span class="normal"><a href="#__codelineno-0-772">772</a></span>
-<span class="normal"><a href="#__codelineno-0-773">773</a></span>
-<span class="normal"><a href="#__codelineno-0-774">774</a></span>
-<span class="normal"><a href="#__codelineno-0-775">775</a></span>
-<span class="normal"><a href="#__codelineno-0-776">776</a></span>
-<span class="normal"><a href="#__codelineno-0-777">777</a></span>
-<span class="normal"><a href="#__codelineno-0-778">778</a></span>
-<span class="normal"><a href="#__codelineno-0-779">779</a></span>
-<span class="normal"><a href="#__codelineno-0-780">780</a></span>
-<span class="normal"><a href="#__codelineno-0-781">781</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-760" name="__codelineno-0-760"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-761" name="__codelineno-0-761"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Alterna ``is_archived`` via toggle, criando o registro na primeira vez.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-762" name="__codelineno-0-762"></a>    <span class="n">group_pk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">]</span>
-<a id="__codelineno-0-763" name="__codelineno-0-763"></a>
-<a id="__codelineno-0-764" name="__codelineno-0-764"></a>    <span class="c1"># Obter ou criar o registro</span>
-<a id="__codelineno-0-765" name="__codelineno-0-765"></a>    <span class="n">archived</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">GroupArchived</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
-<a id="__codelineno-0-766" name="__codelineno-0-766"></a>        <span class="n">group_id</span><span class="o">=</span><span class="n">group_pk</span><span class="p">,</span>
-<a id="__codelineno-0-767" name="__codelineno-0-767"></a>        <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-768" name="__codelineno-0-768"></a>        <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;is_archived&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
-<a id="__codelineno-0-769" name="__codelineno-0-769"></a>    <span class="p">)</span>
-<a id="__codelineno-0-770" name="__codelineno-0-770"></a>
-<a id="__codelineno-0-771" name="__codelineno-0-771"></a>    <span class="c1"># Se já existe, faz o toggle</span>
-<a id="__codelineno-0-772" name="__codelineno-0-772"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">created</span><span class="p">:</span>
-<a id="__codelineno-0-773" name="__codelineno-0-773"></a>        <span class="n">archived</span><span class="o">.</span><span class="n">is_archived</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">archived</span><span class="o">.</span><span class="n">is_archived</span>
-<a id="__codelineno-0-774" name="__codelineno-0-774"></a>        <span class="n">archived</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-<a id="__codelineno-0-775" name="__codelineno-0-775"></a>
-<a id="__codelineno-0-776" name="__codelineno-0-776"></a>    <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
-<a id="__codelineno-0-777" name="__codelineno-0-777"></a>        <span class="n">request</span><span class="p">,</span>
-<a id="__codelineno-0-778" name="__codelineno-0-778"></a>        <span class="sa">f</span><span class="s1">&#39;Turma </span><span class="si">{</span><span class="s2">&quot;arquivada&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">archived</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">archived</span><span class="o">.</span><span class="n">is_archived</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;desarquivada&quot;</span><span class="si">}</span><span class="s1"> com sucesso!&#39;</span>
-<a id="__codelineno-0-779" name="__codelineno-0-779"></a>    <span class="p">)</span>
-<a id="__codelineno-0-780" name="__codelineno-0-780"></a>
-<a id="__codelineno-0-781" name="__codelineno-0-781"></a>    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;group:active&#39;</span><span class="p">)</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-802">802</a></span>
+<span class="normal"><a href="#__codelineno-0-803">803</a></span>
+<span class="normal"><a href="#__codelineno-0-804">804</a></span>
+<span class="normal"><a href="#__codelineno-0-805">805</a></span>
+<span class="normal"><a href="#__codelineno-0-806">806</a></span>
+<span class="normal"><a href="#__codelineno-0-807">807</a></span>
+<span class="normal"><a href="#__codelineno-0-808">808</a></span>
+<span class="normal"><a href="#__codelineno-0-809">809</a></span>
+<span class="normal"><a href="#__codelineno-0-810">810</a></span>
+<span class="normal"><a href="#__codelineno-0-811">811</a></span>
+<span class="normal"><a href="#__codelineno-0-812">812</a></span>
+<span class="normal"><a href="#__codelineno-0-813">813</a></span>
+<span class="normal"><a href="#__codelineno-0-814">814</a></span>
+<span class="normal"><a href="#__codelineno-0-815">815</a></span>
+<span class="normal"><a href="#__codelineno-0-816">816</a></span>
+<span class="normal"><a href="#__codelineno-0-817">817</a></span>
+<span class="normal"><a href="#__codelineno-0-818">818</a></span>
+<span class="normal"><a href="#__codelineno-0-819">819</a></span>
+<span class="normal"><a href="#__codelineno-0-820">820</a></span>
+<span class="normal"><a href="#__codelineno-0-821">821</a></span>
+<span class="normal"><a href="#__codelineno-0-822">822</a></span>
+<span class="normal"><a href="#__codelineno-0-823">823</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-802" name="__codelineno-0-802"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-803" name="__codelineno-0-803"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Alterna ``is_archived`` via toggle, criando o registro na primeira vez.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-804" name="__codelineno-0-804"></a>    <span class="n">group_pk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">]</span>
+<a id="__codelineno-0-805" name="__codelineno-0-805"></a>
+<a id="__codelineno-0-806" name="__codelineno-0-806"></a>    <span class="c1"># Obter ou criar o registro</span>
+<a id="__codelineno-0-807" name="__codelineno-0-807"></a>    <span class="n">archived</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">GroupArchived</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+<a id="__codelineno-0-808" name="__codelineno-0-808"></a>        <span class="n">group_id</span><span class="o">=</span><span class="n">group_pk</span><span class="p">,</span>
+<a id="__codelineno-0-809" name="__codelineno-0-809"></a>        <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-810" name="__codelineno-0-810"></a>        <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;is_archived&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<a id="__codelineno-0-811" name="__codelineno-0-811"></a>    <span class="p">)</span>
+<a id="__codelineno-0-812" name="__codelineno-0-812"></a>
+<a id="__codelineno-0-813" name="__codelineno-0-813"></a>    <span class="c1"># Se já existe, faz o toggle</span>
+<a id="__codelineno-0-814" name="__codelineno-0-814"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">created</span><span class="p">:</span>
+<a id="__codelineno-0-815" name="__codelineno-0-815"></a>        <span class="n">archived</span><span class="o">.</span><span class="n">is_archived</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">archived</span><span class="o">.</span><span class="n">is_archived</span>
+<a id="__codelineno-0-816" name="__codelineno-0-816"></a>        <span class="n">archived</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-0-817" name="__codelineno-0-817"></a>
+<a id="__codelineno-0-818" name="__codelineno-0-818"></a>    <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+<a id="__codelineno-0-819" name="__codelineno-0-819"></a>        <span class="n">request</span><span class="p">,</span>
+<a id="__codelineno-0-820" name="__codelineno-0-820"></a>        <span class="sa">f</span><span class="s1">&#39;Turma </span><span class="si">{</span><span class="s2">&quot;arquivada&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">archived</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">archived</span><span class="o">.</span><span class="n">is_archived</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;desarquivada&quot;</span><span class="si">}</span><span class="s1"> com sucesso!&#39;</span>
+<a id="__codelineno-0-821" name="__codelineno-0-821"></a>    <span class="p">)</span>
+<a id="__codelineno-0-822" name="__codelineno-0-822"></a>
+<a id="__codelineno-0-823" name="__codelineno-0-823"></a>    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;group:active&#39;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

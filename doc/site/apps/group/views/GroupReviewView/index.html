@@ -5857,15 +5857,15 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-457">457</a></span>
-<span class="normal"><a href="#__codelineno-0-458">458</a></span>
-<span class="normal"><a href="#__codelineno-0-459">459</a></span>
-<span class="normal"><a href="#__codelineno-0-460">460</a></span>
-<span class="normal"><a href="#__codelineno-0-461">461</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_object_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Group</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna ``True`` para o criador ou professores com compartilhamento ativo.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-459" name="__codelineno-0-459"></a>    <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">created_by</span> <span class="o">==</span> <span class="n">user</span><span class="p">:</span>
-<a id="__codelineno-0-460" name="__codelineno-0-460"></a>        <span class="k">return</span> <span class="kc">True</span>
-<a id="__codelineno-0-461" name="__codelineno-0-461"></a>    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">sharings</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">shared_with</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-499">499</a></span>
+<span class="normal"><a href="#__codelineno-0-500">500</a></span>
+<span class="normal"><a href="#__codelineno-0-501">501</a></span>
+<span class="normal"><a href="#__codelineno-0-502">502</a></span>
+<span class="normal"><a href="#__codelineno-0-503">503</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-499" name="__codelineno-0-499"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_object_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Group</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna ``True`` para o criador ou professores com compartilhamento ativo.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-501" name="__codelineno-0-501"></a>    <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">created_by</span> <span class="o">==</span> <span class="n">user</span><span class="p">:</span>
+<a id="__codelineno-0-502" name="__codelineno-0-502"></a>        <span class="k">return</span> <span class="kc">True</span>
+<a id="__codelineno-0-503" name="__codelineno-0-503"></a>    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">sharings</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">shared_with</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5888,71 +5888,71 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-463">463</a></span>
-<span class="normal"><a href="#__codelineno-0-464">464</a></span>
-<span class="normal"><a href="#__codelineno-0-465">465</a></span>
-<span class="normal"><a href="#__codelineno-0-466">466</a></span>
-<span class="normal"><a href="#__codelineno-0-467">467</a></span>
-<span class="normal"><a href="#__codelineno-0-468">468</a></span>
-<span class="normal"><a href="#__codelineno-0-469">469</a></span>
-<span class="normal"><a href="#__codelineno-0-470">470</a></span>
-<span class="normal"><a href="#__codelineno-0-471">471</a></span>
-<span class="normal"><a href="#__codelineno-0-472">472</a></span>
-<span class="normal"><a href="#__codelineno-0-473">473</a></span>
-<span class="normal"><a href="#__codelineno-0-474">474</a></span>
-<span class="normal"><a href="#__codelineno-0-475">475</a></span>
-<span class="normal"><a href="#__codelineno-0-476">476</a></span>
-<span class="normal"><a href="#__codelineno-0-477">477</a></span>
-<span class="normal"><a href="#__codelineno-0-478">478</a></span>
-<span class="normal"><a href="#__codelineno-0-479">479</a></span>
-<span class="normal"><a href="#__codelineno-0-480">480</a></span>
-<span class="normal"><a href="#__codelineno-0-481">481</a></span>
-<span class="normal"><a href="#__codelineno-0-482">482</a></span>
-<span class="normal"><a href="#__codelineno-0-483">483</a></span>
-<span class="normal"><a href="#__codelineno-0-484">484</a></span>
-<span class="normal"><a href="#__codelineno-0-485">485</a></span>
-<span class="normal"><a href="#__codelineno-0-486">486</a></span>
-<span class="normal"><a href="#__codelineno-0-487">487</a></span>
-<span class="normal"><a href="#__codelineno-0-488">488</a></span>
-<span class="normal"><a href="#__codelineno-0-489">489</a></span>
-<span class="normal"><a href="#__codelineno-0-490">490</a></span>
-<span class="normal"><a href="#__codelineno-0-491">491</a></span>
-<span class="normal"><a href="#__codelineno-0-492">492</a></span>
-<span class="normal"><a href="#__codelineno-0-493">493</a></span>
-<span class="normal"><a href="#__codelineno-0-494">494</a></span>
-<span class="normal"><a href="#__codelineno-0-495">495</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-463" name="__codelineno-0-463"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-0-464" name="__codelineno-0-464"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adiciona ``activity_links`` com contagens de submissões e pendências por atividade.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-465" name="__codelineno-0-465"></a>    <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-0-466" name="__codelineno-0-466"></a>    <span class="n">activity_links</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-467" name="__codelineno-0-467"></a>        <span class="n">ActivityListGroup</span><span class="o">.</span><span class="n">objects</span>
-<a id="__codelineno-0-468" name="__codelineno-0-468"></a>        <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-469" name="__codelineno-0-469"></a>            <span class="n">group</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">,</span>
-<a id="__codelineno-0-470" name="__codelineno-0-470"></a>            <span class="n">activity_list__deleted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-471" name="__codelineno-0-471"></a>        <span class="p">)</span>
-<a id="__codelineno-0-472" name="__codelineno-0-472"></a>        <span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;activity_list&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-473" name="__codelineno-0-473"></a>        <span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
-<a id="__codelineno-0-474" name="__codelineno-0-474"></a>            <span class="n">submission_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span>
-<a id="__codelineno-0-475" name="__codelineno-0-475"></a>                <span class="s1">&#39;submissions__student&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-476" name="__codelineno-0-476"></a>                <span class="nb">filter</span><span class="o">=</span><span class="n">Q</span><span class="p">(</span>
-<a id="__codelineno-0-477" name="__codelineno-0-477"></a>                    <span class="n">submissions__submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-478" name="__codelineno-0-478"></a>                    <span class="n">submissions__is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-479" name="__codelineno-0-479"></a>                <span class="p">),</span>
-<a id="__codelineno-0-480" name="__codelineno-0-480"></a>                <span class="n">distinct</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-481" name="__codelineno-0-481"></a>            <span class="p">),</span>
-<a id="__codelineno-0-482" name="__codelineno-0-482"></a>            <span class="n">pending_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span>
-<a id="__codelineno-0-483" name="__codelineno-0-483"></a>                <span class="s1">&#39;submissions__answers&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-484" name="__codelineno-0-484"></a>                <span class="nb">filter</span><span class="o">=</span><span class="n">Q</span><span class="p">(</span>
-<a id="__codelineno-0-485" name="__codelineno-0-485"></a>                    <span class="n">submissions__submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-486" name="__codelineno-0-486"></a>                    <span class="n">submissions__is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-487" name="__codelineno-0-487"></a>                    <span class="n">submissions__answers__is_correct__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-488" name="__codelineno-0-488"></a>                <span class="p">),</span>
-<a id="__codelineno-0-489" name="__codelineno-0-489"></a>                <span class="n">distinct</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-490" name="__codelineno-0-490"></a>            <span class="p">),</span>
-<a id="__codelineno-0-491" name="__codelineno-0-491"></a>        <span class="p">)</span>
-<a id="__codelineno-0-492" name="__codelineno-0-492"></a>        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-assigned_at&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-493" name="__codelineno-0-493"></a>    <span class="p">)</span>
-<a id="__codelineno-0-494" name="__codelineno-0-494"></a>    <span class="n">context</span><span class="p">[</span><span class="s1">&#39;activity_links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">activity_links</span>
-<a id="__codelineno-0-495" name="__codelineno-0-495"></a>    <span class="k">return</span> <span class="n">context</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-505">505</a></span>
+<span class="normal"><a href="#__codelineno-0-506">506</a></span>
+<span class="normal"><a href="#__codelineno-0-507">507</a></span>
+<span class="normal"><a href="#__codelineno-0-508">508</a></span>
+<span class="normal"><a href="#__codelineno-0-509">509</a></span>
+<span class="normal"><a href="#__codelineno-0-510">510</a></span>
+<span class="normal"><a href="#__codelineno-0-511">511</a></span>
+<span class="normal"><a href="#__codelineno-0-512">512</a></span>
+<span class="normal"><a href="#__codelineno-0-513">513</a></span>
+<span class="normal"><a href="#__codelineno-0-514">514</a></span>
+<span class="normal"><a href="#__codelineno-0-515">515</a></span>
+<span class="normal"><a href="#__codelineno-0-516">516</a></span>
+<span class="normal"><a href="#__codelineno-0-517">517</a></span>
+<span class="normal"><a href="#__codelineno-0-518">518</a></span>
+<span class="normal"><a href="#__codelineno-0-519">519</a></span>
+<span class="normal"><a href="#__codelineno-0-520">520</a></span>
+<span class="normal"><a href="#__codelineno-0-521">521</a></span>
+<span class="normal"><a href="#__codelineno-0-522">522</a></span>
+<span class="normal"><a href="#__codelineno-0-523">523</a></span>
+<span class="normal"><a href="#__codelineno-0-524">524</a></span>
+<span class="normal"><a href="#__codelineno-0-525">525</a></span>
+<span class="normal"><a href="#__codelineno-0-526">526</a></span>
+<span class="normal"><a href="#__codelineno-0-527">527</a></span>
+<span class="normal"><a href="#__codelineno-0-528">528</a></span>
+<span class="normal"><a href="#__codelineno-0-529">529</a></span>
+<span class="normal"><a href="#__codelineno-0-530">530</a></span>
+<span class="normal"><a href="#__codelineno-0-531">531</a></span>
+<span class="normal"><a href="#__codelineno-0-532">532</a></span>
+<span class="normal"><a href="#__codelineno-0-533">533</a></span>
+<span class="normal"><a href="#__codelineno-0-534">534</a></span>
+<span class="normal"><a href="#__codelineno-0-535">535</a></span>
+<span class="normal"><a href="#__codelineno-0-536">536</a></span>
+<span class="normal"><a href="#__codelineno-0-537">537</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-505" name="__codelineno-0-505"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-0-506" name="__codelineno-0-506"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adiciona ``activity_links`` com contagens de submissões e pendências por atividade.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-507" name="__codelineno-0-507"></a>    <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-508" name="__codelineno-0-508"></a>    <span class="n">activity_links</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-509" name="__codelineno-0-509"></a>        <span class="n">ActivityListGroup</span><span class="o">.</span><span class="n">objects</span>
+<a id="__codelineno-0-510" name="__codelineno-0-510"></a>        <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-511" name="__codelineno-0-511"></a>            <span class="n">group</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">object</span><span class="p">,</span>
+<a id="__codelineno-0-512" name="__codelineno-0-512"></a>            <span class="n">activity_list__deleted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-513" name="__codelineno-0-513"></a>        <span class="p">)</span>
+<a id="__codelineno-0-514" name="__codelineno-0-514"></a>        <span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;activity_list&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-515" name="__codelineno-0-515"></a>        <span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+<a id="__codelineno-0-516" name="__codelineno-0-516"></a>            <span class="n">submission_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span>
+<a id="__codelineno-0-517" name="__codelineno-0-517"></a>                <span class="s1">&#39;submissions__student&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-518" name="__codelineno-0-518"></a>                <span class="nb">filter</span><span class="o">=</span><span class="n">Q</span><span class="p">(</span>
+<a id="__codelineno-0-519" name="__codelineno-0-519"></a>                    <span class="n">submissions__submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-520" name="__codelineno-0-520"></a>                    <span class="n">submissions__is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-521" name="__codelineno-0-521"></a>                <span class="p">),</span>
+<a id="__codelineno-0-522" name="__codelineno-0-522"></a>                <span class="n">distinct</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-523" name="__codelineno-0-523"></a>            <span class="p">),</span>
+<a id="__codelineno-0-524" name="__codelineno-0-524"></a>            <span class="n">pending_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span>
+<a id="__codelineno-0-525" name="__codelineno-0-525"></a>                <span class="s1">&#39;submissions__answers&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-526" name="__codelineno-0-526"></a>                <span class="nb">filter</span><span class="o">=</span><span class="n">Q</span><span class="p">(</span>
+<a id="__codelineno-0-527" name="__codelineno-0-527"></a>                    <span class="n">submissions__submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-528" name="__codelineno-0-528"></a>                    <span class="n">submissions__is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-529" name="__codelineno-0-529"></a>                    <span class="n">submissions__answers__is_correct__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-530" name="__codelineno-0-530"></a>                <span class="p">),</span>
+<a id="__codelineno-0-531" name="__codelineno-0-531"></a>                <span class="n">distinct</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-532" name="__codelineno-0-532"></a>            <span class="p">),</span>
+<a id="__codelineno-0-533" name="__codelineno-0-533"></a>        <span class="p">)</span>
+<a id="__codelineno-0-534" name="__codelineno-0-534"></a>        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-assigned_at&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-535" name="__codelineno-0-535"></a>    <span class="p">)</span>
+<a id="__codelineno-0-536" name="__codelineno-0-536"></a>    <span class="n">context</span><span class="p">[</span><span class="s1">&#39;activity_links&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">activity_links</span>
+<a id="__codelineno-0-537" name="__codelineno-0-537"></a>    <span class="k">return</span> <span class="n">context</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

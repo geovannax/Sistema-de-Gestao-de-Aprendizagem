@@ -1,79 +1,52 @@
 {% extends "group/_detail.html" %}
 {% load static %}
+{% load common_filters %}
 
 {% block info_right %}
 
 <style>
-    .analytics-section {
-        background: white;
-        border-radius: 0.75rem;
-        padding: 1rem;
-    }
-
-    .analytics-title {
-        font-weight: 600;
-        color: var(--gray-650);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 0.9rem;
-    }
-
-    .analytics-title i {
-        color: var(--blue-500);
-    }
-
-    .metric-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .metric-card {
-        background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
-        padding: 1.25rem;
-        border-radius: 0.5rem;
+    .stat-card {
+        background: var(--gray-50, #f8f9fa);
+        border: 1px solid var(--gray-200, #e9ecef);
         border-left: 4px solid var(--blue-500);
-        transition: all 0.3s ease;
+        border-radius: .5rem;
+        padding: .9rem 1rem;
     }
-
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
-    }
-
-    .metric-label {
-        font-size: 0.8rem;
-        color: var(--gray-600);
+    .stat-card .stat-label {
+        font-size: .72rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-
-    .metric-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--blue-700);
-        margin-bottom: 0.25rem;
-    }
-
-    .metric-sub {
-        font-size: 0.75rem;
+        letter-spacing: .5px;
         color: var(--gray-500);
+        font-weight: 600;
+        margin-bottom: .2rem;
     }
-
-    .progress-bar-one-container {
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        line-height: 1.1;
+    }
+    .stat-card .stat-sub {
+        font-size: .75rem;
+        color: var(--gray-500);
+        margin-top: .15rem;
+    }
+    .stat-card .stat-icon {
+        font-size: 1.3rem;
+        opacity: .25;
+    }
+    .section-title {
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+        font-weight: 700;
+        color: var(--gray-500);
+        margin-bottom: .75rem;
+        margin-top: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        gap: .4rem;
     }
-
     .progress-bar-one-label {
         font-size: 0.85rem;
         font-weight: 500;
@@ -82,7 +55,6 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-
     .progress-bar-one {
         flex: 1;
         height: 8px;
@@ -90,14 +62,12 @@
         border-radius: 10px;
         overflow: hidden;
     }
-
     .progress-bar-one-fill {
         height: 100%;
         border-radius: 10px;
         background: linear-gradient(90deg, var(--blue-500), var(--blue-700));
         transition: width 0.3s ease;
     }
-
     .progress-bar-one-value {
         min-width: 36px;
         font-weight: 600;
@@ -105,7 +75,6 @@
         font-size: 0.85rem;
         text-align: right;
     }
-
     .avatar {
         width: 35px;
         height: 35px;
@@ -119,7 +88,6 @@
         font-weight: 600;
         flex-shrink: 0;
     }
-
     .user-row {
         display: flex;
         justify-content: space-between;
@@ -128,83 +96,176 @@
         border-bottom: 1px solid #eee;
         gap: 1rem;
     }
-
-    .progress {
-        height: 6px;
-    }
 </style>
 
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 1 · VISÃO GERAL
+═══════════════════════════════════════════════════════════ -->
+<div class="section-title mt-3">
+    <i class="bi bi-grid-3x3-gap"></i> Visão Geral
+</div>
 
-<!-- SEÇÃO 1: KPIs PRINCIPAIS -->
-<div class="analytics-section">
-    <div class="analytics-title">
-        <i class="bi bi-graph-up"></i>
-        KPIs Principais
+<div class="row g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Alunos matriculados</div>
+                    <div class="stat-value">{{ students_enrolled }}</div>
+                    <div class="stat-sub">ativos na turma</div>
+                </div>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+        </div>
     </div>
-
-    <div class="metric-grid">
-        <div class="metric-card">
-            <div class="metric-label">Taxa de Conclusão</div>
-            <div class="metric-value">{{ completion_pct }}%</div>
-            <div class="metric-sub">alunos que entregaram ao menos uma atividade</div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Entregaram</div>
+                    <div class="stat-value">{{ students_submitted }}</div>
+                    <div class="stat-sub">
+                        <div class="progress mt-1" style="height:4px;background:var(--gray-200)">
+                            <div class="progress-bar bg-success" style="width:{{ completion_pct }}%"></div>
+                        </div>
+                        {{ completion_pct }}% de conclusão
+                    </div>
+                </div>
+                <i class="bi bi-check-circle stat-icon"></i>
+            </div>
         </div>
-
-        <div class="metric-card">
-            <div class="metric-label">Alunos</div>
-            <div class="metric-value">{{ students_submitted }}/{{ students_enrolled }}</div>
-            <div class="metric-sub">entregaram / matriculados</div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Abandonos</div>
+                    <div class="stat-value {% if students_abandoned > 0 %}text-danger{% endif %}">{{ students_abandoned }}</div>
+                    <div class="stat-sub">iniciaram mas não entregaram</div>
+                </div>
+                <i class="bi bi-x-circle stat-icon"></i>
+            </div>
         </div>
-
-        <div class="metric-card">
-            <div class="metric-label">Atividades</div>
-            <div class="metric-value">{{ activities_count }}</div>
-            <div class="metric-sub">listas atribuídas a esta turma</div>
-        </div>
-
-        <div class="metric-card {% if pending_count > 0 %}border-warning{% endif %}">
-            <div class="metric-label">Correções Pendentes</div>
-            <div class="metric-value {% if pending_count > 0 %}text-warning{% endif %}">{{ pending_count }}</div>
-            <div class="metric-sub">respostas aguardando avaliação</div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Correções pendentes</div>
+                    <div class="stat-value {% if pending_count > 0 %}text-warning{% endif %}">{{ pending_count }}</div>
+                    <div class="stat-sub">respostas aguardando professor</div>
+                </div>
+                <i class="bi bi-hourglass-split stat-icon"></i>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- SEÇÃO 2: PERFORMANCE POR ATIVIDADE -->
-{% if activity_stats %}
-<div class="analytics-section">
-    <div class="analytics-title">
-        <i class="bi bi-list-check"></i>
-        Performance por Atividade
-    </div>
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 2 · NOTA & APROVEITAMENTO
+═══════════════════════════════════════════════════════════ -->
+<div class="section-title">
+    <i class="bi bi-award"></i> Nota & Aproveitamento
+</div>
 
-    <div>
-        {% for link in activity_stats %}
-        <div class="progress-bar-one-container">
-            <div class="progress-bar-one-label" title="{{ link.activity_list.title }}">
-                {{ link.activity_list.title }}
-            </div>
-            <div class="progress-bar-one">
-                {% if students_enrolled %}
-                <div class="progress-bar-one-fill" style="width: {% widthratio link.submitted_count students_enrolled 100 %}%;"></div>
-                {% endif %}
-            </div>
-            <div class="progress-bar-one-value">
-                {% if students_enrolled %}{% widthratio link.submitted_count students_enrolled 100 %}%{% else %}—{% endif %}
-            </div>
+<div class="row g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Média de nota</div>
+            <div class="stat-value">{% if avg_points is not None %}{{ avg_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">pontos ganhos (média aritmética)</div>
         </div>
-        {% endfor %}
     </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Mediana de nota</div>
+            <div class="stat-value">{% if median_points is not None %}{{ median_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">menos afetada por notas extremas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Média de aproveitamento</div>
+            <div class="stat-value">{% if avg_pct is not None %}{{ avg_pct }}%{% else %}—{% endif %}</div>
+            <div class="stat-sub">pontos obtidos / pontos possíveis</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Mediana de aproveitamento</div>
+            <div class="stat-value">{% if median_pct is not None %}{{ median_pct }}%{% else %}—{% endif %}</div>
+            <div class="stat-sub">pontos obtidos / pontos possíveis</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 3 · TEMPO DE REALIZAÇÃO
+═══════════════════════════════════════════════════════════ -->
+<div class="section-title">
+    <i class="bi bi-clock"></i> Tempo de realização
+</div>
+
+<div class="row g-2">
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Tempo médio total</div>
+            <div class="stat-value" style="font-size:1.1rem">{% if avg_time_total is not None %}{{ avg_time_total|duration }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">por entrega (todos os exercícios)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Tempo mediano total</div>
+            <div class="stat-value" style="font-size:1.1rem">{% if median_time_total is not None %}{{ median_time_total|duration }}{% else %}—{% endif %}</div>
+            <div class="stat-sub">metade levou mais, metade menos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card h-100">
+            <div class="stat-label">Total de entregas</div>
+            <div class="stat-value">{{ total_submissions }}</div>
+            <div class="stat-sub">submissões analisadas</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 4 · PERFORMANCE POR ATIVIDADE
+═══════════════════════════════════════════════════════════ -->
+{% if activity_stats %}
+<div class="section-title">
+    <i class="bi bi-list-check"></i> Performance por Atividade
+</div>
+
+<div class="stat-card">
+    {% for link in activity_stats %}
+    <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="progress-bar-one-label" style="width:35%" title="{{ link.activity_list.title }}">
+            {{ link.activity_list.title }}
+        </div>
+        <div class="progress-bar-one">
+            {% if students_enrolled %}
+            <div class="progress-bar-one-fill" style="width: {% widthratio link.submitted_count students_enrolled 100 %}%;"></div>
+            {% endif %}
+        </div>
+        <div class="progress-bar-one-value">
+            {% if students_enrolled %}{% widthratio link.submitted_count students_enrolled 100 %}%{% else %}—{% endif %}
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endif %}
 
-<!-- SEÇÃO 3: ALUNOS EM RISCO -->
+<!-- ═══════════════════════════════════════════════════════════
+     SEÇÃO 5 · ALUNOS EM RISCO
+═══════════════════════════════════════════════════════════ -->
 {% if at_risk_students %}
-<div class="analytics-section">
-    <div class="analytics-title">
-        <i class="bi bi-people"></i>
-        Alunos com maior risco de evasão
-    </div>
+<div class="section-title">
+    <i class="bi bi-people"></i> Alunos com maior risco de evasão
+</div>
 
+<div class="stat-card p-0" style="overflow:hidden">
     {% for s in at_risk_students %}
     <div class="user-row">
         <div class="d-flex gap-2 align-items-center" style="min-width:0">
@@ -212,7 +273,7 @@
             <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.name }}</span>
         </div>
         <div style="width:150px;flex-shrink:0">
-            <div class="progress mb-1">
+            <div class="progress mb-1" style="height:6px">
                 <div class="progress-bar {% if s.risk_pct >= 80 %}bg-danger{% elif s.risk_pct >= 40 %}bg-warning{% else %}bg-info{% endif %}"
                      style="width:{{ s.risk_pct }}%"></div>
             </div>
@@ -224,17 +285,13 @@
     {% endfor %}
 </div>
 {% elif students_enrolled %}
-<div class="analytics-section">
-    <div class="analytics-title">
-        <i class="bi bi-people"></i>
-        Alunos com maior risco de evasão
-    </div>
-    <p class="text-muted mb-0" style="font-size:.85rem">
-        <i class="bi bi-check-circle text-success me-1"></i>
-        Todos os alunos completaram as atividades disponíveis.
-    </p>
+<div class="section-title">
+    <i class="bi bi-people"></i> Alunos com maior risco de evasão
 </div>
+<p class="text-muted mb-0" style="font-size:.85rem">
+    <i class="bi bi-check-circle text-success me-1"></i>
+    Todos os alunos completaram as atividades disponíveis.
+</p>
 {% endif %}
-
 
 {% endblock info_right %}
