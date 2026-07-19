@@ -1,0 +1,113 @@
+/* Reserve scrollbar gutter so the container width is consistent whether or not
+   a vertical scrollbar is visible. Without this, showing/hiding many items can
+   cause the scrollbar to appear/disappear, shifting the grid from 4→3 columns. */
+html {
+    scrollbar-gutter: stable;
+}
+
+.pm-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #6366f1;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto .75rem;
+}
+
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+.side-nav a {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .5rem .75rem;
+    border-radius: .4rem;
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--gray-650, #57606a);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+
+.side-nav a:hover {
+    background: var(--gray-100, #f8fafc);
+    color: var(--gray-800, #1f2937);
+}
+
+.side-nav a.active {
+    background: #eff3ff;
+    color: var(--blue-500, #0969da);
+    font-weight: 600;
+}
+
+/* ── PENDENTES ── */
+.pend-row {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .8rem .5rem;
+    border-bottom: 1px solid var(--gray-300, #e5e7eb);
+    text-decoration: none;
+    color: inherit;
+    border-radius: .35rem;
+    transition: background .15s;
+}
+.pend-row:last-child { border-bottom: none; }
+.pend-row:hover { background: var(--blue-100); }
+.pend-stripe {
+    width: 3px;
+    border-radius: 99px;
+    align-self: stretch;
+    flex-shrink: 0;
+    min-height: 40px;
+}
+.pend-title { font-weight: 600; color: var(--gray-800, #1f2937); font-size: .875rem; }
+.pend-sub   { font-size: .7rem; color: var(--gray-500, #6b7280); margin-top: .15rem; }
+.pend-due   { font-size: .68rem; font-weight: 600; margin-top: .3rem; }
+
+/* ── TURMAS GRID ── */
+.turmas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    column-gap: 1.5rem;
+}
+.turma-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .75rem .5rem;
+    border-bottom: 1px solid var(--gray-300, #e5e7eb);
+    text-decoration: none;
+    color: inherit;
+    border-radius: .35rem;
+    transition: background .15s;
+}
+.turma-row:hover {
+    background: var(--blue-100);
+    color: var(--blue-500);
+}
+.turma-icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
+    background: #eff3ff;
+    color: var(--blue-500, #0969da);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    flex-shrink: 0;
+}
+.turma-name { font-size: .85rem; font-weight: 600; color: var(--gray-800, #1f2937); line-height: 1.3; }
+.turma-meta { font-size: .68rem; color: var(--gray-500, #6b7280); margin-top: .1rem; }
+.turma-progress { height: 4px; background: var(--gray-300, #e5e7eb); border-radius: 10px; overflow: hidden; margin-top: .35rem; }
+.turma-progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue-500, #0969da), #0749c8); border-radius: 10px; }

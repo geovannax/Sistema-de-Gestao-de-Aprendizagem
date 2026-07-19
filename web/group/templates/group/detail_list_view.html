@@ -96,13 +96,135 @@
         border-bottom: 1px solid #eee;
         gap: 1rem;
     }
+    .act-filter-chip {
+        background: none;
+        border: 1px solid transparent;
+        border-radius: .35rem;
+        padding: .15rem .4rem;
+        margin: -.15rem -.4rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--gray-700);
+        font-family: inherit;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: background .15s, color .15s, border-color .15s;
+        display: block;
+        max-width: 100%;
+        line-height: inherit;
+    }
+    .act-filter-chip:hover {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+    .act-filter-chip.active {
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-weight: 600;
+        border-color: #93c5fd;
+    }
+    .kpi-filter-pill {
+        margin-left: .5rem;
+        font-size: .62rem;
+        font-weight: 600;
+        color: #1d4ed8;
+        background: #dbeafe;
+        padding: .1rem .45rem;
+        border-radius: 99px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    /* ── inline grades panel ── */
+    .inline-grades-panel {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .4s ease;
+    }
+    .inline-grades-panel.open {
+        max-height: 9999px;
+    }
+    .ig-wrap {
+        border-top: 1px solid var(--gray-200);
+        margin: .25rem 0 .75rem;
+        padding-top: .75rem;
+    }
+    .ig-head {
+        display: flex;
+        align-items: center;
+        margin-bottom: .65rem;
+    }
+    .ig-title {
+        font-size: .8rem;
+        font-weight: 700;
+        color: var(--gray-700);
+    }
+    .ig-meta {
+        font-size: .7rem;
+        color: var(--gray-500);
+    }
+    .ig-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .ig-table tbody tr {
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .ig-table tbody tr:last-child { border-bottom: none; }
+    .ig-table tbody tr:hover { background: var(--gray-50, #f8fafc); }
+    .ig-table td {
+        padding: .45rem .5rem;
+        vertical-align: middle;
+    }
+    .ig-rank {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .65rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .ig-rank.rank-1 { background:#fef9c3;color:#a16207;border:1px solid #fde047; }
+    .ig-rank.rank-2 { background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1; }
+    .ig-rank.rank-3 { background:#fed7aa;color:#c2410c;border:1px solid #fdba74; }
+    .ig-rank.rank-n { background:transparent;color:var(--gray-400);border:1px solid var(--gray-200);font-weight:400; }
+    .ig-name { font-size:.8rem;font-weight:600;color:var(--gray-700); }
+    .ig-name.text-muted { color:var(--gray-500) !important; }
+    .ig-sub  { font-size:.65rem;color:var(--gray-500);margin-top:.05rem; }
+    .ig-bar-wrap { display:flex;align-items:center;gap:.5rem;min-width:110px; }
+    .ig-bar-bg   { flex:1;height:6px;background:var(--gray-300);border-radius:99px;overflow:hidden; }
+    .ig-bar-fill { height:100%;border-radius:99px; }
+    .ig-fill-a{background:#10b981}.ig-fill-b{background:#3b82f6}.ig-fill-c{background:#f59e0b}.ig-fill-d{background:#ef4444}
+    .ig-val      { font-size:.75rem;font-weight:700;min-width:32px;text-align:right;white-space:nowrap; }
+    .ig-val-tot  { font-size:.62rem;color:var(--gray-500);margin-left:.1rem; }
+    .ig-val-a{color:#065f46}.ig-val-b{color:#1d4ed8}.ig-val-c{color:#a16207}.ig-val-d{color:#b91c1c}
+    .ig-miss { font-size:.62rem;color:var(--gray-500); }
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════
      SEÇÃO 1 · VISÃO GERAL
 ═══════════════════════════════════════════════════════════ -->
-<div class="section-title mt-3">
-    <i class="bi bi-grid-3x3-gap"></i> Visão Geral
+<div class="d-flex align-items-center justify-content-between">
+    <div class="section-title">
+        <i class="bi bi-grid-3x3-gap"></i> Visão Geral
+        <span id="kpi-filter-pill" class="kpi-filter-pill" style="display:none"></span>
+    </div>
+    <button id="stats-fullscreen-btn"
+            onclick="toggleStatsFullscreen()"
+            title="Tela cheia"
+            class="btn btn-sm btn-outline-primary rounded-5 gap-3 px-3">
+        <i class="bi bi-fullscreen" id="stats-fullscreen-icon"></i>
+    </button>
 </div>
 
 <div class="row g-2">
@@ -123,12 +245,12 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div class="stat-label">Entregaram</div>
-                    <div class="stat-value">{{ students_submitted }}</div>
+                    <div class="stat-value" id="kpi-submitted">{{ students_submitted }}</div>
                     <div class="stat-sub">
                         <div class="progress mt-1" style="height:4px;background:var(--gray-200)">
-                            <div class="progress-bar bg-success" style="width:{{ completion_pct }}%"></div>
+                            <div class="progress-bar bg-success" id="kpi-bar-fill" style="width:{{ completion_pct }}%"></div>
                         </div>
-                        {{ completion_pct }}% de conclusão
+                        <span id="kpi-compl-pct">{{ completion_pct }}</span>% de conclusão
                     </div>
                 </div>
                 <i class="bi bi-check-circle stat-icon"></i>
@@ -139,9 +261,9 @@
         <div class="stat-card h-100">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-label">Abandonos</div>
-                    <div class="stat-value {% if students_abandoned > 0 %}text-danger{% endif %}">{{ students_abandoned }}</div>
-                    <div class="stat-sub">iniciaram mas não entregaram</div>
+                    <div class="stat-label" id="kpi-abandoned-label">Abandonos</div>
+                    <div class="stat-value {% if students_abandoned > 0 %}text-danger{% endif %}" id="kpi-abandoned">{{ students_abandoned }}</div>
+                    <div class="stat-sub" id="kpi-abandoned-sub">iniciaram mas não entregaram</div>
                 </div>
                 <i class="bi bi-x-circle stat-icon"></i>
             </div>
@@ -152,7 +274,7 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div class="stat-label">Correções pendentes</div>
-                    <div class="stat-value {% if pending_count > 0 %}text-warning{% endif %}">{{ pending_count }}</div>
+                    <div class="stat-value {% if pending_count > 0 %}text-warning{% endif %}" id="kpi-pending">{{ pending_count }}</div>
                     <div class="stat-sub">respostas aguardando professor</div>
                 </div>
                 <i class="bi bi-hourglass-split stat-icon"></i>
@@ -172,28 +294,28 @@
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Média de nota</div>
-            <div class="stat-value">{% if avg_points is not None %}{{ avg_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
+            <div class="stat-value" id="kpi-avg-pts">{% if avg_points is not None %}{{ avg_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
             <div class="stat-sub">pontos ganhos (média aritmética)</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Mediana de nota</div>
-            <div class="stat-value">{% if median_points is not None %}{{ median_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
+            <div class="stat-value" id="kpi-med-pts">{% if median_points is not None %}{{ median_points|floatformat:"-2" }}{% else %}—{% endif %}</div>
             <div class="stat-sub">menos afetada por notas extremas</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Média de aproveitamento</div>
-            <div class="stat-value">{% if avg_pct is not None %}{{ avg_pct }}%{% else %}—{% endif %}</div>
+            <div class="stat-value" id="kpi-avg-pct">{% if avg_pct is not None %}{{ avg_pct }}%{% else %}—{% endif %}</div>
             <div class="stat-sub">pontos obtidos / pontos possíveis</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Mediana de aproveitamento</div>
-            <div class="stat-value">{% if median_pct is not None %}{{ median_pct }}%{% else %}—{% endif %}</div>
+            <div class="stat-value" id="kpi-med-pct">{% if median_pct is not None %}{{ median_pct }}%{% else %}—{% endif %}</div>
             <div class="stat-sub">pontos obtidos / pontos possíveis</div>
         </div>
     </div>
@@ -210,21 +332,21 @@
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Tempo médio total</div>
-            <div class="stat-value" style="font-size:1.1rem">{% if avg_time_total is not None %}{{ avg_time_total|duration }}{% else %}—{% endif %}</div>
+            <div class="stat-value" id="kpi-avg-time" style="font-size:1.1rem">{% if avg_time_total is not None %}{{ avg_time_total|duration }}{% else %}—{% endif %}</div>
             <div class="stat-sub">por entrega (todos os exercícios)</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Tempo mediano total</div>
-            <div class="stat-value" style="font-size:1.1rem">{% if median_time_total is not None %}{{ median_time_total|duration }}{% else %}—{% endif %}</div>
+            <div class="stat-value" id="kpi-med-time" style="font-size:1.1rem">{% if median_time_total is not None %}{{ median_time_total|duration }}{% else %}—{% endif %}</div>
             <div class="stat-sub">metade levou mais, metade menos</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card h-100">
             <div class="stat-label">Total de entregas</div>
-            <div class="stat-value">{{ total_submissions }}</div>
+            <div class="stat-value" id="kpi-total-subs">{{ total_submissions }}</div>
             <div class="stat-sub">submissões analisadas</div>
         </div>
     </div>
@@ -238,23 +360,155 @@
     <i class="bi bi-list-check"></i> Performance por Atividade
 </div>
 
+{{ activity_kpis|json_script:"act-kpis-json" }}
+
 <div class="stat-card">
+    <div class="d-flex align-items-center mb-3 pb-2" style="border-bottom:1px solid var(--gray-200)">
+        <button class="act-filter-chip active" data-act-pk="all" data-act-title=""
+                onclick="kpiFilter(this)" style="font-size:.78rem;color:var(--gray-500)">
+            <i class="bi bi-grid-3x3-gap" style="font-size:.72rem;margin-right:.25rem"></i>Todas as atividades
+        </button>
+    </div>
     {% for link in activity_stats %}
-    <div class="d-flex align-items-center gap-3 mb-2">
-        <div class="progress-bar-one-label" style="width:35%" title="{{ link.activity_list.title }}">
-            {{ link.activity_list.title }}
+    <div>
+        <div class="d-flex align-items-center gap-3 mb-0">
+            <button class="progress-bar-one-label act-filter-chip" style="width:35%"
+                    title="{{ link.activity_list.title }}"
+                    data-act-pk="{{ link.pk }}"
+                    data-act-title="{{ link.activity_list.title }}"
+                    onclick="kpiFilter(this)">
+                {{ link.activity_list.title }}
+            </button>
+            <div class="progress-bar-one">
+                {% if students_enrolled %}
+                <div class="progress-bar-one-fill" style="width: {% widthratio link.submitted_count students_enrolled 100 %}%;"></div>
+                {% endif %}
+            </div>
+            <div class="progress-bar-one-value">
+                {% if students_enrolled %}{% widthratio link.submitted_count students_enrolled 100 %}%{% else %}—{% endif %}
+            </div>
         </div>
-        <div class="progress-bar-one">
-            {% if students_enrolled %}
-            <div class="progress-bar-one-fill" style="width: {% widthratio link.submitted_count students_enrolled 100 %}%;"></div>
-            {% endif %}
-        </div>
-        <div class="progress-bar-one-value">
-            {% if students_enrolled %}{% widthratio link.submitted_count students_enrolled 100 %}%{% else %}—{% endif %}
+
+        <!-- Ranking inline (expande ao selecionar esta atividade) -->
+        <div class="inline-grades-panel" id="inline-grades-{{ link.pk }}">
+            <div class="ig-wrap">
+                <div class="ig-head">
+                    <span class="ig-meta">{{ link.grades_submitted_count }}/{{ students_enrolled }} entregaram</span>
+                </div>
+                {% if link.grades_rows %}
+                <table class="ig-table">
+                    <tbody>
+                    {% for row in link.grades_rows %}
+                    <tr {% if not row.submitted %}style="opacity:.8"{% endif %}>
+                        <td style="width:34px">
+                            <div class="ig-rank {{ row.rank_class }}">
+                                {% if row.rank %}{{ row.rank }}º{% else %}—{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ig-name {% if not row.submitted %}text-muted{% endif %}">{{ row.name }}</div>
+                            <div class="ig-sub">
+                                {% if row.submitted %}Entregue em {{ row.submitted_at|date:"d/m" }} às {{ row.submitted_at|time:"H:i" }}{% else %}Não entregou{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if row.submitted %}
+                            <div class="ig-bar-wrap">
+                                <div class="ig-bar-bg"><div class="ig-bar-fill ig-fill-{{ row.grade }}" style="width:{{ row.pct }}%"></div></div>
+                                <span class="ig-val ig-val-{{ row.grade }}">{{ row.earned_fmt }}</span>
+                                <span class="ig-val-tot">/ {{ row.total_fmt }}</span>
+                            </div>
+                            {% else %}
+                            <span class="ig-miss">Sem submissão</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="font-size:.78rem;color:var(--gray-400);font-style:italic;margin:0">Nenhum aluno entregou ainda.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
+    {% if not forloop.last %}<div style="height:.5rem"></div>{% endif %}
     {% endfor %}
 </div>
+
+<script>
+(function () {
+    const kpisEl = document.getElementById('act-kpis-json');
+    if (!kpisEl) return;
+    const _kpi = JSON.parse(kpisEl.textContent);
+    const _map = {
+        'kpi-submitted':  'students_submitted',
+        'kpi-compl-pct':  'completion_pct',
+        'kpi-abandoned':  'students_abandoned',
+        'kpi-pending':    'pending_count',
+        'kpi-total-subs': 'total_submissions',
+        'kpi-avg-pts':    'avg_points',
+        'kpi-med-pts':    'median_points',
+        'kpi-avg-pct':    'avg_pct',
+        'kpi-med-pct':    'median_pct',
+        'kpi-avg-time':   'avg_time',
+        'kpi-med-time':   'median_time',
+    };
+    window.kpiFilter = function (chip) {
+        const pk    = chip.dataset.actPk;
+        const title = chip.dataset.actTitle;
+        const data  = _kpi[pk] || _kpi['all'];
+        const isAll = pk === 'all';
+
+        // chips
+        document.querySelectorAll('.act-filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+
+        // filter pill no título
+        const pill = document.getElementById('kpi-filter-pill');
+        if (pill) {
+            pill.textContent = title;
+            pill.style.display = isAll ? 'none' : '';
+        }
+
+        // KPI values
+        for (const [id, key] of Object.entries(_map)) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = data[key];
+        }
+        const bar = document.getElementById('kpi-bar-fill');
+        if (bar) bar.style.width = data.completion_pct + '%';
+
+        // label do card Abandonos
+        const aLabel = document.getElementById('kpi-abandoned-label');
+        const aSub   = document.getElementById('kpi-abandoned-sub');
+        if (aLabel) aLabel.textContent = isAll ? 'Abandonos' : 'Não entregaram';
+        if (aSub)   aSub.textContent   = isAll ? 'iniciaram mas não entregaram' : 'alunos sem submissão nesta atividade';
+
+        // inline grades panel — toggle se já estiver aberto
+        const panel = isAll ? null : document.getElementById('inline-grades-' + pk);
+        const alreadyOpen = panel && panel.classList.contains('open');
+        document.querySelectorAll('.inline-grades-panel').forEach(p => p.classList.remove('open'));
+        if (!isAll && !alreadyOpen) {
+            if (panel) panel.classList.add('open');
+        } else if (alreadyOpen) {
+            // colapsou — volta chip e KPIs para "Todas"
+            document.querySelectorAll('.act-filter-chip').forEach(c => c.classList.remove('active'));
+            const allChip = document.querySelector('.act-filter-chip[data-act-pk="all"]');
+            if (allChip) allChip.classList.add('active');
+            if (pill) { pill.style.display = 'none'; }
+            const allData = _kpi['all'];
+            for (const [id, key] of Object.entries(_map)) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = allData[key];
+            }
+            const bar2 = document.getElementById('kpi-bar-fill');
+            if (bar2) bar2.style.width = allData.completion_pct + '%';
+            if (aLabel) aLabel.textContent = 'Abandonos';
+            if (aSub)   aSub.textContent   = 'iniciaram mas não entregaram';
+        }
+    };
+})();
+</script>
 {% endif %}
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -295,3 +549,33 @@
 {% endif %}
 
 {% endblock info_right %}
+
+{% block extra_script %}
+{{ block.super }}
+<script>
+(function () {
+    const _fsTarget = document.querySelector('.col-lg-8 .detail-left-card');
+    const _fsIcon   = document.getElementById('stats-fullscreen-icon');
+    const _fsTabs   = document.querySelector('.nav-tabs');
+
+    window.toggleStatsFullscreen = function () {
+        if (!document.fullscreenElement) {
+            _fsTarget.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
+    document.addEventListener('fullscreenchange', function () {
+        const active = !!document.fullscreenElement;
+        if (_fsIcon) _fsIcon.className = active ? 'bi bi-fullscreen-exit' : 'bi bi-fullscreen';
+        if (_fsTarget) {
+            _fsTarget.style.overflowY  = active ? 'auto' : '';
+            _fsTarget.style.padding    = active ? '1.5rem' : '';
+            _fsTarget.style.background = active ? 'var(--bs-body-bg, #fff)' : '';
+        }
+        if (_fsTabs) _fsTabs.classList.toggle('d-none', active);
+    });
+})();
+</script>
+{% endblock extra_script %}

@@ -75,8 +75,16 @@
 <!-- ═══════════════════════════════════════════════════════════
      SEÇÃO 1 · CARDS DE VISÃO GERAL
 ═══════════════════════════════════════════════════════════ -->
-<div class="section-title mt-3">
-    <i class="bi bi-grid-3x3-gap"></i> Visão Geral
+<div class="d-flex align-items-center justify-content-between">
+    <div class="section-title">
+        <i class="bi bi-grid-3x3-gap"></i> Visão Geral
+    </div>
+    <button id="stats-fullscreen-btn"
+            onclick="toggleStatsFullscreen()"
+            title="Tela cheia"
+            class="btn btn-sm btn-outline-primary rounded-5 gap-3 px-3">
+        <i class="bi bi-fullscreen" id="stats-fullscreen-icon"></i>
+    </button>
 </div>
 
 <div class="row g-2">
@@ -250,15 +258,17 @@
                        data-bs-trigger="hover focus"
                        data-bs-html="true"
                        data-bs-placement="left"
-                       data-bs-title="Legenda das classificações"
+                       data-bs-title="Nível de dificuldade"
                        data-bs-content="
-                           <div style='font-size:.78rem;line-height:1.8'>
-                             <span class='tag tag-danger'>Difícil</span>&nbsp; acerto &lt;40% e tempo &gt;2min<br>
-                             <span class='tag tag-warning'>Confusa</span>&nbsp; acerto &lt;40% e tempo ≤2min<br>
-                             <span class='tag tag-secondary'>Trabalhosa</span>&nbsp; acerto ≥60% e tempo &gt;3min<br>
-                             <span class='tag tag-success'>Dominada</span>&nbsp; acerto ≥80%<br>
-                             <span class='tag tag-primary'>OK</span>&nbsp; acerto 40–79%
-                           </div>"></i>
+                           <table style='font-size:.75rem;border-collapse:collapse;width:100%'>
+                             <tbody>
+                               <tr><td style='padding:.25rem .6rem .25rem 0;white-space:nowrap'><span class='tag tag-danger'>Alto</span></td><td style='padding:.25rem 0;color:#475569;white-space:nowrap'>acerto &lt;40% e tempo &gt;2min</td></tr>
+                               <tr><td style='padding:.25rem .6rem .25rem 0;white-space:nowrap'><span class='tag tag-warning'>Médio Alto</span></td><td style='padding:.25rem 0;color:#475569;white-space:nowrap'>acerto &lt;40% e tempo ≤2min</td></tr>
+                               <tr><td style='padding:.25rem .6rem .25rem 0;white-space:nowrap'><span class='tag tag-secondary'>Médio</span></td><td style='padding:.25rem 0;color:#475569;white-space:nowrap'>acerto ≥60% e tempo &gt;3min</td></tr>
+                               <tr><td style='padding:.25rem .6rem .25rem 0;white-space:nowrap'><span class='tag tag-primary'>Médio Baixo</span></td><td style='padding:.25rem 0;color:#475569;white-space:nowrap'>acerto 40–79%</td></tr>
+                               <tr><td style='padding:.25rem .6rem .25rem 0;white-space:nowrap'><span class='tag tag-success'>Baixo</span></td><td style='padding:.25rem 0;color:#475569;white-space:nowrap'>acerto ≥80%</td></tr>
+                             </tbody>
+                           </table>"></i>
                 </th>
             </tr>
         </thead>
@@ -392,6 +402,28 @@
 <script>
 document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
     new bootstrap.Popover(el, { sanitize: false });
+});
+
+const _fsTarget = document.querySelector('.col-lg-8 .detail-left-card');
+const _fsIcon   = document.getElementById('stats-fullscreen-icon');
+
+function toggleStatsFullscreen() {
+    if (!document.fullscreenElement) {
+        _fsTarget.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+const _fsTabs = document.querySelector('.nav-tabs');
+
+document.addEventListener('fullscreenchange', function () {
+    const active = !!document.fullscreenElement;
+    _fsIcon.className = active ? 'bi bi-fullscreen-exit' : 'bi bi-fullscreen';
+    _fsTarget.style.overflowY  = active ? 'auto' : '';
+    _fsTarget.style.padding    = active ? '1.5rem' : '';
+    _fsTarget.style.background = active ? 'var(--bs-body-bg, #fff)' : '';
+    if (_fsTabs) _fsTabs.classList.toggle('d-none', active);
 });
 </script>
 {% endblock extra_script %}

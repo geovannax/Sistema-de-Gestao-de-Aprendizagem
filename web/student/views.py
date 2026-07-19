@@ -239,7 +239,17 @@ class StudentGroupDetailView(AuthPermissionMixin, TemplateView):
             ).values('activity_link_id').annotate(n=Count('id')).values_list('activity_link_id', 'n')
         )
 
+        activity_list_ids = [link.activity_list_id for link in links]
+        exercise_count_by_list = {
+            row['activity_list_id']: row['total']
+            for row in Exercise.objects
+            .filter(activity_list_id__in=activity_list_ids, is_annulled=False)
+            .values('activity_list_id')
+            .annotate(total=Count('pk'))
+        }
+
         for link in links:
+            link.exercise_count = exercise_count_by_list.get(link.activity_list_id, 0)
             max_att = link.activity_list.max_attempts
             # "Continuar" only for truly unlimited activities (no max_attempts AND no ends_at).
             # Any activity with a time deadline or attempt limit uses beacon to close
@@ -1590,12 +1600,20 @@ class StudentRunCodePollView(_ActivityAccessMixin, View):
                 'exercise_pk': exercise_pk,
             })
 
+        if data.get('complete_code'):
+            return render(request, 'student/partials/_run_code_result.html', {
+                'complete_code': True,
+                'is_correct': data['is_correct'],
+                'exercise_pk': exercise_pk,
+            })
+
         if data.get('run_only'):
             return render(request, 'student/partials/_run_code_result.html', {
                 'run_only': True,
                 'stdout': data['stdout'],
                 'stderr': data['stderr'],
                 'status': data['status'],
+                'is_correct': data.get('is_correct'),
                 'exercise_pk': exercise_pk,
             })
 
@@ -1604,5 +1622,6 @@ class StudentRunCodePollView(_ActivityAccessMixin, View):
             'all_correct': data['all_correct'],
             'correct_count': data['correct_count'],
             'total_count': data['total_count'],
+            'complete_code': data.get('complete_code', False),
             'exercise_pk': exercise_pk,
         })

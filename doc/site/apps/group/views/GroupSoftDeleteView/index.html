@@ -5857,11 +5857,11 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1028">1028</a></span>
-<span class="normal"><a href="#__codelineno-0-1029">1029</a></span>
-<span class="normal"><a href="#__codelineno-0-1030">1030</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1028" name="__codelineno-0-1028"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_object_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Group</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-1029" name="__codelineno-0-1029"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna ``True`` se o usuário for o criador da turma.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-1030" name="__codelineno-0-1030"></a>    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">created_by</span> <span class="o">==</span> <span class="n">user</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1337">1337</a></span>
+<span class="normal"><a href="#__codelineno-0-1338">1338</a></span>
+<span class="normal"><a href="#__codelineno-0-1339">1339</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1337" name="__codelineno-0-1337"></a><span class="k">def</span><span class="w"> </span><span class="nf">has_object_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Group</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-1338" name="__codelineno-0-1338"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna ``True`` se o usuário for o criador da turma.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-1339" name="__codelineno-0-1339"></a>    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">created_by</span> <span class="o">==</span> <span class="n">user</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5884,39 +5884,39 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1032">1032</a></span>
-<span class="normal"><a href="#__codelineno-0-1033">1033</a></span>
-<span class="normal"><a href="#__codelineno-0-1034">1034</a></span>
-<span class="normal"><a href="#__codelineno-0-1035">1035</a></span>
-<span class="normal"><a href="#__codelineno-0-1036">1036</a></span>
-<span class="normal"><a href="#__codelineno-0-1037">1037</a></span>
-<span class="normal"><a href="#__codelineno-0-1038">1038</a></span>
-<span class="normal"><a href="#__codelineno-0-1039">1039</a></span>
-<span class="normal"><a href="#__codelineno-0-1040">1040</a></span>
-<span class="normal"><a href="#__codelineno-0-1041">1041</a></span>
-<span class="normal"><a href="#__codelineno-0-1042">1042</a></span>
-<span class="normal"><a href="#__codelineno-0-1043">1043</a></span>
-<span class="normal"><a href="#__codelineno-0-1044">1044</a></span>
-<span class="normal"><a href="#__codelineno-0-1045">1045</a></span>
-<span class="normal"><a href="#__codelineno-0-1046">1046</a></span>
-<span class="normal"><a href="#__codelineno-0-1047">1047</a></span>
-<span class="normal"><a href="#__codelineno-0-1048">1048</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1032" name="__codelineno-0-1032"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-1033" name="__codelineno-0-1033"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Aplica soft delete na turma e desativa todos os compartilhamentos vinculados.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-1034" name="__codelineno-0-1034"></a>    <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
-<a id="__codelineno-0-1035" name="__codelineno-0-1035"></a>
-<a id="__codelineno-0-1036" name="__codelineno-0-1036"></a>    <span class="c1"># 1. Realiza soft delete do grupo</span>
-<a id="__codelineno-0-1037" name="__codelineno-0-1037"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">deleted_at</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-<a id="__codelineno-0-1038" name="__codelineno-0-1038"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">update_fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;deleted_at&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-1039" name="__codelineno-0-1039"></a>
-<a id="__codelineno-0-1040" name="__codelineno-0-1040"></a>    <span class="c1"># 2. Desativa todos os compartilhamentos vinculados a esse grupo</span>
-<a id="__codelineno-0-1041" name="__codelineno-0-1041"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">sharings</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">is_active</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-0-1042" name="__codelineno-0-1042"></a>
-<a id="__codelineno-0-1043" name="__codelineno-0-1043"></a>    <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
-<a id="__codelineno-0-1044" name="__codelineno-0-1044"></a>        <span class="n">request</span><span class="p">,</span>
-<a id="__codelineno-0-1045" name="__codelineno-0-1045"></a>        <span class="sa">f</span><span class="s1">&#39;Turma &quot;</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; deletada com sucesso!&#39;</span>
-<a id="__codelineno-0-1046" name="__codelineno-0-1046"></a>    <span class="p">)</span>
-<a id="__codelineno-0-1047" name="__codelineno-0-1047"></a>
-<a id="__codelineno-0-1048" name="__codelineno-0-1048"></a>    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;group:active&#39;</span><span class="p">)</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1341">1341</a></span>
+<span class="normal"><a href="#__codelineno-0-1342">1342</a></span>
+<span class="normal"><a href="#__codelineno-0-1343">1343</a></span>
+<span class="normal"><a href="#__codelineno-0-1344">1344</a></span>
+<span class="normal"><a href="#__codelineno-0-1345">1345</a></span>
+<span class="normal"><a href="#__codelineno-0-1346">1346</a></span>
+<span class="normal"><a href="#__codelineno-0-1347">1347</a></span>
+<span class="normal"><a href="#__codelineno-0-1348">1348</a></span>
+<span class="normal"><a href="#__codelineno-0-1349">1349</a></span>
+<span class="normal"><a href="#__codelineno-0-1350">1350</a></span>
+<span class="normal"><a href="#__codelineno-0-1351">1351</a></span>
+<span class="normal"><a href="#__codelineno-0-1352">1352</a></span>
+<span class="normal"><a href="#__codelineno-0-1353">1353</a></span>
+<span class="normal"><a href="#__codelineno-0-1354">1354</a></span>
+<span class="normal"><a href="#__codelineno-0-1355">1355</a></span>
+<span class="normal"><a href="#__codelineno-0-1356">1356</a></span>
+<span class="normal"><a href="#__codelineno-0-1357">1357</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1341" name="__codelineno-0-1341"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-1342" name="__codelineno-0-1342"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Aplica soft delete na turma e desativa todos os compartilhamentos vinculados.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-1343" name="__codelineno-0-1343"></a>    <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span>
+<a id="__codelineno-0-1344" name="__codelineno-0-1344"></a>
+<a id="__codelineno-0-1345" name="__codelineno-0-1345"></a>    <span class="c1"># 1. Realiza soft delete do grupo</span>
+<a id="__codelineno-0-1346" name="__codelineno-0-1346"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">deleted_at</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<a id="__codelineno-0-1347" name="__codelineno-0-1347"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">update_fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;deleted_at&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-1348" name="__codelineno-0-1348"></a>
+<a id="__codelineno-0-1349" name="__codelineno-0-1349"></a>    <span class="c1"># 2. Desativa todos os compartilhamentos vinculados a esse grupo</span>
+<a id="__codelineno-0-1350" name="__codelineno-0-1350"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">sharings</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">is_active</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-1351" name="__codelineno-0-1351"></a>
+<a id="__codelineno-0-1352" name="__codelineno-0-1352"></a>    <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+<a id="__codelineno-0-1353" name="__codelineno-0-1353"></a>        <span class="n">request</span><span class="p">,</span>
+<a id="__codelineno-0-1354" name="__codelineno-0-1354"></a>        <span class="sa">f</span><span class="s1">&#39;Turma &quot;</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; deletada com sucesso!&#39;</span>
+<a id="__codelineno-0-1355" name="__codelineno-0-1355"></a>    <span class="p">)</span>
+<a id="__codelineno-0-1356" name="__codelineno-0-1356"></a>
+<a id="__codelineno-0-1357" name="__codelineno-0-1357"></a>    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;group:active&#39;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

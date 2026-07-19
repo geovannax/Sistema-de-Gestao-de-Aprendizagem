@@ -908,15 +908,15 @@ class ActivityStatsView(ActivityDetailBaseView, AuthPermissionMixin, ObjectAcces
             if acc is None:  # pragma: no cover  — total_answers ≥ 1 sempre que o exercício aparece no queryset
                 stat['tag'], stat['tag_class'] = '—', 'secondary'
             elif acc < 40 and avg_t > 120:
-                stat['tag'], stat['tag_class'] = 'Difícil', 'danger'
+                stat['tag'], stat['tag_class'] = 'Alto', 'danger'
             elif acc < 40:
-                stat['tag'], stat['tag_class'] = 'Confusa', 'warning'
+                stat['tag'], stat['tag_class'] = 'Médio Alto', 'warning'
             elif avg_t > 180 and acc >= 60:
-                stat['tag'], stat['tag_class'] = 'Trabalhosa', 'secondary'
+                stat['tag'], stat['tag_class'] = 'Médio', 'secondary'
             elif acc >= 80:
-                stat['tag'], stat['tag_class'] = 'Dominada', 'success'
+                stat['tag'], stat['tag_class'] = 'Baixo', 'success'
             else:
-                stat['tag'], stat['tag_class'] = 'OK', 'primary'
+                stat['tag'], stat['tag_class'] = 'Médio Baixo', 'primary'
 
         # ── Análise de distratores (múltipla escolha) ─────────────────────
         mc_ids = {ex.pk for ex in exercises if ex.type == 'multiple_choice'}

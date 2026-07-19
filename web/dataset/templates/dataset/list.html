@@ -1,0 +1,216 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Dataset{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/form.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+    <style>
+        /* ── filter card ───────────────────────────────────────────────── */
+        .ds-filter-card { background: #fff; border: 1px solid var(--gray-200); border-radius: .5rem; padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+        .ds-filter-row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
+        .ds-filter-col { display: flex; flex-direction: column; gap: .3rem; flex: 1 1 220px; }
+        .ds-filter-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; color: var(--gray-500); }
+
+        /* Tom Select overrides */
+        .ts-wrapper { font-size: .85rem; }
+        .ts-control { border-color: var(--gray-300) !important; border-radius: .375rem !important; min-height: 38px; }
+        .ts-control:focus-within { border-color: var(--blue-500) !important; box-shadow: 0 0 0 3px rgba(59,130,246,.15) !important; }
+        .ts-dropdown { border-color: var(--gray-200) !important; font-size: .84rem; }
+        .ts-dropdown .option.selected { background: var(--blue-500) !important; }
+        .ts-dropdown .option:hover { background: var(--blue-50, #eff6ff) !important; color: var(--gray-800); }
+
+        /* ── filter help ───────────────────────────────────────────────── */
+        .ds-field-hint { font-size: .7rem; color: var(--gray-500); margin-top: .3rem; line-height: 1.45; }
+/* ── anon note ─────────────────────────────────────────────────── */
+        .ds-anon-note { font-size: .78rem; color: var(--gray-500); background: var(--white); border: 1px solid var(--gray-200); border-left: 3px solid var(--blue-500); border-radius: .375rem; padding: .5rem .85rem; margin-bottom: 1rem; }
+
+        /* ── dataset cards ─────────────────────────────────────────────── */
+        .ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .75rem; }
+        .card-content { padding: 1rem 1.1rem; gap: .5rem; display: flex; flex-direction: column; }
+        .card-content.ds-zip { border-style: dashed; border-color: var(--blue-500); background: var(--blue-50, #eff6ff); }
+        .ds-card-head { display: flex; align-items: center; gap: .55rem; }
+        .ds-icon { font-size: 1.15rem; color: var(--blue-500); }
+        .card-content.ds-zip .ds-icon { color: #7c3aed; }
+        .ds-title { font-weight: 700; font-size: .9rem; color: var(--gray-800); }
+        .ds-desc { font-size: .78rem; color: var(--gray-500); line-height: 1.4; flex: 1; }
+.ds-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .25rem; }
+        .ds-rows { font-size: .72rem; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+        /* ── states ────────────────────────────────────────────────────── */
+        .ds-loading { text-align: center; color: var(--gray-400); padding: 2.5rem 1rem; font-size: .85rem; }
+        .ds-empty-page { text-align: center; padding: 2rem; color: var(--gray-400); font-size: .85rem; }
+    </style>
+{% endblock %}
+
+{% block main_content %}
+    {% with page_title="Dataset" page_description="Configure o escopo e extraia datasets anonimizados para Learning Analytics." %}
+        {% include "global/partials/_page_header.html" %}
+    {% endwith %}
+
+    <div class="detail-left-card p-3 rounded-3">
+
+        {% if not owned_groups and not shared_groups %}
+        <div class="ds-empty-page">
+            <i class="bi bi-database-slash" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+            Nenhuma turma disponível para extração.
+        </div>
+
+        {% else %}
+
+        <div class="form-card-header d-flex mb-3">
+            <div>
+                <div class="form-card-title mb-0">Extração de dados</div>
+                <div class="form-card-subtitle">Selecione o escopo para gerar datasets anonimizados prontos para análise. Cada CSV pode ser baixado individualmente ou em um único ZIP.</div>
+            </div>
+        </div>
+
+        <!-- Filter form -->
+        <div class="ds-filter-card">
+            <div class="ds-filter-row">
+                <div class="ds-filter-col">
+                    <label class="ds-filter-label" for="ds-group">
+                        Turma
+                        <i class="bi bi-question-circle ms-1"
+                           style="font-size:.65rem;cursor:help;opacity:.55;vertical-align:middle"
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="top"
+                           title="Escopo principal do dataset. Sem seleção, todas as suas turmas são incluídas automaticamente. Mudar a turma atualiza as atividades disponíveis."></i>
+                    </label>
+                    <select id="ds-group" multiple
+                            data-activities-url="{% url 'dataset:htmx_activities' %}"
+                            data-preview-url="{% url 'dataset:htmx_preview' %}">
+                        {% if owned_groups %}
+                        <optgroup label="Minhas Turmas">
+                            {% for g in owned_groups %}
+                            <option value="{{ g.pk }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endif %}
+                        {% if shared_groups %}
+                        <optgroup label="Compartilhadas">
+                            {% for g in shared_groups %}
+                            <option value="{{ g.pk }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endif %}
+                    </select>
+                    <small class="ds-field-hint">Sem seleção → todas as suas turmas</small>
+                </div>
+                <div class="ds-filter-col">
+                    <label class="ds-filter-label" for="ds-activity">
+                        Atividade
+                        <i class="bi bi-question-circle ms-1"
+                           style="font-size:.65rem;cursor:help;opacity:.55;vertical-align:middle"
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="top"
+                           title="Restringe os datasets a um vínculo específico de atividade dentro das turmas selecionadas. Atualizado automaticamente ao mudar a turma. Sem seleção, todos os vínculos são incluídos."></i>
+                    </label>
+                    <select id="ds-activity" multiple>
+                        <!-- populated dynamically -->
+                    </select>
+                    <small class="ds-field-hint">Atualiza ao mudar turma · Sem seleção → todas as atividades</small>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
+
+    <!-- Anonymization note -->
+    <div class="ds-anon-note mt-3">
+        <i class="bi bi-shield-lock-fill me-1"></i>
+        Todos os datasets aplicam <strong>anonimização por hash</strong> — nenhum nome, email ou dado pessoal é exportado.
+        O campo <code>student_anon_id</code> é gerado a partir do ID do aluno <strong>combinado com o ID da turma</strong>,
+        garantindo que o mesmo aluno em turmas diferentes receba identificadores distintos.
+        Dentro de uma mesma exportação, o identificador é consistente entre todos os CSVs,
+        permitindo cruzamento de dados sem expor identidades.
+    </div>
+
+    <!-- Dynamic preview (populated by JS) -->
+    <div id="ds-preview">
+        <div class="ds-loading"><i class="bi bi-hourglass-split me-1"></i>Carregando...</div>
+    </div>
+
+    {% include "dataset/partials/_der.html" %}
+
+{% endblock %}
+
+{% include "dataset/partials/_download_loading.html" %}
+
+{% block extra_script %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+(function () {
+    const groupEl      = document.getElementById('ds-group');
+    const actEl        = document.getElementById('ds-activity');
+    const preview      = document.getElementById('ds-preview');
+    if (!groupEl) return;
+
+    const activitiesUrl = groupEl.dataset.activitiesUrl;
+    const previewUrl    = groupEl.dataset.previewUrl;
+
+    const groupSel = new TomSelect('#ds-group', {
+        plugins: ['remove_button'],
+        placeholder: 'Todas as Turmas',
+        maxOptions: null,
+        onChange: fetchActivities,
+    });
+
+    let actSel = new TomSelect('#ds-activity', {
+        plugins: ['remove_button'],
+        placeholder: 'Todas as Atividades',
+        maxOptions: null,
+        onChange: loadPreview,
+    });
+
+    function buildParams(groupVals, actVals) {
+        const p = new URLSearchParams();
+        (groupVals || []).forEach(v => p.append('group', v));
+        (actVals   || []).forEach(v => p.append('activity', v));
+        return p.toString();
+    }
+
+    function fetchActivities() {
+        const groupVals = groupSel.getValue();
+        const params = buildParams(groupVals, []);
+
+        fetch(`${activitiesUrl}?${params}`)
+            .then(r => r.text())
+            .then(html => {
+                actSel.destroy();
+                actEl.innerHTML = html;
+                actSel = new TomSelect('#ds-activity', {
+                    plugins: ['remove_button'],
+                    placeholder: 'Todas as Atividades',
+                    maxOptions: null,
+                    onChange: loadPreview,
+                });
+                loadPreview();
+            });
+    }
+
+    function loadPreview() {
+        const groupVals = groupSel.getValue();
+        const actVals   = actSel.getValue();
+        const params    = buildParams(groupVals, actVals);
+
+        preview.innerHTML = '<div class="ds-loading"><i class="bi bi-hourglass-split me-1"></i>Carregando...</div>';
+        fetch(`${previewUrl}?${params}`)
+            .then(r => r.text())
+            .then(html => { preview.innerHTML = html; });
+    }
+
+    // Initial load
+    fetchActivities();
+
+    // Bootstrap tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+    });
+})();
+</script>
+{% endblock %}

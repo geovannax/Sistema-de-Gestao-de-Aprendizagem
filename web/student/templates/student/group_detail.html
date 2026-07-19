@@ -142,7 +142,11 @@
                                                 <i class="bi bi-slash-circle me-1"></i>Sem tentativas
                                             </span>
                                         {% else %}
-                                            <a href="{% url 'student:activity' link.pk %}" class="btn btn-sm btn-primary rounded-5">
+                                            <a href="{% url 'student:activity' link.pk %}"
+                                               class="btn btn-sm btn-primary rounded-5 start-activity-btn"
+                                               data-title="{{ link.activity_list.title }}"
+                                               data-group="{{ group.name }}"
+                                               data-questions="{{ link.exercise_count }}">
                                                 {% if link.in_progress_submission %}
                                                     <i class="bi bi-play-fill me-1"></i>Continuar
                                                 {% else %}
@@ -254,3 +258,24 @@
     </div>
 
 {% endblock main_content %}
+
+{% block modal %}
+    {% with modal_form=True modal_id="startActivityModal" modal_icon="bi-play-circle-fill" modal_title="Iniciar atividade" modal_subtitle="Confirme antes de começar" modal_form_method="GET" modal_form_id="startActivityForm" modal_button_submit="Começar" modal_button_icon="bi-play-fill" %}
+        {% include "global/partials/_modal.html" with content_template="accounts/_start_activity_modal.html" %}
+    {% endwith %}
+{% endblock modal %}
+
+{% block extra_script %}
+<script>
+document.querySelectorAll('.start-activity-btn').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('startModalTitle').textContent = el.dataset.title;
+        document.getElementById('startModalGroup').textContent = el.dataset.group;
+        document.getElementById('startModalQuestions').textContent = el.dataset.questions + ' questões';
+        document.getElementById('startActivityForm').action = el.href;
+        new bootstrap.Modal(document.getElementById('startActivityModal')).show();
+    });
+});
+</script>
+{% endblock extra_script %}

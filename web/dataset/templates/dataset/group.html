@@ -1,0 +1,90 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Dataset — {{ object.name }}{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
+    <style>
+        .ds-anon-note { font-size: .78rem; color: var(--gray-500); background: var(--white); border: 1px solid var(--gray-200); border-left: 3px solid var(--blue-500); border-radius: .375rem; padding: .55rem .85rem; }
+
+        .ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+        .card-content { padding: 1rem 1.1rem; gap: .5rem; display: flex; flex-direction: column; }
+        .card-content.ds-zip { border-style: dashed; border-color: var(--blue-500); background: var(--blue-50, #eff6ff); }
+
+        .card-content-head { display: flex; align-items: center; gap: .55rem; }
+        .ds-icon { font-size: 1.15rem; color: var(--blue-500); }
+        .card-content.ds-zip .ds-icon { color: #7c3aed; }
+        .ds-title { font-weight: 700; font-size: .9rem; color: var(--gray-800); }
+        .ds-desc { font-size: .78rem; color: var(--gray-500); line-height: 1.4; flex: 1; }
+.ds-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .25rem; }
+        .ds-rows { font-size: .72rem; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+
+        .ds-back { font-size: .8rem; color: var(--gray-500); text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; margin-bottom: .75rem; }
+        .ds-back:hover { color: var(--blue-500); }
+    </style>
+{% endblock %}
+
+{% block main_content %}
+
+    {% with page_title=object.name page_description="Datasets anonimizados disponíveis para exportação." %}
+        {% include "global/partials/_page_header.html" %}
+    {% endwith %}
+
+    <div class="detail-left-card p-3 rounded-3">
+
+        <a href="{% url 'dataset:list' %}" class="ds-back">
+            <i class="bi bi-arrow-left"></i> Voltar para Dataset
+        </a>
+
+        <div class="ds-anon-note mt-3">
+            <i class="bi bi-shield-lock-fill me-1"></i>
+            Todos os datasets aplicam <strong>anonimização por hash</strong> — nenhum nome, email ou dado pessoal é exportado.
+            O campo <code>student_anon_id</code> é gerado a partir do ID do aluno <strong>combinado com o ID da turma</strong>,
+            garantindo que o mesmo aluno em turmas diferentes receba identificadores distintos.
+            Dentro desta exportação, o identificador é consistente entre todos os CSVs,
+            permitindo cruzamento de dados sem expor identidades.
+        </div>
+
+        <div class="ds-grid mb-3">
+            {% for ds in datasets %}
+            <div class="card-content{% if ds.key == 'all' %} ds-zip{% endif %}">
+                <div class="card-content-head">
+                    <i class="bi {{ ds.icon }} ds-icon"></i>
+                    <span class="ds-title">{{ ds.title }}</span>
+                </div>
+                <div class="ds-desc mb-3">{{ ds.description }}</div>
+                <div class="ds-footer">
+                    {% if ds.rows is not None %}
+                    <span class="ds-rows">{{ ds.rows }} linha{{ ds.rows|pluralize }}</span>
+                    {% else %}
+                    <span class="ds-rows">todos os CSVs</span>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        {% if ds.columns %}
+                        <button type="button"
+                                class="btn btn-sm rounded-5 px-3 btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modal-ds-{{ ds.key }}">
+                            <i class="bi bi-list-ul me-1"></i> Info
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'dataset:download' ds.key %}?group={{ object.pk }}"
+                           class="btn btn-sm rounded-5 px-3 btn-outline-primary">
+                            <i class="bi {% if ds.key == 'all' %}bi-file-zip{% else %}bi-download{% endif %} me-1"></i>
+                            {% if ds.key == 'all' %}ZIP{% else %}CSV{% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    {% include "dataset/partials/column_modals.html" %}
+    {% include "dataset/partials/_download_loading.html" %}
+
+{% endblock %}

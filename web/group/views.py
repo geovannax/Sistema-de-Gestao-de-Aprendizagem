@@ -1,10 +1,12 @@
-"""Views do app group.
+﻿"""Views do app group.
 
 Implementa listagens de turmas (ativas, arquivadas, compartilhadas), criação,
 edição e soft delete, compartilhamento entre professores, matrícula de alunos
 via link de convite com expiração e gerenciamento de arquivamento.
 """
 from __future__ import annotations
+import json
+from decimal import Decimal
 from typing import Any
 from common.mixins import (
     AuthPermissionMixin,
@@ -17,7 +19,7 @@ from common.mixins import (
 )
 from common.utils import get_btn_action
 from common.view.generic import EnhancedListView
-from activity.models import ActivityListGroup
+from activity.models import ActivityListGroup, Exercise
 from student.models import ExerciseAnswer, Submission
 from datetime import timedelta
 from django.contrib import messages
@@ -35,6 +37,25 @@ from django.views.generic import CreateView, DeleteView, DetailView, UpdateView,
 from django.views.generic.edit import FormMixin
 from group.forms.group import GroupForm, GroupSharingForm
 from group.models import Group, GroupArchived, GroupInvite, GroupSharing, GroupStudent
+
+
+def _fmt_pts(v: float | None) -> str:
+    if v is None:
+        return '—'
+    return f'{v:.2f}'.rstrip('0').rstrip('.')
+
+
+def _fmt_dur(seconds: int | None) -> str:
+    if not seconds:
+        return '—'
+    seconds = int(seconds)
+    h, r = divmod(seconds, 3600)
+    m, s = divmod(r, 60)
+    if h:
+        return f'{h}h {m}min' if m else f'{h}h'
+    if m:
+        return f'{m}min {s}s' if s else f'{m}min'
+    return f'{s}s'
 
 
 ##### INICIO VIEW NAVTABS DA ABA TURMAS #####
@@ -334,11 +355,25 @@ class GroupBaseView:
         is_shared = self.object.sharings.filter(shared_with=self.request.user, is_active=True).exists()
         if is_owner or is_shared:
             tabs.append({
+                'title': 'Notas',
+                'url': 'group:grades',
+                'pk': self.object.pk,
+                'icon': 'bi-award',
+                'active': self.__class__.__name__ == 'GroupGradesView',
+            })
+            tabs.append({
                 'title': 'Revisão',
                 'url': 'group:detail',
                 'pk': self.object.pk,
                 'icon': 'bi-pencil-square',
                 'active': self.__class__.__name__ == 'GroupReviewView',
+            })
+            tabs.append({
+                'title': 'Dataset',
+                'url': 'dataset:group',
+                'pk': self.object.pk,
+                'icon': 'bi-database-down',
+                'active': False,
             })
         return tabs
 
@@ -365,7 +400,6 @@ class GroupDetailView(
     def get_context_data(self, **kwargs: Any) -> dict:
         """Calcula KPIs reais da turma: visão geral, nota, tempo, performance e risco."""
         import statistics as stats_lib
-        from decimal import Decimal
         context = super().get_context_data(**kwargs)
         group = self.object
 
@@ -464,6 +498,119 @@ class GroupDetailView(
             })
         at_risk.sort(key=lambda x: -x['risk_pct'])
 
+        # ── Alunos matriculados (para rankings inline) ───────────────────
+        enrolled_gs = list(group.students.filter(is_active=True).select_related('student'))
+
+        # ── KPIs por atividade (para filtro client-side) ──────────────────
+        activity_kpis: dict[str, dict] = {
+            'all': {
+                'students_submitted': students_submitted,
+                'completion_pct': completion_pct,
+                'students_abandoned': students_abandoned,
+                'pending_count': pending_count,
+                'total_submissions': total_submissions,
+                'avg_points': _fmt_pts(avg_points),
+                'median_points': _fmt_pts(median_points),
+                'avg_pct': f'{avg_pct}%' if avg_pct is not None else '—',
+                'median_pct': f'{median_pct}%' if median_pct is not None else '—',
+                'avg_time': _fmt_dur(avg_time_total),
+                'median_time': _fmt_dur(median_time_total),
+            }
+        }
+        for link in activities:
+            lsubs = submissions.filter(activity_link=link)
+            l_submitted = lsubs.values('student').distinct().count()
+            l_started = (
+                Submission.objects.filter(activity_link=link)
+                .values('student').distinct().count()
+            )
+            l_compl = round(l_submitted / students_enrolled * 100) if students_enrolled else 0
+            l_scores = list(
+                ExerciseAnswer.objects
+                .filter(submission__in=lsubs, exercise__is_annulled=False)
+                .values('submission_id')
+                .annotate(
+                    earned=Sum(
+                        Case(When(is_correct=True, then='exercise__points'),
+                             default=Decimal(0), output_field=DecimalField())
+                    ),
+                    total=Sum('exercise__points', output_field=DecimalField()),
+                    pend=Sum(Case(When(is_correct=None, then=1), default=0, output_field=IntegerField())),
+                )
+            )
+            l_pts = [float(s['earned'] or 0) for s in l_scores if s['total']]
+            l_pct = [
+                round(float(s['earned'] or 0) / float(s['total']) * 100)
+                for s in l_scores if s['total']
+            ]
+            l_pend = sum(s['pend'] or 0 for s in l_scores)
+            l_times = [
+                t['total_time'] or 0
+                for t in (
+                    ExerciseAnswer.objects
+                    .filter(submission__in=lsubs)
+                    .values('submission_id')
+                    .annotate(total_time=Sum('time_spent_seconds'))
+                )
+            ]
+            activity_kpis[str(link.pk)] = {
+                'students_submitted': l_submitted,
+                'completion_pct': l_compl,
+                'students_abandoned': students_enrolled - l_submitted,
+                'pending_count': l_pend,
+                'total_submissions': lsubs.count(),
+                'avg_points': _fmt_pts(round(sum(l_pts) / len(l_pts), 2) if l_pts else None),
+                'median_points': _fmt_pts(round(stats_lib.median(l_pts), 2) if l_pts else None),
+                'avg_pct': f'{round(sum(l_pct) / len(l_pct))}%' if l_pct else '—',
+                'median_pct': f'{round(stats_lib.median(l_pct))}%' if l_pct else '—',
+                'avg_time': _fmt_dur(round(sum(l_times) / len(l_times)) if l_times else None),
+                'median_time': _fmt_dur(round(stats_lib.median(l_times)) if l_times else None),
+            }
+
+            # ── Ranking inline ────────────────────────────────────────────
+            score_map = {s['submission_id']: s for s in l_scores}
+            lsub_list = list(lsubs.select_related('student'))
+            submitted_ids = {s.student_id for s in lsub_list}
+            grade_rows = []
+            for sub in lsub_list:
+                sc = score_map.get(sub.pk, {})
+                earned = float(sc.get('earned') or 0)
+                total  = float(sc.get('total')  or 0)
+                pct    = round(earned / total * 100) if total else 0
+                grade_rows.append({
+                    'submitted':    True,
+                    'name':         sub.student.get_full_name() or sub.student.username,
+                    'submitted_at': sub.submitted_at,
+                    'earned_fmt':   f'{earned:.1f}',
+                    'total_fmt':    f'{total:.1f}' if total else '—',
+                    'pct':          pct,
+                })
+            grade_rows.sort(key=lambda r: -r['pct'])
+            gr_rank = 1
+            for gi, gr in enumerate(grade_rows):
+                if gi > 0 and gr['pct'] < grade_rows[gi - 1]['pct']:
+                    gr_rank = gi + 1
+                gr['rank']       = gr_rank
+                gr['rank_class'] = {1: 'rank-1', 2: 'rank-2', 3: 'rank-3'}.get(gr_rank, 'rank-n')
+                gr['grade']      = ('a' if gr['pct'] >= 90 else
+                                    'b' if gr['pct'] >= 70 else
+                                    'c' if gr['pct'] >= 50 else 'd')
+            for gs in enrolled_gs:
+                if gs.student_id not in submitted_ids:
+                    grade_rows.append({
+                        'submitted':    False,
+                        'name':         gs.student.get_full_name() or gs.student.username,
+                        'submitted_at': None,
+                        'rank':         None,
+                        'rank_class':   'rank-n',
+                        'grade':        None,
+                        'earned_fmt':   '—',
+                        'total_fmt':    '—',
+                        'pct':          0,
+                    })
+            link.grades_rows            = grade_rows
+            link.grades_submitted_count = len(submitted_ids)
+
         context.update({
             'students_enrolled': students_enrolled,
             'students_submitted': students_submitted,
@@ -480,6 +627,7 @@ class GroupDetailView(
             'median_time_total': median_time_total,
             'activity_stats': activities,
             'at_risk_students': at_risk[:5],
+            'activity_kpis': activity_kpis,
         })
         return context
 
@@ -534,6 +682,167 @@ class GroupReviewView(
             .order_by('-assigned_at')
         )
         context['activity_links'] = activity_links
+        return context
+
+
+class GroupGradesView(
+    AuthPermissionMixin,
+    GroupBaseView,
+    ObjectAccessRequiredMixin,
+    NavigationMixin,
+    DetailView,
+):
+    """Aba de notas da turma: ranking de alunos por atividade com scores e barras de progresso."""
+
+    model = Group
+    template_name = 'group/grades.html'
+
+    def has_object_access(self, user: User, obj: Group) -> bool:
+        """Retorna ``True`` para o criador ou professores com compartilhamento ativo."""
+        if obj.created_by == user:
+            return True
+        return obj.sharings.filter(shared_with=user, is_active=True).exists()
+
+    @staticmethod
+    def _grade_class(pct: float) -> str:
+        if pct >= 90: return 'a'
+        if pct >= 70: return 'b'
+        if pct >= 50: return 'c'
+        return 'd'
+
+    @staticmethod
+    def _rank_class(rank: int) -> str:
+        return {1: 'rank-1', 2: 'rank-2', 3: 'rank-3'}.get(rank, 'rank-n')
+
+    def get_context_data(self, **kwargs) -> dict:
+        """Monta nota consolidada por aluno somando todas as atividades da turma."""
+        context = super().get_context_data(**kwargs)
+        group = self.object
+
+        activity_links = list(
+            ActivityListGroup.objects
+            .filter(group=group, activity_list__deleted_at__isnull=True)
+            .select_related('activity_list')
+            .order_by('assigned_at')
+        )
+        total_activities = len(activity_links)
+
+        enrolled = list(
+            group.students.filter(is_active=True).select_related('student')
+        )
+
+        # Todas as submissões finalizadas da turma
+        all_subs = list(
+            Submission.objects
+            .filter(
+                activity_link__in=activity_links,
+                submitted_at__isnull=False,
+                is_abandoned=False,
+            )
+            .select_related('student')
+        )
+        sub_ids = [s.pk for s in all_subs]
+
+        # Pontuação por submissão
+        score_map = {
+            s['submission_id']: s
+            for s in ExerciseAnswer.objects
+            .filter(submission_id__in=sub_ids, exercise__is_annulled=False)
+            .values('submission_id')
+            .annotate(
+                earned=Sum(
+                    Case(When(is_correct=True, then='exercise__points'),
+                         default=Decimal(0), output_field=DecimalField())
+                ),
+                total=Sum('exercise__points', output_field=DecimalField()),
+            )
+        }
+
+        # (student_id, activity_link_id) → pontuação da submissão
+        sub_by_student_link: dict[tuple, dict] = {}
+        for sub in all_subs:
+            sc = score_map.get(sub.pk, {})
+            earned = float(sc.get('earned') or 0)
+            total  = float(sc.get('total')  or 0)
+            sub_by_student_link[(sub.student_id, sub.activity_link_id)] = {
+                'earned':       earned,
+                'total':        total,
+                'submitted_at': sub.submitted_at,
+            }
+
+        # Pontuação máxima possível por activity_list_id (exercícios não anulados)
+        activity_list_ids = [lk.activity_list_id for lk in activity_links]
+        max_pts_qs = (
+            Exercise.objects
+            .filter(activity_list_id__in=activity_list_ids, is_annulled=False)
+            .values('activity_list_id')
+            .annotate(max_pts=Sum('points', output_field=DecimalField()))
+        )
+        max_pts_by_list: dict[int, float] = {
+            row['activity_list_id']: float(row['max_pts'] or 0)
+            for row in max_pts_qs
+        }
+        # Pontuação máxima por activity_link (usando o activity_list associado)
+        link_max_pts: dict[int, float] = {
+            lk.pk: max_pts_by_list.get(lk.activity_list_id, 0.0)
+            for lk in activity_links
+        }
+        grand_total = sum(link_max_pts.values())
+
+        rows = []
+        for gs in enrolled:
+            sid         = gs.student_id
+            total_earned = 0.0
+            activities_submitted = 0
+            breakdown    = []
+
+            for link in activity_links:
+                link_total = link_max_pts.get(link.pk, 0.0)
+                entry = sub_by_student_link.get((sid, link.pk))
+                if entry:
+                    e   = entry['earned']
+                    t   = link_total
+                    pct = round(e / t * 100) if t else 0
+                    total_earned         += e
+                    activities_submitted += 1
+                    breakdown.append({
+                        'title':        link.activity_list.title,
+                        'submitted':    True,
+                        'earned_fmt':   f'{e:.0f}',
+                        'total_fmt':    f'{t:.0f}' if t else '—',
+                        'pct':          pct,
+                        'submitted_at': entry['submitted_at'],
+                        'grade_class':  self._grade_class(pct),
+                    })
+                else:
+                    breakdown.append({
+                        'title':        link.activity_list.title,
+                        'submitted':    False,
+                        'earned_fmt':   '0',
+                        'total_fmt':    f'{link_total:.0f}' if link_total else '—',
+                        'pct':          0,
+                        'submitted_at': None,
+                        'grade_class':  'd',
+                    })
+
+            overall_pct = round(total_earned / grand_total * 100) if grand_total else 0
+            rows.append({
+                'submitted':   activities_submitted > 0,
+                'name':        gs.student.get_full_name() or gs.student.username,
+                'activities':  activities_submitted,
+                'earned':      total_earned,
+                'total':       grand_total,
+                'pct':         overall_pct,
+                'earned_fmt':  f'{total_earned:.0f}',
+                'total_fmt':   f'{grand_total:.0f}' if grand_total else '—',
+                'grade_class': self._grade_class(overall_pct),
+                'breakdown':   breakdown,
+            })
+
+        rows.sort(key=lambda r: r['name'].lower())
+
+        context['students_grades'] = rows
+        context['total_activities'] = total_activities
         return context
 
 

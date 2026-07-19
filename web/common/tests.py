@@ -1,5 +1,17 @@
+import shutil
 import sys
 import pytest
+
+# marca de integração: pulado no Windows/macOS, roda só no container Docker
+integration = pytest.mark.skipif(
+    sys.platform != 'linux',
+    reason='requires gcc/g++ — execute via: docker compose exec web pytest common/tests.py -v -k Integration',
+)
+
+def _needs(*binaries):
+    """Pula o teste se algum binário não estiver disponível no PATH."""
+    missing = [b for b in binaries if shutil.which(b) is None]
+    return pytest.mark.skipif(bool(missing), reason=f'binário(s) não encontrado(s): {missing}')
 from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.test import Client, override_settings
@@ -463,3 +475,368 @@ class TestDurationFilter:
     def test_hours_only(self):
         from common.templatetags.common_filters import duration
         assert duration(3600) == '1h'
+
+
+# ─── Integração C (sem mock — requer gcc no container) ──────────────────────
+
+@integration
+class TestExecutorIntegrationC:
+    """Compila e executa programas C reais contra o executor sem nenhum mock."""
+
+    def _run(self, source, test_cases):
+        from common.executor import execute_code
+        return execute_code('c', source, test_cases)
+
+    def test_hello_world(self):
+        src = '#include <stdio.h>\nint main(){printf("hello\\n");return 0;}'
+        results = self._run(src, [{'input': '', 'expected_output': 'hello'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'hello'
+
+    def test_stdin_to_stdout(self):
+        src = '#include <stdio.h>\nint main(){int n;scanf("%d",&n);printf("%d\\n",n);return 0;}'
+        results = self._run(src, [{'input': '42', 'expected_output': '42'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_sum_multiple_cases(self):
+        src = '#include <stdio.h>\nint main(){int a,b;scanf("%d %d",&a,&b);printf("%d\\n",a+b);return 0;}'
+        results = self._run(src, [
+            {'input': '3 4',  'expected_output': '7'},
+            {'input': '10 20','expected_output': '30'},
+            {'input': '0 0',  'expected_output': '0'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_math_library(self):
+        src = '#include <stdio.h>\n#include <math.h>\nint main(){printf("%.0f\\n",sqrt(9.0));return 0;}'
+        results = self._run(src, [{'input': '', 'expected_output': '3'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_wrong_answer(self):
+        src = '#include <stdio.h>\nint main(){printf("wrong\\n");return 0;}'
+        results = self._run(src, [{'input': '', 'expected_output': 'correct'}])
+        assert results[0]['status'] == 'wrong_answer'
+        assert results[0]['is_correct'] is False
+
+    def test_mixed_results(self):
+        src = '#include <stdio.h>\nint main(){int n;scanf("%d",&n);printf("%d\\n",n*2);return 0;}'
+        results = self._run(src, [
+            {'input': '5', 'expected_output': '10'},
+            {'input': '3', 'expected_output': '99'},
+        ])
+        assert results[0]['status'] == 'correct'
+        assert results[1]['status'] == 'wrong_answer'
+
+    def test_compilation_error_raises(self):
+        from common.executor import CompilationError
+        with pytest.raises(CompilationError) as exc_info:
+            self._run('int main() { return 0 }', [{'input': '', 'expected_output': ''}])
+        assert exc_info.value.output  # mensagem de erro do gcc não está vazia
+
+    def test_runtime_error(self):
+        # divisão por zero gera SIGFPE → returncode != 0
+        src = '#include <stdio.h>\nint main(){int x=0;printf("%d\\n",1/x);return 0;}'
+        results = self._run(src, [{'input': '', 'expected_output': '42'}])
+        assert results[0]['status'] == 'runtime_error'
+        assert results[0]['is_correct'] is False
+
+
+# ─── Integração C++ (sem mock — requer g++ no container) ────────────────────
+
+@integration
+class TestExecutorIntegrationCpp:
+    """Compila e executa programas C++ reais contra o executor sem nenhum mock."""
+
+    def _run(self, source, test_cases):
+        from common.executor import execute_code
+        return execute_code('cpp', source, test_cases)
+
+    def test_hello_world(self):
+        src = '#include <iostream>\nint main(){std::cout<<"hello"<<std::endl;return 0;}'
+        results = self._run(src, [{'input': '', 'expected_output': 'hello'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_cin_cout(self):
+        src = '#include <iostream>\nint main(){int n;std::cin>>n;std::cout<<n*2<<std::endl;return 0;}'
+        results = self._run(src, [
+            {'input': '5', 'expected_output': '10'},
+            {'input': '0', 'expected_output': '0'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_stl_sort(self):
+        src = (
+            '#include <iostream>\n#include <vector>\n#include <algorithm>\n'
+            'int main(){'
+            'std::vector<int> v={3,1,2};'
+            'std::sort(v.begin(),v.end());'
+            'for(int x:v) std::cout<<x<<" ";'
+            'std::cout<<std::endl;return 0;}'
+        )
+        results = self._run(src, [{'input': '', 'expected_output': '1 2 3'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_string_length(self):
+        src = (
+            '#include <iostream>\n#include <string>\n'
+            'int main(){std::string s;std::cin>>s;std::cout<<s.length()<<std::endl;return 0;}'
+        )
+        results = self._run(src, [{'input': 'hello', 'expected_output': '5'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_wrong_answer(self):
+        src = '#include <iostream>\nint main(){std::cout<<"nope"<<std::endl;return 0;}'
+        results = self._run(src, [{'input': '', 'expected_output': 'yes'}])
+        assert results[0]['status'] == 'wrong_answer'
+
+    def test_compilation_error_raises(self):
+        from common.executor import CompilationError
+        with pytest.raises(CompilationError) as exc_info:
+            self._run('#include <iostream>\nint main(){std::cout<<"hi" return 0;}', [])
+        assert exc_info.value.output
+
+    def test_runtime_error_out_of_range(self):
+        src = '#include <vector>\nint main(){std::vector<int> v;return v.at(99);}'
+        results = self._run(src, [{'input': '', 'expected_output': ''}])
+        assert results[0]['status'] == 'runtime_error'
+
+
+# ─── Integração Python (sem mock) ───────────────────────────────────────────
+
+@integration
+class TestExecutorIntegrationPython:
+    """Executa programas Python reais contra o executor sem nenhum mock."""
+
+    def _run(self, source, test_cases):
+        from common.executor import execute_code
+        return execute_code('python', source, test_cases)
+
+    def test_hello_world(self):
+        results = self._run('print("hello")', [{'input': '', 'expected_output': 'hello'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'hello'
+
+    def test_stdin_to_stdout(self):
+        results = self._run('print(input())', [{'input': 'world', 'expected_output': 'world'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_arithmetic_from_stdin(self):
+        src = 'a, b = map(int, input().split())\nprint(a + b)'
+        results = self._run(src, [
+            {'input': '3 4',  'expected_output': '7'},
+            {'input': '10 20','expected_output': '30'},
+            {'input': '0 0',  'expected_output': '0'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_wrong_answer(self):
+        results = self._run('print("errado")', [{'input': '', 'expected_output': 'certo'}])
+        assert results[0]['status'] == 'wrong_answer'
+        assert results[0]['is_correct'] is False
+
+    def test_mixed_results(self):
+        src = 'n = int(input())\nprint(n * 3)'
+        results = self._run(src, [
+            {'input': '4', 'expected_output': '12'},
+            {'input': '2', 'expected_output': '99'},
+        ])
+        assert results[0]['status'] == 'correct'
+        assert results[1]['status'] == 'wrong_answer'
+
+    def test_runtime_error_exception(self):
+        results = self._run('print(1 / 0)', [{'input': '', 'expected_output': '42'}])
+        assert results[0]['status'] == 'runtime_error'
+        assert results[0]['is_correct'] is False
+        assert 'ZeroDivisionError' in results[0]['stderr']
+
+    def test_syntax_error(self):
+        results = self._run('def f(\nprint("x")', [{'input': '', 'expected_output': '42'}])
+        assert results[0]['status'] == 'runtime_error'
+
+    def test_list_comprehension(self):
+        src = 'n = int(input())\nprint(sum(i*i for i in range(n+1)))'
+        results = self._run(src, [
+            {'input': '3', 'expected_output': '14'},
+            {'input': '0', 'expected_output': '0'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+
+# ─── Integração JavaScript (sem mock — requer node no container) ─────────────
+
+@integration
+@_needs('node')
+class TestExecutorIntegrationJavaScript:
+    """Executa programas JavaScript reais com Node.js sem nenhum mock."""
+
+    def _run(self, source, test_cases):
+        from common.executor import execute_code
+        return execute_code('javascript', source, test_cases)
+
+    def test_hello_world(self):
+        results = self._run('console.log("hello")', [{'input': '', 'expected_output': 'hello'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'hello'
+
+    def test_stdin_to_stdout(self):
+        src = (
+            "const fs = require('fs');\n"
+            "const input = fs.readFileSync(0, 'utf8').trim();\n"
+            "console.log(input);"
+        )
+        results = self._run(src, [{'input': 'world', 'expected_output': 'world'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_arithmetic_from_stdin(self):
+        src = (
+            "const fs = require('fs');\n"
+            "const [a, b] = fs.readFileSync(0, 'utf8').trim().split(' ').map(Number);\n"
+            "console.log(a + b);"
+        )
+        results = self._run(src, [
+            {'input': '3 4',  'expected_output': '7'},
+            {'input': '10 20','expected_output': '30'},
+            {'input': '0 0',  'expected_output': '0'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_wrong_answer(self):
+        results = self._run('console.log("errado")', [{'input': '', 'expected_output': 'certo'}])
+        assert results[0]['status'] == 'wrong_answer'
+        assert results[0]['is_correct'] is False
+
+    def test_mixed_results(self):
+        src = (
+            "const fs = require('fs');\n"
+            "const n = parseInt(fs.readFileSync(0, 'utf8').trim());\n"
+            "console.log(n * 3);"
+        )
+        results = self._run(src, [
+            {'input': '4', 'expected_output': '12'},
+            {'input': '2', 'expected_output': '99'},
+        ])
+        assert results[0]['status'] == 'correct'
+        assert results[1]['status'] == 'wrong_answer'
+
+    def test_runtime_error(self):
+        results = self._run('null.toString()', [{'input': '', 'expected_output': '42'}])
+        assert results[0]['status'] == 'runtime_error'
+        assert results[0]['is_correct'] is False
+
+    def test_array_operations(self):
+        src = (
+            "const fs = require('fs');\n"
+            "const nums = fs.readFileSync(0, 'utf8').trim().split(' ').map(Number);\n"
+            "console.log(nums.sort((a,b)=>a-b).join(' '));"
+        )
+        results = self._run(src, [
+            {'input': '3 1 2', 'expected_output': '1 2 3'},
+            {'input': '5 4',   'expected_output': '4 5'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+
+# ─── Integração Java (sem mock — requer javac/java no container) ─────────────
+
+@integration
+@_needs('javac', 'java')
+class TestExecutorIntegrationJava:
+    """Compila e executa programas Java reais sem nenhum mock. Classe deve ser 'Main'."""
+
+    def _run(self, source, test_cases):
+        from common.executor import execute_code
+        return execute_code('java', source, test_cases)
+
+    def test_hello_world(self):
+        src = 'public class Main { public static void main(String[] a) { System.out.println("hello"); } }'
+        results = self._run(src, [{'input': '', 'expected_output': 'hello'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'hello'
+
+    def test_stdin_to_stdout(self):
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    System.out.println(sc.nextLine());\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [{'input': 'world', 'expected_output': 'world'}])
+        assert results[0]['status'] == 'correct'
+
+    def test_arithmetic_from_stdin(self):
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    int x = sc.nextInt(), y = sc.nextInt();\n'
+            '    System.out.println(x + y);\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '3 4',  'expected_output': '7'},
+            {'input': '10 20','expected_output': '30'},
+            {'input': '0 0',  'expected_output': '0'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_wrong_answer(self):
+        src = 'public class Main { public static void main(String[] a) { System.out.println("errado"); } }'
+        results = self._run(src, [{'input': '', 'expected_output': 'certo'}])
+        assert results[0]['status'] == 'wrong_answer'
+        assert results[0]['is_correct'] is False
+
+    def test_mixed_results(self):
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    System.out.println(sc.nextInt() * 3);\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '4', 'expected_output': '12'},
+            {'input': '2', 'expected_output': '99'},
+        ])
+        assert results[0]['status'] == 'correct'
+        assert results[1]['status'] == 'wrong_answer'
+
+    def test_compilation_error_raises(self):
+        from common.executor import CompilationError
+        with pytest.raises(CompilationError) as exc_info:
+            self._run('public class Main { public static void main(String[] a) { System.out.println("hi") } }', [])
+        assert exc_info.value.output
+
+    def test_runtime_error(self):
+        src = (
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    int[] arr = new int[0];\n'
+            '    System.out.println(arr[99]);\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [{'input': '', 'expected_output': '42'}])
+        assert results[0]['status'] == 'runtime_error'
+        assert results[0]['is_correct'] is False
+
+    def test_arraylist_and_collections(self):
+        src = (
+            'import java.util.*;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    List<Integer> l = new ArrayList<>(Arrays.asList(3,1,2));\n'
+            '    Collections.sort(l);\n'
+            '    for (int x : l) System.out.print(x + " ");\n'
+            '    System.out.println();\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [{'input': '', 'expected_output': '1 2 3'}])
+        assert results[0]['status'] == 'correct'

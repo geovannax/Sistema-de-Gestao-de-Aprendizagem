@@ -1,0 +1,74 @@
+{% for ds in datasets %}
+{% if ds.columns %}
+<div class="modal fade" id="modal-ds-{{ ds.key }}" tabindex="-1"
+     aria-labelledby="modal-ds-{{ ds.key }}-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div class="d-flex mb-0 gap-2">
+                    <div class="d-flex align-items-center justify-content-center fs-5">
+                        <i class="bi {{ ds.icon }} me-2"></i>
+                    </div>
+                    <div>
+                        <h1 class="modal-title" id="modal-ds-{{ ds.key }}-label">{{ ds.title }}</h1>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body" style="padding:0 !important">
+                <div class="px-3 py-2" style="border-bottom:1px solid var(--gray-200)">
+                    <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.45px;color:var(--gray-500)">Descrição</span>
+                    <p class="mb-0 mt-1" style="font-size:.82rem;color:var(--gray-700)">{{ ds.modal_description }}</p>
+                </div>
+                {% if ds.questions %}
+                <div class="px-3 py-2" style="border-bottom:1px solid var(--gray-200)">
+                    <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.45px;color:var(--gray-500)">O que responde?</span>
+                    <ul class="mb-0 mt-1 ps-3" style="font-size:.82rem;color:var(--gray-700)">
+                        {% for item in ds.questions %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0" style="font-size:.82rem">
+                        <thead>
+                            <tr style="font-size:.7rem;text-transform:uppercase;letter-spacing:.45px;color:var(--gray-500);background:var(--gray-50)">
+                                <th class="ps-3 py-2" style="width:28%">Coluna</th>
+                                <th class="py-2" style="width:17%">Tipo</th>
+                                <th class="pe-3 py-2">Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for col in ds.columns %}
+                            <tr>
+                                <td class="ps-3 py-2">
+                                    <code style="font-size:.75rem;color:var(--blue-600,#2563eb)">{{ col.name }}</code>
+                                </td>
+                                <td class="py-2">
+                                    <span class="badge rounded-pill"
+                                          style="font-size:.65rem;font-weight:600;background:var(--gray-100);color:var(--gray-600)">
+                                        {{ col.type }}
+                                    </span>
+                                </td>
+                                <td class="pe-3 py-2" style="color:var(--gray-600)">{{ col.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer justify-content-end">
+                <button type="button" class="btn btn-outline-secondary rounded-5" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Fechar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}

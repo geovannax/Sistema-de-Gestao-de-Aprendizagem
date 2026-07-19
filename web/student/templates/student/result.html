@@ -78,26 +78,6 @@
                 </div>
             {% endif %}
 
-            <!-- Tentativas -->
-            {% if max_attempts %}
-            <div class="detail-left-card p-3 rounded-3">
-                <div class="detail-left-title">
-                    <i class="bi bi-arrow-repeat" style="color:var(--blue-500)"></i>
-                    Tentativas
-                </div>
-                <hr class="mb-1 mt-1">
-                <div class="detail-left-item">
-                    <span class="detail-left-label">Utilizadas</span>
-                    <span class="detail-left-value">{{ attempts_used }} de {{ max_attempts }}</span>
-                </div>
-                {% if attempts_remaining is not None %}
-                <div class="detail-left-item">
-                    <span class="detail-left-label">Restantes</span>
-                    <span class="detail-left-value" style="color:{% if attempts_remaining > 0 %}var(--success){% else %}#ef4444{% endif %}">{{ attempts_remaining }}</span>
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
 
             {% if can_retry %}
             <a href="{% url 'student:activity' activity_link.pk %}"

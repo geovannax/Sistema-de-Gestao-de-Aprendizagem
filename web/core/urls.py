@@ -29,9 +29,11 @@ urlpatterns = [
 
     path('accounts/login/', LoginView.as_view(), name='login'),
     path('accounts/logout/', LogoutView.as_view(), name='logout'),
+    path('accounts/', include('accounts.urls')),
 
     path('activity/', include('activity.urls')),
     path('admin/', admin.site.urls),
+    path('dataset/', include('dataset.urls')),
     path('group/', include('group.urls')),
     path('student/', include('student.urls')),
 

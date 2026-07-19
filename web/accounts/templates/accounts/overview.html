@@ -1,0 +1,313 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Visão Geral{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/profile.css' %}">
+    <style>
+        /* Stat cards */
+        .ov-stat-card {
+            background: var(--gray-50, #f8f9fa);
+            border: 1px solid var(--gray-200, #e9ecef);
+            border-left: 4px solid var(--blue-500, #0969da);
+            border-radius: .5rem;
+            padding: .9rem 1rem;
+        }
+        .ov-stat-card.accent-green { border-left-color: #22c55e; }
+        .ov-stat-card.accent-red   { border-left-color: #ef4444; }
+        .ov-stat-card.accent-gray  { border-left-color: var(--gray-400, #9ca3af); }
+        .ov-stat-label {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--gray-500);
+            font-weight: 600;
+            margin-bottom: .2rem;
+        }
+        .ov-stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .ov-stat-sub  { font-size: .72rem; color: var(--gray-500); margin-top: .15rem; }
+        .ov-stat-icon { font-size: 1.3rem; opacity: .2; }
+
+        /* Timeline */
+        .ov-tl-list { display: flex; flex-direction: column; }
+        .ov-tl-item {
+            display: flex;
+            gap: .85rem;
+            padding: .55rem 0;
+            position: relative;
+        }
+        .ov-tl-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 34px;
+            width: 2px;
+            height: calc(100% - 22px);
+            background: var(--gray-200, #e5e7eb);
+        }
+        .ov-tl-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .65rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+            z-index: 1;
+            background: #22c55e;
+            color: #fff;
+        }
+        .ov-tl-title { font-size: .85rem; font-weight: 600; color: var(--gray-700); line-height: 1.2; }
+        .ov-tl-sub   { font-size: .72rem; color: var(--gray-500); margin-top: .1rem; }
+        .ov-tl-date  { font-size: .68rem; color: var(--gray-500); margin-top: .1rem; }
+
+        /* Upcoming */
+        .ov-up-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .55rem .25rem;
+            border-bottom: 1px solid var(--gray-200, #e5e7eb);
+        }
+        .ov-up-row:last-child { border-bottom: none; }
+        .ov-up-stripe { width: 3px; min-height: 34px; border-radius: 99px; align-self: stretch; flex-shrink: 0; }
+        .ov-up-title  { font-size: .82rem; font-weight: 600; color: var(--gray-800); }
+        .ov-up-sub    { font-size: .68rem; color: var(--gray-500); margin-top: .1rem; }
+        .ov-up-due    { font-size: .66rem; font-weight: 600; margin-top: .15rem; }
+    </style>
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    {% with page_title="Perfil" page_description="Suas informações, notas e atividades em um só lugar." %}
+        {% include "global/partials/_page_header.html" %}
+    {% endwith %}
+
+    <div class="row g-3">
+
+        <!-- ASIDE -->
+        <div class="col-lg-2 col-md-4">
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+
+                <div class="text-center pb-3 mb-2" style="border-bottom:1px solid var(--gray-300,#e5e7eb)">
+                    <div class="pm-avatar">{{ initials }}</div>
+                    <div style="font-size:.9rem;font-weight:700;color:var(--gray-800,#1f2937)">{{ full_name }}</div>
+                    <div style="font-size:.7rem;color:var(--gray-500,#6b7280);margin-top:.15rem">{{ request.user.username }}</div>
+                    <span class="badge text-bg-secondary rounded-pill mt-2" style="font-size:.62rem">Aluno</span>
+                </div>
+
+                <nav class="side-nav">
+                    <a href="{% url 'accounts:overview' %}" class="active">
+                        <i class="bi bi-grid-fill"></i>Visão Geral
+                    </a>
+                    <a href="{% url 'accounts:pending' %}">
+                        <i class="bi bi-list-task"></i>Pendentes
+                        {% if total_pendentes %}
+                        <span class="badge text-bg-danger rounded-pill ms-auto" style="font-size:.58rem">{{ total_pendentes }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'accounts:notes' %}">
+                        <i class="bi bi-award-fill"></i>Notas
+                    </a>
+                    <a href="{% url 'accounts:turmas' %}">
+                        <i class="bi bi-people-fill"></i>Turmas
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="col-lg-10 col-md-8">
+
+            <!-- STAT CARDS -->
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="ov-stat-card h-100">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="ov-stat-label">Turmas</div>
+                                <div class="ov-stat-value">{{ total_turmas }}</div>
+                                <div class="ov-stat-sub">matriculado{{ total_turmas|pluralize }}</div>
+                            </div>
+                            <i class="bi bi-mortarboard-fill ov-stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="ov-stat-card h-100 accent-gray">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="ov-stat-label">Atividades</div>
+                                <div class="ov-stat-value">{{ total_atividades }}</div>
+                                <div class="ov-stat-sub">no total</div>
+                            </div>
+                            <i class="bi bi-journal-text ov-stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="ov-stat-card h-100 accent-green">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="ov-stat-label">Concluídas</div>
+                                <div class="ov-stat-value" style="color:#16a34a">{{ total_concluidas }}</div>
+                                <div class="ov-stat-sub">entregues</div>
+                            </div>
+                            <i class="bi bi-check-circle-fill ov-stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="ov-stat-card h-100 {% if total_pendentes > 0 %}accent-red{% else %}accent-gray{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="ov-stat-label">Pendentes</div>
+                                <div class="ov-stat-value {% if total_pendentes > 0 %}text-danger{% endif %}">{{ total_pendentes }}</div>
+                                <div class="ov-stat-sub">a entregar</div>
+                            </div>
+                            <i class="bi bi-hourglass-split ov-stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+
+                <!-- PRÓXIMAS ENTREGAS -->
+                <div class="col-lg-6">
+                    <div class="detail-left-card p-3 rounded-3 h-100">
+                        <div class="detail-left-title mb-2">
+                            <i class="bi bi-list-task" style="color:var(--blue-500)"></i>
+                            Próximas Entregas
+                        </div>
+                        <hr class="mt-1 mb-2">
+                        {% if upcoming %}
+                            {% for item in upcoming %}
+                            <div class="ov-up-row">
+                                <div class="ov-up-stripe" style="background:{{ item.stripe }}"></div>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="ov-up-title text-truncate">{{ item.title }}</div>
+                                    <div class="ov-up-sub">{{ item.group_name }}</div>
+                                    {% if item.ends_at %}
+                                        {% if item.urgency == 'overdue' %}
+                                        <div class="ov-up-due" style="color:#dc2626"><i class="bi bi-exclamation-circle-fill me-1"></i>Encerrou {{ item.ends_at|date:"d/m/Y" }}</div>
+                                        {% elif item.urgency == 'urgent' %}
+                                        <div class="ov-up-due" style="color:#dc2626"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ item.ends_at|date:"d/m H:i" }} — urgente</div>
+                                        {% elif item.urgency == 'upcoming' %}
+                                        <div class="ov-up-due" style="color:#d97706"><i class="bi bi-clock me-1"></i>{{ item.ends_at|date:"d/m/Y H:i" }}</div>
+                                        {% else %}
+                                        <div class="ov-up-due" style="color:var(--gray-500)"><i class="bi bi-calendar me-1"></i>{{ item.ends_at|date:"d/m/Y" }}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="ov-up-due" style="color:var(--gray-500)">Sem prazo</div>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'student:activity' item.link.pk %}"
+                                   class="btn btn-sm btn-outline-primary rounded-5 flex-shrink-0 pend-confirm"
+                                   style="font-size:.72rem;padding:.2rem .55rem"
+                                   data-title="{{ item.title }}"
+                                   data-group="{{ item.group_name }}"
+                                   data-questions="{{ item.total_exercises }}">
+                                    <i class="bi bi-play-fill"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                            {% if total_pendentes > 5 %}
+                            <div class="text-center mt-2">
+                                <a href="{% url 'accounts:pending' %}" class="btn btn-sm btn-outline-secondary rounded-5 px-4" style="font-size:.78rem">
+                                    Ver todas ({{ total_pendentes }})
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="empty-state d-flex flex-column align-items-center py-4">
+                                <i class="bi bi-check2-circle empty-state-icon"></i>
+                                <p class="empty-state-text mb-0">Nenhuma atividade pendente.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- HISTÓRICO (TIMELINE) -->
+                <div class="col-lg-6">
+                    <div class="detail-left-card p-3 rounded-3 h-100">
+                        <div class="detail-left-title mb-2">
+                            <i class="bi bi-clock-history" style="color:var(--blue-500)"></i>
+                            Histórico de Atividades Recentes
+                        </div>
+                        <hr class="mt-1 mb-2">
+                        {% if timeline %}
+                            <div class="ov-tl-list">
+                                {% for item in timeline %}
+                                <div class="ov-tl-item">
+                                    <div class="ov-tl-dot">
+                                        <i class="bi bi-check-lg"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-width-0">
+                                        <div class="ov-tl-title text-truncate">{{ item.title }}</div>
+                                        <div class="ov-tl-sub">{{ item.group_name }}</div>
+                                        <div class="ov-tl-date">{{ item.submitted_at|date:"d/m/Y \à\s H:i" }}
+                                            {% if item.pct is not None %}
+                                                &nbsp;·&nbsp;
+                                                <span style="font-weight:600;color:{% if item.pct >= 70 %}#16a34a{% elif item.pct >= 40 %}#d97706{% else %}#dc2626{% endif %}">{{ item.pct }}%</span>
+                                                <span style="color:var(--gray-500)">({{ item.earned_fmt }}/{{ item.total_fmt }} pts)</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'student:activity_result' item.link_pk %}"
+                                       class="btn btn-sm btn-outline-secondary rounded-5 flex-shrink-0 align-self-center"
+                                       style="font-size:.72rem;padding:.2rem .55rem"
+                                       title="Ver resultado">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state d-flex flex-column align-items-center py-4">
+                                <i class="bi bi-clock-history empty-state-icon"></i>
+                                <p class="empty-state-text mb-0">Nenhuma atividade concluída ainda.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+{% endblock main_content %}
+
+{% block modal %}
+    {% with modal_form=True modal_id="startActivityModal" modal_icon="bi-play-circle-fill" modal_title="Iniciar atividade" modal_subtitle="Confirme antes de começar" modal_form_method="GET" modal_form_id="startActivityForm" modal_button_submit="Começar" modal_button_icon="bi-play-fill" %}
+        {% include "global/partials/_modal.html" with content_template="accounts/_start_activity_modal.html" %}
+    {% endwith %}
+{% endblock modal %}
+
+{% block extra_script %}
+<script>
+document.querySelectorAll('.pend-confirm').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('startModalTitle').textContent = el.dataset.title;
+        document.getElementById('startModalGroup').textContent = el.dataset.group;
+        document.getElementById('startModalQuestions').textContent = el.dataset.questions + ' questões';
+        document.getElementById('startActivityForm').action = el.href;
+        new bootstrap.Modal(document.getElementById('startActivityModal')).show();
+    });
+});
+</script>
+{% endblock extra_script %}

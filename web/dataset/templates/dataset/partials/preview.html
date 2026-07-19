@@ -1,0 +1,36 @@
+<!-- Dataset cards -->
+<div class="ds-grid mb-3">
+    {% for ds in datasets %}
+    <div class="card-content{% if ds.key == 'all' %} ds-zip{% endif %}">
+        <div class="card-content-head">
+            <i class="bi {{ ds.icon }} ds-icon"></i>
+            <span class="ds-title">{{ ds.title }}</span>
+        </div>
+        <div class="ds-desc mb-3">{{ ds.description }}</div>
+        <div class="ds-footer">
+            {% if ds.rows is not None %}
+            <span class="ds-rows">{{ ds.rows }} linha{{ ds.rows|pluralize }}</span>
+            {% else %}
+            <span class="ds-rows">todos os CSVs</span>
+            {% endif %}
+            <div class="d-flex gap-2">
+                {% if ds.columns %}
+                <button type="button"
+                        class="btn btn-sm rounded-5 px-3 btn-outline-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modal-ds-{{ ds.key }}">
+                    <i class="bi bi-list-ul me-1"></i> Info
+                </button>
+                {% endif %}
+                <a href="{% url 'dataset:download' ds.key %}?{{ download_qs }}"
+                   class="btn btn-sm rounded-5 px-3 btn-outline-primary">
+                    <i class="bi {% if ds.key == 'all' %}bi-file-zip{% else %}bi-download{% endif %} me-1"></i>
+                    {% if ds.key == 'all' %}ZIP{% else %}CSV{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% include "dataset/partials/column_modals.html" %}

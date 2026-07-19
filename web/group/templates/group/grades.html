@@ -1,0 +1,193 @@
+{% extends "group/_detail.html" %}
+{% load static %}
+
+{% block info_right %}
+
+{% if students_grades %}
+<style>
+    .gr-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .gr-table thead th { padding: .45rem .75rem; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-500, #64748b); border-bottom: 2px solid var(--gray-200, #e2e8f0); white-space: nowrap; }
+    .gr-table thead th:first-child { text-align: left; padding-left: .5rem; }
+    .gr-table thead th:not(:first-child) { text-align: center; }
+
+    .gr-table tbody .gr-row { cursor: pointer; border-bottom: 1px solid var(--gray-100, #f1f5f9); transition: background .1s; }
+    .gr-table tbody .gr-row:hover td { background: var(--gray-50, #f8fafc); }
+    .gr-table tbody .gr-row.open td { background: var(--blue-50, #eff6ff); border-bottom-color: transparent; }
+    .gr-table td { padding: .7rem .75rem; vertical-align: middle; }
+    .gr-table td:not(:first-child) { text-align: center; }
+    .gr-table td:first-child { padding-left: .5rem; }
+
+    .gr-name { font-weight: 600; color: var(--gray-800, #1e293b); font-size: .875rem; }
+
+    .gr-prog { display: flex; align-items: center; gap: .45rem; justify-content: center; }
+    .gr-prog-track { width: 72px; height: 6px; background: var(--gray-200, #e2e8f0); border-radius: 99px; overflow: hidden; }
+    .gr-prog-fill { height: 100%; border-radius: 99px; }
+    .gr-prog-pct { font-size: .75rem; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 28px; }
+
+    .gr-nota .big { font-size: .95rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .gr-nota .of { font-size: .78rem; color: var(--gray-500, #64748b); }
+
+    .gr-chevron { font-size: .75rem; color: var(--gray-500, #64748b); transition: transform .2s; display: inline-block; }
+    .gr-chevron.open { transform: rotate(180deg); }
+
+    .gr-expand-row td { padding: 0; border-bottom: 2px solid var(--gray-200, #e2e8f0); }
+    .gr-expand-inner { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .gr-expand-inner.open { max-height: 9999px; }
+    .gr-expand-body { padding: .7rem .75rem .85rem 1.5rem; background: var(--blue-50, #eff6ff); border-top: 1px solid rgba(9,105,218,.12); }
+
+    .gr-inner { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .gr-inner th { padding: .35rem .5rem; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-500, #64748b); border-bottom: 1px solid var(--gray-200, #e2e8f0); white-space: nowrap; }
+    .gr-inner th:first-child { text-align: left; }
+    .gr-inner th:not(:first-child) { text-align: center; }
+    .gr-inner td { padding: .5rem .5rem; border-bottom: 1px solid var(--gray-100, #f1f5f9); vertical-align: middle; }
+    .gr-inner td:not(:first-child) { text-align: center; }
+    .gr-inner tr:last-child td { border-bottom: none; }
+    .gr-inner tr:hover td { background: rgba(9,105,218,.05); }
+    .gr-inner tr.gr-pending { opacity: .55; font-style: italic; }
+
+    .gr-mini-prog { display: flex; align-items: center; gap: .35rem; justify-content: center; }
+    .gr-mini-track { width: 48px; height: 4px; background: var(--gray-200, #e2e8f0); border-radius: 99px; overflow: hidden; }
+    .gr-mini-fill { height: 100%; border-radius: 99px; }
+    .gr-mini-pct { font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 26px; }
+
+    .gr-badge { display: inline-block; padding: .1rem .4rem; border-radius: .25rem; font-size: .78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .gr-badge.a { background: #dbeafe; color: var(--blue-500, #0969da); }
+    .gr-badge.b { background: #dbeafe; color: var(--blue-500, #0969da); }
+    .gr-badge.c { background: #fef9c3; color: #d97706; }
+    .gr-badge.d { background: #fee2e2; color: #dc2626; }
+    .gr-badge.none { background: var(--gray-100, #f1f5f9); color: var(--gray-500, #64748b); }
+</style>
+
+<div class="table-responsive mt-3">
+    <table class="gr-table">
+        <thead>
+            <tr>
+                <th>Aluno</th>
+                <th>Atividades</th>
+                <th style="min-width:140px">Aproveitamento</th>
+                <th>Nota</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in students_grades %}
+
+            <tr class="gr-row"
+                id="gr-row-{{ forloop.counter }}"
+                onclick="grToggle('gr-ep-{{ forloop.counter }}', {{ forloop.counter }})"
+                {% if not row.submitted %}style="opacity:.7"{% endif %}>
+                <td>
+                    <div class="gr-name">{{ row.name }}</div>
+                </td>
+                <td>
+                    <span style="font-weight:600">{{ row.activities }}</span><span style="color:var(--gray-500)">/{{ total_activities }}</span>
+                </td>
+                <td>
+                    {% if row.submitted %}
+                    <div class="gr-prog">
+                        <div class="gr-prog-track">
+                            <div class="gr-prog-fill" style="width:{{ row.pct }}%;background:{% if row.pct >= 70 %}var(--blue-500){% elif row.pct >= 50 %}#d97706{% else %}#dc2626{% endif %}"></div>
+                        </div>
+                        <span class="gr-prog-pct" style="color:{% if row.pct >= 70 %}var(--blue-500){% elif row.pct >= 50 %}#d97706{% else %}#dc2626{% endif %}">{{ row.pct }}%</span>
+                    </div>
+                    {% else %}
+                    <span style="color:var(--gray-500)">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="gr-nota">
+                        <span class="big" style="color:{% if row.pct >= 70 %}var(--blue-500){% elif row.pct >= 50 %}#d97706{% elif row.submitted %}#dc2626{% else %}var(--gray-500){% endif %}">{{ row.earned_fmt }}</span>
+                        <span class="of">/{{ row.total_fmt }}</span>
+                    </span>
+                </td>
+                <td style="text-align:center">
+                    <i class="bi bi-chevron-down gr-chevron" id="gr-ch-{{ forloop.counter }}"></i>
+                </td>
+            </tr>
+
+            <tr class="gr-expand-row">
+                <td colspan="5">
+                    <div class="gr-expand-inner" id="gr-ep-{{ forloop.counter }}">
+                        <div class="gr-expand-body">
+                            {% if row.breakdown %}
+                            <table class="gr-inner">
+                                <thead>
+                                    <tr>
+                                        <th>Atividade</th>
+                                        <th>Aproveitamento</th>
+                                        <th>Nota</th>
+                                        <th>Entregue em</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for b in row.breakdown %}
+                                    <tr{% if not b.submitted %} class="gr-pending"{% endif %}>
+                                        <td style="font-weight:500">{{ b.title }}</td>
+                                        <td>
+                                            {% if b.submitted %}
+                                            <div class="gr-mini-prog">
+                                                <div class="gr-mini-track">
+                                                    <div class="gr-mini-fill" style="width:{{ b.pct }}%;background:{% if b.pct >= 70 %}var(--blue-500){% elif b.pct >= 50 %}#d97706{% else %}#dc2626{% endif %}"></div>
+                                                </div>
+                                                <span class="gr-mini-pct" style="color:{% if b.pct >= 70 %}var(--blue-500){% elif b.pct >= 50 %}#d97706{% else %}#dc2626{% endif %}">{{ b.pct }}%</span>
+                                            </div>
+                                            {% else %}
+                                            <span style="color:var(--gray-500)">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if b.submitted %}
+                                            <span class="gr-badge {{ b.grade_class }}">{{ b.earned_fmt }}/{{ b.total_fmt }}</span>
+                                            {% else %}
+                                            <span class="gr-badge none">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="font-size:.75rem;white-space:nowrap">
+                                            {% if b.submitted_at %}
+                                                <span style="color:var(--gray-500)">{{ b.submitted_at|date:"d/m/Y H:i" }}</span>
+                                            {% else %}
+                                                <span style="color:#dc2626">Pendente</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted mb-0" style="font-size:.82rem">Nenhuma atividade disponível.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function grToggle(epId, n) {
+    const ep     = document.getElementById(epId);
+    const ch     = document.getElementById('gr-ch-' + n);
+    const row    = document.getElementById('gr-row-' + n);
+    const isOpen = ep.classList.contains('open');
+    document.querySelectorAll('.gr-expand-inner').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.gr-chevron').forEach(c => c.classList.remove('open'));
+    document.querySelectorAll('.gr-row').forEach(r => r.classList.remove('open'));
+    if (!isOpen) {
+        ep.classList.add('open');
+        ch.classList.add('open');
+        row.classList.add('open');
+    }
+}
+</script>
+
+{% else %}
+<div class="empty-state d-flex flex-column align-items-center py-5">
+    <i class="bi bi-award empty-state-icon"></i>
+    <p class="empty-state-text mb-0">Nenhuma atividade entregue ainda.</p>
+</div>
+{% endif %}
+
+{% endblock info_right %}

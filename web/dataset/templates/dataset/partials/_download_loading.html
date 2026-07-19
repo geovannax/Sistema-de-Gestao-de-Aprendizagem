@@ -1,0 +1,73 @@
+<div id="dl-overlay"
+     style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9999;
+            align-items:center;justify-content:center;flex-direction:column;gap:1.25rem">
+    <div class="spinner-border text-light" style="width:3rem;height:3rem" role="status">
+        <span class="visually-hidden">Carregando...</span>
+    </div>
+    <div style="color:#fff;font-size:.9rem;font-weight:600;letter-spacing:.01em" id="dl-overlay-msg">
+        Gerando arquivo...
+    </div>
+    <div style="color:rgba(255,255,255,.55);font-size:.75rem">
+        Isso pode levar alguns segundos para escopos grandes.
+    </div>
+</div>
+
+<script>
+(function () {
+    const overlay    = document.getElementById('dl-overlay');
+    const overlayMsg = document.getElementById('dl-overlay-msg');
+    let   pollTimer  = null;
+    let   fallback   = null;
+
+    function showLoading(msg) {
+        overlayMsg.textContent = msg;
+        overlay.style.display  = 'flex';
+    }
+
+    function hideLoading() {
+        overlay.style.display = 'none';
+        clearInterval(pollTimer);
+        clearTimeout(fallback);
+    }
+
+    function pollCookie(token) {
+        const name = 'dl_' + token + '=';
+        pollTimer = setInterval(function () {
+            if (document.cookie.includes(name)) {
+                clearInterval(pollTimer);
+                document.cookie = 'dl_' + token + '=; max-age=0; path=/';
+                setTimeout(hideLoading, 400);
+            }
+        }, 400);
+        // fallback: oculta após 3 min independente de resposta
+        fallback = setTimeout(hideLoading, 180000);
+    }
+
+    document.addEventListener('click', function (e) {
+        const link = e.target.closest('a[href*="/dataset/download/"]');
+        if (!link) return;
+
+        e.preventDefault();
+
+        const isZip  = link.href.includes('/all/');
+        const token  = Math.random().toString(36).slice(2, 11);
+        const url    = new URL(link.href, window.location.origin);
+        url.searchParams.set('dl', token);
+
+        showLoading(isZip
+            ? 'Gerando ZIP com todos os datasets...'
+            : 'Gerando CSV...'
+        );
+
+        // dispara o download sem sair da página
+        const a = document.createElement('a');
+        a.href            = url.toString();
+        a.style.display   = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { a.remove(); }, 1000);
+
+        pollCookie(token);
+    });
+})();
+</script>

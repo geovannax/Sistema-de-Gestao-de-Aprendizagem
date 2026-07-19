@@ -5863,17 +5863,7 @@ para uso em :meth:<code>get_context_data</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>student/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-796">796</a></span>
-<span class="normal"><a href="#__codelineno-0-797">797</a></span>
-<span class="normal"><a href="#__codelineno-0-798">798</a></span>
-<span class="normal"><a href="#__codelineno-0-799">799</a></span>
-<span class="normal"><a href="#__codelineno-0-800">800</a></span>
-<span class="normal"><a href="#__codelineno-0-801">801</a></span>
-<span class="normal"><a href="#__codelineno-0-802">802</a></span>
-<span class="normal"><a href="#__codelineno-0-803">803</a></span>
-<span class="normal"><a href="#__codelineno-0-804">804</a></span>
-<span class="normal"><a href="#__codelineno-0-805">805</a></span>
-<span class="normal"><a href="#__codelineno-0-806">806</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-806">806</a></span>
 <span class="normal"><a href="#__codelineno-0-807">807</a></span>
 <span class="normal"><a href="#__codelineno-0-808">808</a></span>
 <span class="normal"><a href="#__codelineno-0-809">809</a></span>
@@ -5887,31 +5877,41 @@ para uso em :meth:<code>get_context_data</code>.</p>
 <span class="normal"><a href="#__codelineno-0-817">817</a></span>
 <span class="normal"><a href="#__codelineno-0-818">818</a></span>
 <span class="normal"><a href="#__codelineno-0-819">819</a></span>
-<span class="normal"><a href="#__codelineno-0-820">820</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-796" name="__codelineno-0-796"></a><span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-797" name="__codelineno-0-797"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Valida janela e submissão em andamento antes de renderizar a revisão.</span>
-<a id="__codelineno-0-798" name="__codelineno-0-798"></a>
-<a id="__codelineno-0-799" name="__codelineno-0-799"></a><span class="sd">    Redireciona para a resolução se não houver submissão em andamento.</span>
-<a id="__codelineno-0-800" name="__codelineno-0-800"></a><span class="sd">    Armazena ``activity_link`` e ``submission`` em atributos de instância</span>
-<a id="__codelineno-0-801" name="__codelineno-0-801"></a><span class="sd">    para uso em :meth:`get_context_data`.</span>
-<a id="__codelineno-0-802" name="__codelineno-0-802"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-803" name="__codelineno-0-803"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
-<a id="__codelineno-0-804" name="__codelineno-0-804"></a>
-<a id="__codelineno-0-805" name="__codelineno-0-805"></a>    <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_window</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
-<a id="__codelineno-0-806" name="__codelineno-0-806"></a>    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
-<a id="__codelineno-0-807" name="__codelineno-0-807"></a>        <span class="k">return</span> <span class="n">block</span>
+<span class="normal"><a href="#__codelineno-0-820">820</a></span>
+<span class="normal"><a href="#__codelineno-0-821">821</a></span>
+<span class="normal"><a href="#__codelineno-0-822">822</a></span>
+<span class="normal"><a href="#__codelineno-0-823">823</a></span>
+<span class="normal"><a href="#__codelineno-0-824">824</a></span>
+<span class="normal"><a href="#__codelineno-0-825">825</a></span>
+<span class="normal"><a href="#__codelineno-0-826">826</a></span>
+<span class="normal"><a href="#__codelineno-0-827">827</a></span>
+<span class="normal"><a href="#__codelineno-0-828">828</a></span>
+<span class="normal"><a href="#__codelineno-0-829">829</a></span>
+<span class="normal"><a href="#__codelineno-0-830">830</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-806" name="__codelineno-0-806"></a><span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-807" name="__codelineno-0-807"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Valida janela e submissão em andamento antes de renderizar a revisão.</span>
 <a id="__codelineno-0-808" name="__codelineno-0-808"></a>
-<a id="__codelineno-0-809" name="__codelineno-0-809"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-810" name="__codelineno-0-810"></a>        <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-811" name="__codelineno-0-811"></a>        <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-812" name="__codelineno-0-812"></a>        <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-813" name="__codelineno-0-813"></a>    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-0-809" name="__codelineno-0-809"></a><span class="sd">    Redireciona para a resolução se não houver submissão em andamento.</span>
+<a id="__codelineno-0-810" name="__codelineno-0-810"></a><span class="sd">    Armazena ``activity_link`` e ``submission`` em atributos de instância</span>
+<a id="__codelineno-0-811" name="__codelineno-0-811"></a><span class="sd">    para uso em :meth:`get_context_data`.</span>
+<a id="__codelineno-0-812" name="__codelineno-0-812"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-813" name="__codelineno-0-813"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
 <a id="__codelineno-0-814" name="__codelineno-0-814"></a>
-<a id="__codelineno-0-815" name="__codelineno-0-815"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">submission</span><span class="p">:</span>
-<a id="__codelineno-0-816" name="__codelineno-0-816"></a>        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-817" name="__codelineno-0-817"></a>
-<a id="__codelineno-0-818" name="__codelineno-0-818"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_activity_link</span> <span class="o">=</span> <span class="n">activity_link</span>
-<a id="__codelineno-0-819" name="__codelineno-0-819"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_submission</span> <span class="o">=</span> <span class="n">submission</span>
-<a id="__codelineno-0-820" name="__codelineno-0-820"></a>    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-815" name="__codelineno-0-815"></a>    <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_window</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
+<a id="__codelineno-0-816" name="__codelineno-0-816"></a>    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
+<a id="__codelineno-0-817" name="__codelineno-0-817"></a>        <span class="k">return</span> <span class="n">block</span>
+<a id="__codelineno-0-818" name="__codelineno-0-818"></a>
+<a id="__codelineno-0-819" name="__codelineno-0-819"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-820" name="__codelineno-0-820"></a>        <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-821" name="__codelineno-0-821"></a>        <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-822" name="__codelineno-0-822"></a>        <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-823" name="__codelineno-0-823"></a>    <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-0-824" name="__codelineno-0-824"></a>
+<a id="__codelineno-0-825" name="__codelineno-0-825"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">submission</span><span class="p">:</span>
+<a id="__codelineno-0-826" name="__codelineno-0-826"></a>        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-827" name="__codelineno-0-827"></a>
+<a id="__codelineno-0-828" name="__codelineno-0-828"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_activity_link</span> <span class="o">=</span> <span class="n">activity_link</span>
+<a id="__codelineno-0-829" name="__codelineno-0-829"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_submission</span> <span class="o">=</span> <span class="n">submission</span>
+<a id="__codelineno-0-830" name="__codelineno-0-830"></a>    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5934,17 +5934,7 @@ para uso em :meth:<code>get_context_data</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>student/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-822">822</a></span>
-<span class="normal"><a href="#__codelineno-0-823">823</a></span>
-<span class="normal"><a href="#__codelineno-0-824">824</a></span>
-<span class="normal"><a href="#__codelineno-0-825">825</a></span>
-<span class="normal"><a href="#__codelineno-0-826">826</a></span>
-<span class="normal"><a href="#__codelineno-0-827">827</a></span>
-<span class="normal"><a href="#__codelineno-0-828">828</a></span>
-<span class="normal"><a href="#__codelineno-0-829">829</a></span>
-<span class="normal"><a href="#__codelineno-0-830">830</a></span>
-<span class="normal"><a href="#__codelineno-0-831">831</a></span>
-<span class="normal"><a href="#__codelineno-0-832">832</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-832">832</a></span>
 <span class="normal"><a href="#__codelineno-0-833">833</a></span>
 <span class="normal"><a href="#__codelineno-0-834">834</a></span>
 <span class="normal"><a href="#__codelineno-0-835">835</a></span>
@@ -5970,43 +5960,53 @@ para uso em :meth:<code>get_context_data</code>.</p>
 <span class="normal"><a href="#__codelineno-0-855">855</a></span>
 <span class="normal"><a href="#__codelineno-0-856">856</a></span>
 <span class="normal"><a href="#__codelineno-0-857">857</a></span>
-<span class="normal"><a href="#__codelineno-0-858">858</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-822" name="__codelineno-0-822"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-0-823" name="__codelineno-0-823"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adiciona exercícios com respostas anotadas e contagem de não respondidos.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-824" name="__codelineno-0-824"></a>    <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-0-825" name="__codelineno-0-825"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activity_link</span>
-<a id="__codelineno-0-826" name="__codelineno-0-826"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_submission</span>
-<a id="__codelineno-0-827" name="__codelineno-0-827"></a>
-<a id="__codelineno-0-828" name="__codelineno-0-828"></a>    <span class="n">exercises</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-<a id="__codelineno-0-829" name="__codelineno-0-829"></a>        <span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="o">.</span><span class="n">exercises</span>
-<a id="__codelineno-0-830" name="__codelineno-0-830"></a>        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_annulled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-0-831" name="__codelineno-0-831"></a>        <span class="o">.</span><span class="n">select_related</span><span class="p">(</span>
-<a id="__codelineno-0-832" name="__codelineno-0-832"></a>            <span class="s1">&#39;code_exercise&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-833" name="__codelineno-0-833"></a>            <span class="s1">&#39;complete_code_exercise&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-834" name="__codelineno-0-834"></a>            <span class="s1">&#39;discursive_exercise&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-835" name="__codelineno-0-835"></a>            <span class="s1">&#39;multiple_choice_exercise&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-836" name="__codelineno-0-836"></a>        <span class="p">)</span>
-<a id="__codelineno-0-837" name="__codelineno-0-837"></a>        <span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span><span class="s1">&#39;multiple_choice_exercise__options&#39;</span><span class="p">,</span> <span class="s1">&#39;code_exercise__test_cases&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-838" name="__codelineno-0-838"></a>    <span class="p">)</span>
-<a id="__codelineno-0-839" name="__codelineno-0-839"></a>
-<a id="__codelineno-0-840" name="__codelineno-0-840"></a>    <span class="n">answers</span> <span class="o">=</span> <span class="p">{</span>
-<a id="__codelineno-0-841" name="__codelineno-0-841"></a>        <span class="n">a</span><span class="o">.</span><span class="n">exercise_id</span><span class="p">:</span> <span class="n">a</span>
-<a id="__codelineno-0-842" name="__codelineno-0-842"></a>        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">submission</span><span class="o">.</span><span class="n">answers</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;selected_option&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-<a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="p">}</span>
-<a id="__codelineno-0-844" name="__codelineno-0-844"></a>
-<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">exercises</span><span class="p">:</span>
-<a id="__codelineno-0-846" name="__codelineno-0-846"></a>        <span class="n">ex</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">answers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
-<a id="__codelineno-0-847" name="__codelineno-0-847"></a>
-<a id="__codelineno-0-848" name="__codelineno-0-848"></a>    <span class="n">unanswered_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">exercises</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ex</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-858">858</a></span>
+<span class="normal"><a href="#__codelineno-0-859">859</a></span>
+<span class="normal"><a href="#__codelineno-0-860">860</a></span>
+<span class="normal"><a href="#__codelineno-0-861">861</a></span>
+<span class="normal"><a href="#__codelineno-0-862">862</a></span>
+<span class="normal"><a href="#__codelineno-0-863">863</a></span>
+<span class="normal"><a href="#__codelineno-0-864">864</a></span>
+<span class="normal"><a href="#__codelineno-0-865">865</a></span>
+<span class="normal"><a href="#__codelineno-0-866">866</a></span>
+<span class="normal"><a href="#__codelineno-0-867">867</a></span>
+<span class="normal"><a href="#__codelineno-0-868">868</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-832" name="__codelineno-0-832"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-0-833" name="__codelineno-0-833"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adiciona exercícios com respostas anotadas e contagem de não respondidos.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-834" name="__codelineno-0-834"></a>    <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-835" name="__codelineno-0-835"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activity_link</span>
+<a id="__codelineno-0-836" name="__codelineno-0-836"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_submission</span>
+<a id="__codelineno-0-837" name="__codelineno-0-837"></a>
+<a id="__codelineno-0-838" name="__codelineno-0-838"></a>    <span class="n">exercises</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+<a id="__codelineno-0-839" name="__codelineno-0-839"></a>        <span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="o">.</span><span class="n">exercises</span>
+<a id="__codelineno-0-840" name="__codelineno-0-840"></a>        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_annulled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-841" name="__codelineno-0-841"></a>        <span class="o">.</span><span class="n">select_related</span><span class="p">(</span>
+<a id="__codelineno-0-842" name="__codelineno-0-842"></a>            <span class="s1">&#39;code_exercise&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-843" name="__codelineno-0-843"></a>            <span class="s1">&#39;complete_code_exercise&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-844" name="__codelineno-0-844"></a>            <span class="s1">&#39;discursive_exercise&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-845" name="__codelineno-0-845"></a>            <span class="s1">&#39;multiple_choice_exercise&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-846" name="__codelineno-0-846"></a>        <span class="p">)</span>
+<a id="__codelineno-0-847" name="__codelineno-0-847"></a>        <span class="o">.</span><span class="n">prefetch_related</span><span class="p">(</span><span class="s1">&#39;multiple_choice_exercise__options&#39;</span><span class="p">,</span> <span class="s1">&#39;code_exercise__test_cases&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-848" name="__codelineno-0-848"></a>    <span class="p">)</span>
 <a id="__codelineno-0-849" name="__codelineno-0-849"></a>
-<a id="__codelineno-0-850" name="__codelineno-0-850"></a>    <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-<a id="__codelineno-0-851" name="__codelineno-0-851"></a>        <span class="s1">&#39;activity_link&#39;</span><span class="p">:</span> <span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-852" name="__codelineno-0-852"></a>        <span class="s1">&#39;submission&#39;</span><span class="p">:</span> <span class="n">submission</span><span class="p">,</span>
-<a id="__codelineno-0-853" name="__codelineno-0-853"></a>        <span class="s1">&#39;exercises&#39;</span><span class="p">:</span> <span class="n">exercises</span><span class="p">,</span>
-<a id="__codelineno-0-854" name="__codelineno-0-854"></a>        <span class="s1">&#39;unanswered_count&#39;</span><span class="p">:</span> <span class="n">unanswered_count</span><span class="p">,</span>
-<a id="__codelineno-0-855" name="__codelineno-0-855"></a>        <span class="s1">&#39;total_exercises&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">exercises</span><span class="p">),</span>
-<a id="__codelineno-0-856" name="__codelineno-0-856"></a>        <span class="s1">&#39;answered_count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">answers</span><span class="p">),</span>
-<a id="__codelineno-0-857" name="__codelineno-0-857"></a>    <span class="p">})</span>
-<a id="__codelineno-0-858" name="__codelineno-0-858"></a>    <span class="k">return</span> <span class="n">context</span>
+<a id="__codelineno-0-850" name="__codelineno-0-850"></a>    <span class="n">answers</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-851" name="__codelineno-0-851"></a>        <span class="n">a</span><span class="o">.</span><span class="n">exercise_id</span><span class="p">:</span> <span class="n">a</span>
+<a id="__codelineno-0-852" name="__codelineno-0-852"></a>        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">submission</span><span class="o">.</span><span class="n">answers</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s1">&#39;selected_option&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<a id="__codelineno-0-853" name="__codelineno-0-853"></a>    <span class="p">}</span>
+<a id="__codelineno-0-854" name="__codelineno-0-854"></a>
+<a id="__codelineno-0-855" name="__codelineno-0-855"></a>    <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">exercises</span><span class="p">:</span>
+<a id="__codelineno-0-856" name="__codelineno-0-856"></a>        <span class="n">ex</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">answers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+<a id="__codelineno-0-857" name="__codelineno-0-857"></a>
+<a id="__codelineno-0-858" name="__codelineno-0-858"></a>    <span class="n">unanswered_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">exercises</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ex</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
+<a id="__codelineno-0-859" name="__codelineno-0-859"></a>
+<a id="__codelineno-0-860" name="__codelineno-0-860"></a>    <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+<a id="__codelineno-0-861" name="__codelineno-0-861"></a>        <span class="s1">&#39;activity_link&#39;</span><span class="p">:</span> <span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-862" name="__codelineno-0-862"></a>        <span class="s1">&#39;submission&#39;</span><span class="p">:</span> <span class="n">submission</span><span class="p">,</span>
+<a id="__codelineno-0-863" name="__codelineno-0-863"></a>        <span class="s1">&#39;exercises&#39;</span><span class="p">:</span> <span class="n">exercises</span><span class="p">,</span>
+<a id="__codelineno-0-864" name="__codelineno-0-864"></a>        <span class="s1">&#39;unanswered_count&#39;</span><span class="p">:</span> <span class="n">unanswered_count</span><span class="p">,</span>
+<a id="__codelineno-0-865" name="__codelineno-0-865"></a>        <span class="s1">&#39;total_exercises&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">exercises</span><span class="p">),</span>
+<a id="__codelineno-0-866" name="__codelineno-0-866"></a>        <span class="s1">&#39;answered_count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">answers</span><span class="p">),</span>
+<a id="__codelineno-0-867" name="__codelineno-0-867"></a>    <span class="p">})</span>
+<a id="__codelineno-0-868" name="__codelineno-0-868"></a>    <span class="k">return</span> <span class="n">context</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

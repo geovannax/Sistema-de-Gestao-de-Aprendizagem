@@ -5860,31 +5860,31 @@ amigável em vez de 500.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-205">205</a></span>
-<span class="normal"><a href="#__codelineno-0-206">206</a></span>
-<span class="normal"><a href="#__codelineno-0-207">207</a></span>
-<span class="normal"><a href="#__codelineno-0-208">208</a></span>
-<span class="normal"><a href="#__codelineno-0-209">209</a></span>
-<span class="normal"><a href="#__codelineno-0-210">210</a></span>
-<span class="normal"><a href="#__codelineno-0-211">211</a></span>
-<span class="normal"><a href="#__codelineno-0-212">212</a></span>
-<span class="normal"><a href="#__codelineno-0-213">213</a></span>
-<span class="normal"><a href="#__codelineno-0-214">214</a></span>
-<span class="normal"><a href="#__codelineno-0-215">215</a></span>
-<span class="normal"><a href="#__codelineno-0-216">216</a></span>
-<span class="normal"><a href="#__codelineno-0-217">217</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-205" name="__codelineno-0-205"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adiciona títulos, dicas e configurações do formulário ao contexto.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>    <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>    <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="s1">&#39;form_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_title</span><span class="p">,</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>        <span class="s1">&#39;form_subtitle&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_subtitle</span><span class="p">,</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="s1">&#39;form_submit_confirm_text&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_submit_confirm_text</span><span class="p">,</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>        <span class="s1">&#39;page_description&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_description</span><span class="p">,</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>        <span class="s1">&#39;page_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_title</span><span class="p">,</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="s1">&#39;submit_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">submit_title</span><span class="p">,</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>        <span class="s1">&#39;tip_card_content&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip_card_content</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>    <span class="p">})</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>    <span class="k">return</span> <span class="n">context</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-226">226</a></span>
+<span class="normal"><a href="#__codelineno-0-227">227</a></span>
+<span class="normal"><a href="#__codelineno-0-228">228</a></span>
+<span class="normal"><a href="#__codelineno-0-229">229</a></span>
+<span class="normal"><a href="#__codelineno-0-230">230</a></span>
+<span class="normal"><a href="#__codelineno-0-231">231</a></span>
+<span class="normal"><a href="#__codelineno-0-232">232</a></span>
+<span class="normal"><a href="#__codelineno-0-233">233</a></span>
+<span class="normal"><a href="#__codelineno-0-234">234</a></span>
+<span class="normal"><a href="#__codelineno-0-235">235</a></span>
+<span class="normal"><a href="#__codelineno-0-236">236</a></span>
+<span class="normal"><a href="#__codelineno-0-237">237</a></span>
+<span class="normal"><a href="#__codelineno-0-238">238</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-226" name="__codelineno-0-226"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Adiciona títulos, dicas e configurações do formulário ao contexto.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>    <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="s1">&#39;form_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_title</span><span class="p">,</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="s1">&#39;form_subtitle&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_subtitle</span><span class="p">,</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="s1">&#39;form_submit_confirm_text&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_submit_confirm_text</span><span class="p">,</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>        <span class="s1">&#39;page_description&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_description</span><span class="p">,</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>        <span class="s1">&#39;page_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_title</span><span class="p">,</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>        <span class="s1">&#39;submit_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">submit_title</span><span class="p">,</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>        <span class="s1">&#39;tip_card_content&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip_card_content</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>    <span class="p">})</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>    <span class="k">return</span> <span class="n">context</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5907,25 +5907,25 @@ amigável em vez de 500.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-219">219</a></span>
-<span class="normal"><a href="#__codelineno-0-220">220</a></span>
-<span class="normal"><a href="#__codelineno-0-221">221</a></span>
-<span class="normal"><a href="#__codelineno-0-222">222</a></span>
-<span class="normal"><a href="#__codelineno-0-223">223</a></span>
-<span class="normal"><a href="#__codelineno-0-224">224</a></span>
-<span class="normal"><a href="#__codelineno-0-225">225</a></span>
-<span class="normal"><a href="#__codelineno-0-226">226</a></span>
-<span class="normal"><a href="#__codelineno-0-227">227</a></span>
-<span class="normal"><a href="#__codelineno-0-228">228</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-219" name="__codelineno-0-219"></a><span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">BaseModelForm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Salva a turma, convertendo ``IntegrityError`` em erro de nome duplicado no formulário.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>    <span class="k">except</span> <span class="n">IntegrityError</span><span class="p">:</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>        <span class="n">form</span><span class="o">.</span><span class="n">add_error</span><span class="p">(</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="s1">&#39;name&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>            <span class="s1">&#39;Você já tem uma turma com este nome. Por favor, escolha outro nome.&#39;</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>        <span class="p">)</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_invalid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-240">240</a></span>
+<span class="normal"><a href="#__codelineno-0-241">241</a></span>
+<span class="normal"><a href="#__codelineno-0-242">242</a></span>
+<span class="normal"><a href="#__codelineno-0-243">243</a></span>
+<span class="normal"><a href="#__codelineno-0-244">244</a></span>
+<span class="normal"><a href="#__codelineno-0-245">245</a></span>
+<span class="normal"><a href="#__codelineno-0-246">246</a></span>
+<span class="normal"><a href="#__codelineno-0-247">247</a></span>
+<span class="normal"><a href="#__codelineno-0-248">248</a></span>
+<span class="normal"><a href="#__codelineno-0-249">249</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-240" name="__codelineno-0-240"></a><span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">BaseModelForm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Salva a turma, convertendo ``IntegrityError`` em erro de nome duplicado no formulário.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>    <span class="k">except</span> <span class="n">IntegrityError</span><span class="p">:</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="n">form</span><span class="o">.</span><span class="n">add_error</span><span class="p">(</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>            <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>            <span class="s1">&#39;Você já tem uma turma com este nome. Por favor, escolha outro nome.&#39;</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a>        <span class="p">)</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_invalid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

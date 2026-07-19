@@ -1,0 +1,149 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Pendentes{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/profile.css' %}">
+    <script src="{% static 'accounts/js/profile.js' %}"></script>
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    {% with page_title="Perfil" page_description="Suas informações, notas e atividades em um só lugar." %}
+        {% include "global/partials/_page_header.html" %}
+    {% endwith %}
+
+    <div class="row g-3">
+
+        <!-- ASIDE -->
+        <div class="col-lg-2 col-md-4">
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+
+                <div class="text-center pb-3 mb-2" style="border-bottom:1px solid var(--gray-300,#e5e7eb)">
+                    <div class="pm-avatar">{{ initials }}</div>
+                    <div style="font-size:.9rem;font-weight:700;color:var(--gray-800,#1f2937)">{{ full_name }}</div>
+                    <div style="font-size:.7rem;color:var(--gray-500,#6b7280);margin-top:.15rem">{{ request.user.username }}</div>
+                    <span class="badge text-bg-secondary rounded-pill mt-2" style="font-size:.62rem">Aluno</span>
+                </div>
+
+                <nav class="side-nav">
+                    <a href="{% url 'accounts:overview' %}">
+                        <i class="bi bi-grid-fill"></i>Visão Geral
+                    </a>
+                    <a href="{% url 'accounts:pending' %}" class="active">
+                        <i class="bi bi-list-task"></i>Pendentes
+                        {% if pending_count %}
+                        <span class="badge text-bg-danger rounded-pill ms-auto" style="font-size:.58rem">{{ pending_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'accounts:notes' %}">
+                        <i class="bi bi-award-fill"></i>Notas
+                    </a>
+                    <a href="{% url 'accounts:turmas' %}">
+                        <i class="bi bi-people-fill"></i>Turmas
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="col-lg-10 col-md-8">
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+
+                <div class="detail-left-title mb-2">
+                    <i class="bi bi-list-task" style="color: var(--blue-500);"></i>
+                    Pendentes
+                    {% if pending_count %}
+                    <span class="badge text-bg-danger rounded-pill ms-1" style="font-size:.62rem">{{ pending_count }}</span>
+                    {% endif %}
+                </div>
+                <hr class="mb-3 mt-1">
+
+                {% if pending %}
+                    <div class="{% if pending_count > 5 %}turmas-grid{% endif %}" id="pend-grid">
+                    {% for item in pending %}
+                    <a class="pend-row pend-confirm"
+                       href="{% url 'student:activity' item.link.pk %}"
+                       data-title="{{ item.title }}"
+                       data-group="{{ item.group_name }}"
+                       data-questions="{{ item.total_exercises }}">
+                        <div class="pend-stripe" style="background:{{ item.stripe }}"></div>
+                        <div class="flex-grow-1">
+                            <div class="pend-title">{{ item.title }}</div>
+                            <div class="pend-sub">{{ item.group_name }} &nbsp;·&nbsp; Prof. {{ item.teacher }}</div>
+                            {% if item.ends_at %}
+                                {% if item.urgency == 'overdue' %}
+                                <div class="pend-due" style="color:#dc2626">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i>Prazo encerrado em {{ item.ends_at|date:"d/m/Y" }}
+                                </div>
+                                {% elif item.urgency == 'urgent' %}
+                                <div class="pend-due" style="color:#dc2626">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i>Prazo: {{ item.ends_at|date:"d/m/Y H:i" }} — urgente
+                                </div>
+                                {% elif item.urgency == 'upcoming' %}
+                                <div class="pend-due" style="color:#d97706">
+                                    <i class="bi bi-clock me-1"></i>Prazo: {{ item.ends_at|date:"d/m/Y H:i" }}
+                                </div>
+                                {% else %}
+                                <div class="pend-due" style="color:var(--gray-500)">
+                                    <i class="bi bi-calendar me-1"></i>Prazo: {{ item.ends_at|date:"d/m/Y" }}
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="pend-due" style="color:var(--gray-500)">Sem prazo definido</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                            <div class="fw-bold" style="font-size:1rem;font-variant-numeric:tabular-nums;color:var(--gray-800)">{{ item.total_exercises }}</div>
+                            <div class="text-muted" style="font-size:.75rem">questões</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    </div>
+
+                    <div class="pend-row justify-content-center d-none" id="pend-expand-btn">
+                        <button class="btn btn-sm btn-outline-secondary rounded-5 px-4"
+                                onclick="expandGrid('pend-grid', 'pend-expand-btn')">
+                            <i class="bi bi-chevron-down me-1"></i>
+                            Ver todas ({{ pending_count }} atividades)
+                        </button>
+                    </div>
+                    <script>document.addEventListener('DOMContentLoaded', function() { requestAnimationFrame(function() { requestAnimationFrame(function() { limitGridRows('pend-grid', 'pend-expand-btn', 5); }); }); });</script>
+                {% else %}
+                    <div class="empty-state d-flex flex-column align-items-center py-5">
+                        <i class="bi bi-check2-circle empty-state-icon"></i>
+                        <p class="empty-state-text mb-0">Nenhuma atividade pendente.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+
+{% endblock main_content %}
+
+{% block modal %}
+    {% with modal_form=True modal_id="startActivityModal" modal_icon="bi-play-circle-fill" modal_title="Iniciar atividade" modal_subtitle="Confirme antes de começar" modal_form_method="GET" modal_form_id="startActivityForm" modal_button_submit="Começar" modal_button_icon="bi-play-fill" %}
+        {% include "global/partials/_modal.html" with content_template="accounts/_start_activity_modal.html" %}
+    {% endwith %}
+{% endblock modal %}
+
+{% block extra_script %}
+<script>
+document.querySelectorAll('.pend-confirm').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('startModalTitle').textContent = el.dataset.title;
+        document.getElementById('startModalGroup').textContent = el.dataset.group;
+        document.getElementById('startModalQuestions').textContent = el.dataset.questions + ' questões';
+        document.getElementById('startActivityForm').action = el.href;
+        new bootstrap.Modal(document.getElementById('startActivityModal')).show();
+    });
+});
+</script>
+{% endblock extra_script %}

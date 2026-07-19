@@ -1,0 +1,263 @@
+<style>
+  /* ── DER Diagram ─────────────────────────────────────── */
+  #der-wrap { position:relative; width:100%; background:var(--gray-200); border:1px solid var(--gray-200); border-radius:.5rem; }
+  #der-canvas { position:relative; width:100%; height:1120px; }
+  #der-svg { position:absolute; inset:0; width:100%; height:1120px; overflow:visible; pointer-events:none; }
+
+  .der-entity { position:absolute; width:230px; background:var(--white); border:1.5px solid var(--gray-200); border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.08); cursor:pointer; transition:box-shadow .18s,border-color .18s,opacity .2s; z-index:2; user-select:none; }
+  .der-entity:hover { box-shadow:0 4px 14px rgba(37,99,235,.18); border-color:var(--blue-500); }
+  .der-entity.is-active { border-color:var(--blue-500); box-shadow:0 4px 14px rgba(37,99,235,.22); z-index:5; }
+  .der-entity.is-dim { opacity:.15; pointer-events:none; }
+
+  .der-ent-head { background:var(--info); color:#fff; padding:.4rem .6rem; border-radius:4px 4px 0 0; display:flex; align-items:center; justify-content:space-between; gap:.4rem; }
+  .der-ent-name { font-weight:700; font-style:italic; font-size:.9rem; letter-spacing:.02em; }
+  .der-ent-badge { font-size:.6rem; font-weight:600; font-style:normal; background:rgba(255,255,255,.22); padding:.07rem .28rem; border-radius:2px; letter-spacing:.04em; flex-shrink:0; }
+
+  .der-fields { list-style:none; padding:.2rem 0 .25rem; }
+  .der-fields li { display:flex; align-items:center; gap:.28rem; padding:.17rem .6rem; font-family:'Cascadia Code','Consolas','Monaco',monospace; font-size:.8rem; border-bottom:1px solid var(--gray-200); color:var(--gray-500); }
+  .der-fields li:last-child { border-bottom:none; }
+  .der-f-ic { flex-shrink:0; width:12px; text-align:center; font-size:.6rem; }
+  .der-f-n { flex:1; color:var(--gray-800); font-weight:500; }
+  .der-f-n.pk { color:var(--gray-800); font-weight:700; }
+  .der-f-t { color:var(--gray-500,#94a3b8); font-size:.7rem; }
+
+  .der-conn { fill:none; stroke-width:2; opacity:.48; transition:opacity .15s,stroke-width .15s; pointer-events:stroke; cursor:pointer; }
+  .der-conn:hover { opacity:1!important; stroke-width:3!important; }
+  .der-conn.is-active { opacity:1!important; stroke-width:2.5!important; }
+  .der-conn.is-dim { opacity:.06!important; pointer-events:none!important; }
+
+  .der-legend { display:flex; gap:1.2rem; flex-wrap:wrap; margin-top:.65rem; padding:.55rem .9rem; background:var(--white); border:1px solid var(--gray-200); border-radius:.375rem; font-size:.8rem; color:var(--gray-500); }
+  .der-li { display:flex; align-items:center; gap:.38rem; }
+  .der-ll { width:22px; height:3px; border-radius:2px; flex-shrink:0; }
+  .der-hint { font-size:.8rem; color:var(--gray-500,#94a3b8); text-align:center; margin-top:.4rem; }
+
+  #der-tip { position:fixed; background:#1e293b; color:#f8fafc; font-size:.7rem; padding:.32rem .6rem; border-radius:5px; pointer-events:none; display:none; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,.35); font-family:'Cascadia Code','Consolas',monospace; white-space:nowrap; }
+  #der-tip .tj { color:#7dd3fc; font-size:.62rem; display:block; margin-bottom:.1rem; }
+</style>
+
+<div class="detail-left-card p-3 rounded-3 mt-4">
+    <div class="form-card-header d-flex mb-2">
+        <div>
+            <div class="form-card-title mb-0">Relacionamentos entre Datasets</div>
+            <div class="form-card-subtitle">Clique em uma entidade para destacar seus relacionamentos · Passe o mouse em uma linha para ver a chave de JOIN</div>
+        </div>
+    </div>
+
+    <div id="der-wrap">
+        <div id="der-canvas">
+            <svg id="der-svg" xmlns="http://www.w3.org/2000/svg"><defs id="der-defs"></defs></svg>
+        </div>
+    </div>
+
+    <div class="der-legend">
+        <div class="der-li"><div class="der-ll" style="background:#ef4444"></div><span>Turma &nbsp;<code>group_id</code></span></div>
+        <div class="der-li"><div class="der-ll" style="background:#10b981"></div><span>Identidade do aluno &nbsp;<code>student_anon_id + group_id</code></span></div>
+        <div class="der-li"><div class="der-ll" style="background:#3b82f6"></div><span>Atividade &nbsp;<code>activity_id</code></span></div>
+        <div class="der-li"><div class="der-ll" style="background:#8b5cf6"></div><span>Exercício &nbsp;<code>exercise_id</code></span></div>
+        <div class="der-li"><div class="der-ll" style="background:#f97316"></div><span>Submissão &nbsp;<code>submission_id</code></span></div>
+    </div>
+    <p class="der-hint">💡 <code>activity_id</code> = <code>ActivityListGroup.pk</code> — chave do vínculo turma ↔ atividade, não o PK de ActivityList</p>
+</div>  {# /detail-left-card #}
+
+<div id="der-tip"><span class="tj"></span><span class="tl"></span></div>
+
+<script>
+(function(){
+  if(document.getElementById('der-canvas').dataset.init) return;
+  document.getElementById('der-canvas').dataset.init='1';
+
+  const COLORS={group:'#ef4444',identity:'#10b981',activity:'#3b82f6',exercise:'#8b5cf6',submission:'#f97316'};
+  const FK_COLORS={student_anon_id:'#10b981',group_id:'#ef4444',activity_id:'#3b82f6',exercise_id:'#8b5cf6',submission_id:'#f97316'};
+  const W=230;
+
+  const DEFS={
+    groups:{label:'Turmas',pos:[365,20],fields:[
+      {n:'group_id',   t:'int',      r:'pk'},
+      {n:'name',       t:'str'},
+      {n:'shift',      t:'str'},
+      {n:'created_at', t:'datetime'}]},
+    students:{label:'Alunos',pos:[25,250],fields:[
+      {n:'student_anon_id',t:'sha256',r:'pk'},{n:'group_id',t:'int',r:'fk'},
+      {n:'enrollment_date',t:'date'},{n:'is_active',t:'bool'}]},
+    activities:{label:'Atividades',pos:[390,250],fields:[
+      {n:'activity_id',t:'int',r:'pk'},{n:'group_id',t:'int',r:'fk'},
+      {n:'title',t:'str'},{n:'max_points',t:'float'},
+      {n:'starts_at',t:'datetime'},{n:'ends_at',t:'datetime'}]},
+    engagement:{label:'Engajamento',pos:[755,250],fields:[
+      {n:'student_anon_id',t:'sha256',r:'fk'},{n:'group_id',t:'int',r:'fk'},
+      {n:'activity_id',t:'int',r:'fk'},{n:'total_attempts',t:'int'},
+      {n:'completed',t:'bool'},{n:'pct_score',t:'float'}]},
+    submissions:{label:'Submissões',pos:[130,520],fields:[
+      {n:'submission_id',t:'int',r:'pk'},{n:'student_anon_id',t:'sha256',r:'fk'},
+      {n:'group_id',t:'int',r:'fk'},{n:'activity_id',t:'int',r:'fk'},
+      {n:'attempt_number',t:'int'},{n:'submitted_at',t:'datetime'},{n:'pct_score',t:'float'}]},
+    exercises:{label:'Exercícios',pos:[390,520],fields:[
+      {n:'exercise_id',t:'int',r:'pk'},{n:'activity_id',t:'int',r:'fk'},
+      {n:'type',t:'str'},{n:'order',t:'int'},{n:'points',t:'float'},
+      {n:'is_annulled',t:'bool'},{n:'statement',t:'text'},
+      {n:'starter_code',t:'text'},{n:'complete_code',t:'text'}]},
+    options:{label:'Alternativas',pos:[755,520],fields:[
+      {n:'exercise_id',t:'int',r:'fk'},{n:'activity_id',t:'int',r:'fk'},
+      {n:'option_order',t:'int'},{n:'text',t:'text'},{n:'is_correct',t:'bool'}]},
+    answers:{label:'Respostas por Exercício',pos:[25,880],fields:[
+      {n:'answer_id',t:'int',r:'pk'},{n:'submission_id',t:'int',r:'fk'},
+      {n:'exercise_id',t:'int',r:'fk'},{n:'is_correct',t:'bool'},
+      {n:'points_earned',t:'float'},{n:'time_spent_s',t:'int'}]},
+    executions:{label:'Execuções de Código',pos:[295,880],fields:[
+      {n:'execution_id',t:'int',r:'pk'},{n:'submission_id',t:'int',r:'fk'},
+      {n:'exercise_id',t:'int',r:'fk'},{n:'created_at',t:'datetime'},
+      {n:'correct_count',t:'int'},{n:'total_count',t:'int'},{n:'all_correct',t:'bool'}]},
+    code_journey:{label:'Jornada de Código',pos:[565,880],fields:[
+      {n:'submission_id',t:'int',r:'fk'},{n:'exercise_id',t:'int',r:'fk'},
+      {n:'execution_order',t:'int'},{n:'delta_correct',t:'int'},{n:'source_code',t:'text'}]},
+  };
+
+  const CONNS=[
+    {from:'groups',    to:'students',     key:'group_id',                   cat:'group',      fa:'bottom-left',  ta:'top',       sp:null},
+    {from:'groups',    to:'activities',   key:'group_id',                   cat:'group',      fa:'bottom',       ta:'top',       sp:null},
+    {from:'groups',    to:'engagement',   key:'group_id',                   cat:'group',      fa:'bottom-right', ta:'top',       sp:null},
+    {from:'students',  to:'submissions',  key:'student_anon_id + group_id', cat:'identity',   fa:'bottom',       ta:'top',        sp:null},
+    {from:'students',  to:'engagement',   key:'student_anon_id + group_id', cat:'identity',   fa:'top',          ta:'top',        sp:'arch'},
+    {from:'activities',to:'submissions',  key:'activity_id',                cat:'activity',   fa:'bottom-left',  ta:'top-right',  sp:null},
+    {from:'activities',to:'exercises',    key:'activity_id',                cat:'activity',   fa:'bottom',       ta:'top',        sp:null},
+    {from:'activities',to:'engagement',   key:'activity_id',                cat:'activity',   fa:'right',        ta:'left',       sp:null},
+    {from:'activities',to:'options',      key:'activity_id',                cat:'activity',   fa:'right',        ta:'top-left',   sp:null},
+    {from:'exercises', to:'options',      key:'exercise_id',                cat:'exercise',   fa:'right',        ta:'left',       sp:null},
+    {from:'exercises', to:'answers',      key:'exercise_id',                cat:'exercise',   fa:'bottom-left',  ta:'top-right',  sp:null},
+    {from:'exercises', to:'executions',   key:'exercise_id',                cat:'exercise',   fa:'bottom',       ta:'top',        sp:null},
+    {from:'exercises', to:'code_journey', key:'exercise_id',                cat:'exercise',   fa:'bottom-right', ta:'top-left',   sp:null},
+    {from:'submissions',to:'answers',     key:'submission_id',              cat:'submission', fa:'bottom',       ta:'top',        sp:null},
+    {from:'submissions',to:'executions',  key:'submission_id',              cat:'submission', fa:'bottom-right', ta:'top-left',   sp:null},
+    {from:'submissions',to:'code_journey',key:'submission_id',              cat:'submission', fa:'right',        ta:'left',       sp:null},
+  ];
+
+  const canvas=document.getElementById('der-canvas');
+  const svgEl=document.getElementById('der-svg');
+  const defsEl=document.getElementById('der-defs');
+  const tip=document.getElementById('der-tip');
+
+  // Markers
+  Object.entries(COLORS).forEach(([cat,color])=>{
+    const mk=document.createElementNS('http://www.w3.org/2000/svg','marker');
+    mk.setAttribute('id','der-ar-'+cat);mk.setAttribute('markerWidth','9');
+    mk.setAttribute('markerHeight','7');mk.setAttribute('refX','8');
+    mk.setAttribute('refY','3.5');mk.setAttribute('orient','auto');
+    const p=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    p.setAttribute('points','0 0,9 3.5,0 7');p.setAttribute('fill',color);
+    mk.appendChild(p);defsEl.appendChild(mk);
+
+    const mk2=document.createElementNS('http://www.w3.org/2000/svg','marker');
+    mk2.setAttribute('id','der-dot-'+cat);mk2.setAttribute('markerWidth','7');
+    mk2.setAttribute('markerHeight','7');mk2.setAttribute('refX','3.5');
+    mk2.setAttribute('refY','3.5');mk2.setAttribute('orient','auto');
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','3.5');c.setAttribute('cy','3.5');c.setAttribute('r','2.5');
+    c.setAttribute('fill',color);c.setAttribute('opacity','0.7');
+    mk2.appendChild(c);defsEl.appendChild(mk2);
+  });
+
+  // Render entities
+  const ELS={};
+  Object.entries(DEFS).forEach(([id,def])=>{
+    const d=document.createElement('div');
+    d.className='der-entity';d.style.left=def.pos[0]+'px';d.style.top=def.pos[1]+'px';
+    d.dataset.id=id;
+    const hd=document.createElement('div');hd.className='der-ent-head';
+    const nm=document.createElement('span');nm.className='der-ent-name';nm.textContent=def.label||id;
+    const bg=document.createElement('span');bg.className='der-ent-badge';bg.textContent='CSV';
+    hd.appendChild(nm);hd.appendChild(bg);d.appendChild(hd);
+    const ul=document.createElement('ul');ul.className='der-fields';
+    def.fields.forEach(f=>{
+      const li=document.createElement('li');
+      const ic=document.createElement('span');ic.className='der-f-ic';
+      ic.textContent=f.r==='pk'?'🔑':f.r==='fk'?'🔗':'·';
+      const fn=document.createElement('span');
+      fn.className='der-f-n'+(f.r==='pk'?' pk':'');
+      if(f.r==='fk') fn.style.color=FK_COLORS[f.n]||'#3b82f6';
+      fn.textContent=f.n;
+      const ft=document.createElement('span');ft.className='der-f-t';ft.textContent=f.t;
+      li.appendChild(ic);li.appendChild(fn);li.appendChild(ft);ul.appendChild(li);
+    });
+    d.appendChild(ul);canvas.appendChild(d);ELS[id]=d;
+  });
+
+  function anc(id,anchor){
+    const def=DEFS[id];const el=ELS[id];
+    const x=def.pos[0],y=def.pos[1],h=el.offsetHeight;
+    const cx=x+W/2,cy=y+h/2,qx=W*0.28;
+    const m={'top':[cx,y],'bottom':[cx,y+h],'left':[x,cy],'right':[x+W,cy],
+      'top-left':[x+qx,y],'top-right':[x+W-qx,y],
+      'bottom-left':[x+qx,y+h],'bottom-right':[x+W-qx,y+h]};
+    return m[anchor]||[cx,cy];
+  }
+
+  function bezier(sx,sy,tx,ty,fa,ta,sp){
+    if(sp==='arch'){const top=Math.min(sy,ty)-68;return `M${sx},${sy} C${sx},${top} ${tx},${top} ${tx},${ty}`;}
+    const adx=Math.abs(tx-sx),ady=Math.abs(ty-sy);
+    let c1x,c1y,c2x,c2y;
+    if(fa==='bottom'&&ta==='top'){const h=Math.max(ady*.48,46);c1x=sx;c1y=sy+h;c2x=tx;c2y=ty-h;}
+    else if(fa==='right'&&ta==='left'){const h=Math.max(adx*.45,46);c1x=sx+h;c1y=sy;c2x=tx-h;c2y=ty;}
+    else if(fa.startsWith('bottom')&&ta.startsWith('top')){const h=Math.max(ady*.45,40);c1x=sx;c1y=sy+h;c2x=tx;c2y=ty-h;}
+    else if(fa==='right'&&ta.startsWith('top')){const hx=Math.max(adx*.4,40),hy=Math.max(ady*.4,40);c1x=sx+hx;c1y=sy;c2x=tx;c2y=ty-hy;}
+    else{c1x=sx+(tx-sx)*.38;c1y=sy+(ty-sy)*.08;c2x=tx-(tx-sx)*.12;c2y=ty-(ty-sy)*.38;}
+    return `M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${tx},${ty}`;
+  }
+
+  const PATHS=[];
+  function draw(){
+    PATHS.forEach(p=>p.remove());PATHS.length=0;
+    CONNS.forEach(conn=>{
+      const [sx,sy]=anc(conn.from,conn.fa);
+      const [tx,ty]=anc(conn.to,conn.ta);
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',bezier(sx,sy,tx,ty,conn.fa,conn.ta,conn.sp));
+      path.setAttribute('stroke',COLORS[conn.cat]);
+      path.setAttribute('class','der-conn');
+      path.setAttribute('marker-end','url(#der-ar-'+conn.cat+')');
+      path.setAttribute('marker-start','url(#der-dot-'+conn.cat+')');
+      path.dataset.from=conn.from;path.dataset.to=conn.to;
+      path.dataset.key=conn.key;path.dataset.cat=conn.cat;
+      path.style.pointerEvents='stroke';
+      path.addEventListener('mouseenter',function(e){
+        tip.querySelector('.tj').textContent='JOIN ON: '+conn.key;
+        tip.querySelector('.tl').textContent=DEFS[conn.from].label+' → '+DEFS[conn.to].label;
+        tip.style.display='block';moveTip(e);
+      });
+      path.addEventListener('mousemove',moveTip);
+      path.addEventListener('mouseleave',()=>{tip.style.display='none'});
+      svgEl.appendChild(path);PATHS.push(path);
+    });
+  }
+
+  function moveTip(e){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-46)+'px';}
+
+  requestAnimationFrame(()=>requestAnimationFrame(draw));
+
+  let active=null;
+  function activate(id){
+    if(active===id){
+      active=null;
+      Object.values(ELS).forEach(el=>el.classList.remove('is-active','is-dim'));
+      PATHS.forEach(p=>p.classList.remove('is-active','is-dim'));
+      return;
+    }
+    active=id;
+    const connected=new Set([id]);
+    PATHS.forEach(p=>{if(p.dataset.from===id||p.dataset.to===id){connected.add(p.dataset.from);connected.add(p.dataset.to);}});
+    Object.entries(ELS).forEach(([eid,el])=>{
+      if(eid===id){el.classList.add('is-active');el.classList.remove('is-dim');}
+      else if(connected.has(eid)){el.classList.remove('is-active','is-dim');}
+      else{el.classList.remove('is-active');el.classList.add('is-dim');}
+    });
+    PATHS.forEach(p=>{
+      if(p.dataset.from===id||p.dataset.to===id){p.classList.add('is-active');p.classList.remove('is-dim');}
+      else{p.classList.remove('is-active');p.classList.add('is-dim');}
+    });
+  }
+
+  Object.entries(ELS).forEach(([id,el])=>{
+    el.addEventListener('click',e=>{e.stopPropagation();activate(id);});
+  });
+  canvas.addEventListener('click',()=>{if(active)activate(active);});
+})();
+</script>

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'accounts',
     'activity',
     'common',
+    'dataset',
     'group',
     'student',
 ]

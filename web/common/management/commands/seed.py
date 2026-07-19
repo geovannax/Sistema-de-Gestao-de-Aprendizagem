@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import random
+from datetime import timedelta
 from typing import Any
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
+from django.utils import timezone
 
 from activity.models import (
     ActivityList,
@@ -120,9 +122,21 @@ class Command(BaseCommand):  # pragma: no cover
                 continue
 
     def _link_to_all_groups(self, activity: ActivityList, prof14: User) -> None:
+        now = timezone.now()
+        date_scenarios = [
+            (None,                      None),                       # sem início/fim
+            (now,                       now + timedelta(days=30)),   # aberta agora
+            (now - timedelta(days=31),  now - timedelta(days=1)),    # já vencida
+            (now + timedelta(days=60),  now + timedelta(days=90)),   # ainda não abriu
+        ]
         groups = Group.objects.filter(created_by=prof14, deleted_at__isnull=True)
-        for group in groups:
-            _, linked = ActivityListGroup.objects.get_or_create(activity_list=activity, group=group)
+        for i, group in enumerate(groups):
+            starts, ends = date_scenarios[i % 4]
+            _, linked = ActivityListGroup.objects.get_or_create(
+                activity_list=activity,
+                group=group,
+                defaults={'starts_at': starts, 'ends_at': ends},
+            )
             status = '✓' if linked else '~'
             self.stdout.write(self.style.SUCCESS(f'{status} Vinculado: {group.name}'))
 

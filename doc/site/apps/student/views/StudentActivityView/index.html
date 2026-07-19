@@ -5865,17 +5865,7 @@ retornar apenas o fragmento <code>_activity_main.html</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>student/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-607">607</a></span>
-<span class="normal"><a href="#__codelineno-0-608">608</a></span>
-<span class="normal"><a href="#__codelineno-0-609">609</a></span>
-<span class="normal"><a href="#__codelineno-0-610">610</a></span>
-<span class="normal"><a href="#__codelineno-0-611">611</a></span>
-<span class="normal"><a href="#__codelineno-0-612">612</a></span>
-<span class="normal"><a href="#__codelineno-0-613">613</a></span>
-<span class="normal"><a href="#__codelineno-0-614">614</a></span>
-<span class="normal"><a href="#__codelineno-0-615">615</a></span>
-<span class="normal"><a href="#__codelineno-0-616">616</a></span>
-<span class="normal"><a href="#__codelineno-0-617">617</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-617">617</a></span>
 <span class="normal"><a href="#__codelineno-0-618">618</a></span>
 <span class="normal"><a href="#__codelineno-0-619">619</a></span>
 <span class="normal"><a href="#__codelineno-0-620">620</a></span>
@@ -5967,109 +5957,119 @@ retornar apenas o fragmento <code>_activity_main.html</code>.</p>
 <span class="normal"><a href="#__codelineno-0-706">706</a></span>
 <span class="normal"><a href="#__codelineno-0-707">707</a></span>
 <span class="normal"><a href="#__codelineno-0-708">708</a></span>
-<span class="normal"><a href="#__codelineno-0-709">709</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-607" name="__codelineno-0-607"></a><span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-608" name="__codelineno-0-608"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Carrega ou cria a submissão e renderiza a página de resolução.</span>
-<a id="__codelineno-0-609" name="__codelineno-0-609"></a>
-<a id="__codelineno-0-610" name="__codelineno-0-610"></a><span class="sd">    Para atividades com limite de tentativas, bloqueia o acesso após entrega</span>
-<a id="__codelineno-0-611" name="__codelineno-0-611"></a><span class="sd">    intencional ou esgotamento de tentativas. Detecta ``HX-Request`` para</span>
-<a id="__codelineno-0-612" name="__codelineno-0-612"></a><span class="sd">    retornar apenas o fragmento ``_activity_main.html``.</span>
-<a id="__codelineno-0-613" name="__codelineno-0-613"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-614" name="__codelineno-0-614"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
-<a id="__codelineno-0-615" name="__codelineno-0-615"></a>
-<a id="__codelineno-0-616" name="__codelineno-0-616"></a>    <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_window</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
-<a id="__codelineno-0-617" name="__codelineno-0-617"></a>    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
-<a id="__codelineno-0-618" name="__codelineno-0-618"></a>        <span class="k">return</span> <span class="n">block</span>
+<span class="normal"><a href="#__codelineno-0-709">709</a></span>
+<span class="normal"><a href="#__codelineno-0-710">710</a></span>
+<span class="normal"><a href="#__codelineno-0-711">711</a></span>
+<span class="normal"><a href="#__codelineno-0-712">712</a></span>
+<span class="normal"><a href="#__codelineno-0-713">713</a></span>
+<span class="normal"><a href="#__codelineno-0-714">714</a></span>
+<span class="normal"><a href="#__codelineno-0-715">715</a></span>
+<span class="normal"><a href="#__codelineno-0-716">716</a></span>
+<span class="normal"><a href="#__codelineno-0-717">717</a></span>
+<span class="normal"><a href="#__codelineno-0-718">718</a></span>
+<span class="normal"><a href="#__codelineno-0-719">719</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-617" name="__codelineno-0-617"></a><span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-618" name="__codelineno-0-618"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Carrega ou cria a submissão e renderiza a página de resolução.</span>
 <a id="__codelineno-0-619" name="__codelineno-0-619"></a>
-<a id="__codelineno-0-620" name="__codelineno-0-620"></a>    <span class="n">max_att</span> <span class="o">=</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="o">.</span><span class="n">max_attempts</span>
-<a id="__codelineno-0-621" name="__codelineno-0-621"></a>
-<a id="__codelineno-0-622" name="__codelineno-0-622"></a>    <span class="k">if</span> <span class="n">max_att</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-623" name="__codelineno-0-623"></a>        <span class="c1"># Reconnect reuses the in-progress attempt — the beacon (pagehide) closes it</span>
-<a id="__codelineno-0-624" name="__codelineno-0-624"></a>        <span class="c1"># only when the student intentionally leaves (refresh, back button, close tab).</span>
-<a id="__codelineno-0-625" name="__codelineno-0-625"></a>        <span class="c1"># A genuine network drop won&#39;t fire the beacon, so the attempt survives and</span>
-<a id="__codelineno-0-626" name="__codelineno-0-626"></a>        <span class="c1"># the student can pick up where they left off at no extra cost.</span>
-<a id="__codelineno-0-627" name="__codelineno-0-627"></a>        <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-628" name="__codelineno-0-628"></a>            <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-629" name="__codelineno-0-629"></a>            <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-630" name="__codelineno-0-630"></a>            <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-631" name="__codelineno-0-631"></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-<a id="__codelineno-0-632" name="__codelineno-0-632"></a>
-<a id="__codelineno-0-633" name="__codelineno-0-633"></a>        <span class="k">if</span> <span class="n">submission</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-634" name="__codelineno-0-634"></a>            <span class="c1"># Block once the student has intentionally submitted</span>
-<a id="__codelineno-0-635" name="__codelineno-0-635"></a>            <span class="n">has_intentional</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-636" name="__codelineno-0-636"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-637" name="__codelineno-0-637"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-638" name="__codelineno-0-638"></a>                <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-639" name="__codelineno-0-639"></a>                <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-640" name="__codelineno-0-640"></a>            <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
-<a id="__codelineno-0-641" name="__codelineno-0-641"></a>            <span class="k">if</span> <span class="n">has_intentional</span><span class="p">:</span>
-<a id="__codelineno-0-642" name="__codelineno-0-642"></a>                <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;Você já entregou esta atividade.&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-643" name="__codelineno-0-643"></a>                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-644" name="__codelineno-0-644"></a>
-<a id="__codelineno-0-645" name="__codelineno-0-645"></a>            <span class="c1"># Each submission created = 1 attempt consumed (beacon-closed or submitted)</span>
-<a id="__codelineno-0-646" name="__codelineno-0-646"></a>            <span class="n">attempts_used</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-647" name="__codelineno-0-647"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-648" name="__codelineno-0-648"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-649" name="__codelineno-0-649"></a>            <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<a id="__codelineno-0-650" name="__codelineno-0-650"></a>            <span class="k">if</span> <span class="n">attempts_used</span> <span class="o">&gt;=</span> <span class="n">max_att</span><span class="p">:</span>
-<a id="__codelineno-0-651" name="__codelineno-0-651"></a>                <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-<a id="__codelineno-0-652" name="__codelineno-0-652"></a>                    <span class="n">request</span><span class="p">,</span>
-<a id="__codelineno-0-653" name="__codelineno-0-653"></a>                    <span class="sa">f</span><span class="s1">&#39;Você já utilizou tod</span><span class="si">{</span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">max_att</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;as&quot;</span><span class="si">}</span><span class="s1"> as </span><span class="si">{</span><span class="n">max_att</span><span class="si">}</span><span class="s1"> &#39;</span>
-<a id="__codelineno-0-654" name="__codelineno-0-654"></a>                    <span class="sa">f</span><span class="s1">&#39;tentativa</span><span class="si">{</span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">max_att</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;s&quot;</span><span class="si">}</span><span class="s1"> disponíve</span><span class="si">{</span><span class="s2">&quot;l&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">max_att</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;is&quot;</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">,</span>
-<a id="__codelineno-0-655" name="__codelineno-0-655"></a>                <span class="p">)</span>
-<a id="__codelineno-0-656" name="__codelineno-0-656"></a>                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-657" name="__codelineno-0-657"></a>            <span class="n">last_num</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-658" name="__codelineno-0-658"></a>                <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-659" name="__codelineno-0-659"></a>                    <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-660" name="__codelineno-0-660"></a>                    <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-661" name="__codelineno-0-661"></a>                <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">Max</span><span class="p">(</span><span class="s1">&#39;attempt_number&#39;</span><span class="p">))[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
-<a id="__codelineno-0-662" name="__codelineno-0-662"></a>            <span class="p">)</span>
-<a id="__codelineno-0-663" name="__codelineno-0-663"></a>            <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-<a id="__codelineno-0-664" name="__codelineno-0-664"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-665" name="__codelineno-0-665"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-666" name="__codelineno-0-666"></a>                <span class="n">attempt_number</span><span class="o">=</span><span class="n">last_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-0-667" name="__codelineno-0-667"></a>            <span class="p">)</span>
-<a id="__codelineno-0-668" name="__codelineno-0-668"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-669" name="__codelineno-0-669"></a>        <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-670" name="__codelineno-0-670"></a>            <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-671" name="__codelineno-0-671"></a>            <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-672" name="__codelineno-0-672"></a>            <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-673" name="__codelineno-0-673"></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-<a id="__codelineno-0-674" name="__codelineno-0-674"></a>        <span class="k">if</span> <span class="n">submission</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-675" name="__codelineno-0-675"></a>            <span class="n">has_intentional</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-676" name="__codelineno-0-676"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-677" name="__codelineno-0-677"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-678" name="__codelineno-0-678"></a>                <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-679" name="__codelineno-0-679"></a>                <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-680" name="__codelineno-0-680"></a>            <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
-<a id="__codelineno-0-681" name="__codelineno-0-681"></a>            <span class="k">if</span> <span class="n">has_intentional</span><span class="p">:</span>
-<a id="__codelineno-0-682" name="__codelineno-0-682"></a>                <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;Você já entregou esta atividade.&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-683" name="__codelineno-0-683"></a>                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-684" name="__codelineno-0-684"></a>            <span class="n">attempts_used</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-685" name="__codelineno-0-685"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-686" name="__codelineno-0-686"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-687" name="__codelineno-0-687"></a>                <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-688" name="__codelineno-0-688"></a>                <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-689" name="__codelineno-0-689"></a>            <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-<a id="__codelineno-0-690" name="__codelineno-0-690"></a>            <span class="n">last_num</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-691" name="__codelineno-0-691"></a>                <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-692" name="__codelineno-0-692"></a>                    <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-693" name="__codelineno-0-693"></a>                    <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-694" name="__codelineno-0-694"></a>                <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">Max</span><span class="p">(</span><span class="s1">&#39;attempt_number&#39;</span><span class="p">))[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
-<a id="__codelineno-0-695" name="__codelineno-0-695"></a>            <span class="p">)</span>
-<a id="__codelineno-0-696" name="__codelineno-0-696"></a>            <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-<a id="__codelineno-0-697" name="__codelineno-0-697"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-698" name="__codelineno-0-698"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
-<a id="__codelineno-0-699" name="__codelineno-0-699"></a>                <span class="n">attempt_number</span><span class="o">=</span><span class="n">last_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-0-700" name="__codelineno-0-700"></a>            <span class="p">)</span>
-<a id="__codelineno-0-701" name="__codelineno-0-701"></a>
-<a id="__codelineno-0-702" name="__codelineno-0-702"></a>    <span class="n">navigate_to_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exercise&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-703" name="__codelineno-0-703"></a>    <span class="n">navigate_to_pk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">navigate_to_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">navigate_to_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-704" name="__codelineno-0-704"></a>
-<a id="__codelineno-0-705" name="__codelineno-0-705"></a>    <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_context</span><span class="p">(</span><span class="n">activity_link</span><span class="p">,</span> <span class="n">submission</span><span class="p">,</span> <span class="n">navigate_to_pk</span><span class="p">)</span>
-<a id="__codelineno-0-706" name="__codelineno-0-706"></a>
-<a id="__codelineno-0-707" name="__codelineno-0-707"></a>    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
-<a id="__codelineno-0-708" name="__codelineno-0-708"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_activity_main.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-0-709" name="__codelineno-0-709"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_to_response</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-0-620" name="__codelineno-0-620"></a><span class="sd">    Para atividades com limite de tentativas, bloqueia o acesso após entrega</span>
+<a id="__codelineno-0-621" name="__codelineno-0-621"></a><span class="sd">    intencional ou esgotamento de tentativas. Detecta ``HX-Request`` para</span>
+<a id="__codelineno-0-622" name="__codelineno-0-622"></a><span class="sd">    retornar apenas o fragmento ``_activity_main.html``.</span>
+<a id="__codelineno-0-623" name="__codelineno-0-623"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-624" name="__codelineno-0-624"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
+<a id="__codelineno-0-625" name="__codelineno-0-625"></a>
+<a id="__codelineno-0-626" name="__codelineno-0-626"></a>    <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_window</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
+<a id="__codelineno-0-627" name="__codelineno-0-627"></a>    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
+<a id="__codelineno-0-628" name="__codelineno-0-628"></a>        <span class="k">return</span> <span class="n">block</span>
+<a id="__codelineno-0-629" name="__codelineno-0-629"></a>
+<a id="__codelineno-0-630" name="__codelineno-0-630"></a>    <span class="n">max_att</span> <span class="o">=</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="o">.</span><span class="n">max_attempts</span>
+<a id="__codelineno-0-631" name="__codelineno-0-631"></a>
+<a id="__codelineno-0-632" name="__codelineno-0-632"></a>    <span class="k">if</span> <span class="n">max_att</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-633" name="__codelineno-0-633"></a>        <span class="c1"># Reconnect reuses the in-progress attempt — the beacon (pagehide) closes it</span>
+<a id="__codelineno-0-634" name="__codelineno-0-634"></a>        <span class="c1"># only when the student intentionally leaves (refresh, back button, close tab).</span>
+<a id="__codelineno-0-635" name="__codelineno-0-635"></a>        <span class="c1"># A genuine network drop won&#39;t fire the beacon, so the attempt survives and</span>
+<a id="__codelineno-0-636" name="__codelineno-0-636"></a>        <span class="c1"># the student can pick up where they left off at no extra cost.</span>
+<a id="__codelineno-0-637" name="__codelineno-0-637"></a>        <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-638" name="__codelineno-0-638"></a>            <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-639" name="__codelineno-0-639"></a>            <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-640" name="__codelineno-0-640"></a>            <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-641" name="__codelineno-0-641"></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-0-642" name="__codelineno-0-642"></a>
+<a id="__codelineno-0-643" name="__codelineno-0-643"></a>        <span class="k">if</span> <span class="n">submission</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-644" name="__codelineno-0-644"></a>            <span class="c1"># Block once the student has intentionally submitted</span>
+<a id="__codelineno-0-645" name="__codelineno-0-645"></a>            <span class="n">has_intentional</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-646" name="__codelineno-0-646"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-647" name="__codelineno-0-647"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-648" name="__codelineno-0-648"></a>                <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-649" name="__codelineno-0-649"></a>                <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-650" name="__codelineno-0-650"></a>            <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<a id="__codelineno-0-651" name="__codelineno-0-651"></a>            <span class="k">if</span> <span class="n">has_intentional</span><span class="p">:</span>
+<a id="__codelineno-0-652" name="__codelineno-0-652"></a>                <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;Você já entregou esta atividade.&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-653" name="__codelineno-0-653"></a>                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-654" name="__codelineno-0-654"></a>
+<a id="__codelineno-0-655" name="__codelineno-0-655"></a>            <span class="c1"># Each submission created = 1 attempt consumed (beacon-closed or submitted)</span>
+<a id="__codelineno-0-656" name="__codelineno-0-656"></a>            <span class="n">attempts_used</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-657" name="__codelineno-0-657"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-658" name="__codelineno-0-658"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-659" name="__codelineno-0-659"></a>            <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<a id="__codelineno-0-660" name="__codelineno-0-660"></a>            <span class="k">if</span> <span class="n">attempts_used</span> <span class="o">&gt;=</span> <span class="n">max_att</span><span class="p">:</span>
+<a id="__codelineno-0-661" name="__codelineno-0-661"></a>                <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+<a id="__codelineno-0-662" name="__codelineno-0-662"></a>                    <span class="n">request</span><span class="p">,</span>
+<a id="__codelineno-0-663" name="__codelineno-0-663"></a>                    <span class="sa">f</span><span class="s1">&#39;Você já utilizou tod</span><span class="si">{</span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">max_att</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;as&quot;</span><span class="si">}</span><span class="s1"> as </span><span class="si">{</span><span class="n">max_att</span><span class="si">}</span><span class="s1"> &#39;</span>
+<a id="__codelineno-0-664" name="__codelineno-0-664"></a>                    <span class="sa">f</span><span class="s1">&#39;tentativa</span><span class="si">{</span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">max_att</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;s&quot;</span><span class="si">}</span><span class="s1"> disponíve</span><span class="si">{</span><span class="s2">&quot;l&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">max_att</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;is&quot;</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-665" name="__codelineno-0-665"></a>                <span class="p">)</span>
+<a id="__codelineno-0-666" name="__codelineno-0-666"></a>                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-667" name="__codelineno-0-667"></a>            <span class="n">last_num</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-668" name="__codelineno-0-668"></a>                <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-669" name="__codelineno-0-669"></a>                    <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-670" name="__codelineno-0-670"></a>                    <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-671" name="__codelineno-0-671"></a>                <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">Max</span><span class="p">(</span><span class="s1">&#39;attempt_number&#39;</span><span class="p">))[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
+<a id="__codelineno-0-672" name="__codelineno-0-672"></a>            <span class="p">)</span>
+<a id="__codelineno-0-673" name="__codelineno-0-673"></a>            <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-0-674" name="__codelineno-0-674"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-675" name="__codelineno-0-675"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-676" name="__codelineno-0-676"></a>                <span class="n">attempt_number</span><span class="o">=</span><span class="n">last_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-677" name="__codelineno-0-677"></a>            <span class="p">)</span>
+<a id="__codelineno-0-678" name="__codelineno-0-678"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-679" name="__codelineno-0-679"></a>        <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-680" name="__codelineno-0-680"></a>            <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-681" name="__codelineno-0-681"></a>            <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-682" name="__codelineno-0-682"></a>            <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-683" name="__codelineno-0-683"></a>        <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-0-684" name="__codelineno-0-684"></a>        <span class="k">if</span> <span class="n">submission</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-685" name="__codelineno-0-685"></a>            <span class="n">has_intentional</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-686" name="__codelineno-0-686"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-687" name="__codelineno-0-687"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-688" name="__codelineno-0-688"></a>                <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-689" name="__codelineno-0-689"></a>                <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-690" name="__codelineno-0-690"></a>            <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<a id="__codelineno-0-691" name="__codelineno-0-691"></a>            <span class="k">if</span> <span class="n">has_intentional</span><span class="p">:</span>
+<a id="__codelineno-0-692" name="__codelineno-0-692"></a>                <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;Você já entregou esta atividade.&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-693" name="__codelineno-0-693"></a>                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-694" name="__codelineno-0-694"></a>            <span class="n">attempts_used</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-695" name="__codelineno-0-695"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-696" name="__codelineno-0-696"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-697" name="__codelineno-0-697"></a>                <span class="n">submitted_at__isnull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-698" name="__codelineno-0-698"></a>                <span class="n">is_abandoned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-699" name="__codelineno-0-699"></a>            <span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<a id="__codelineno-0-700" name="__codelineno-0-700"></a>            <span class="n">last_num</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-701" name="__codelineno-0-701"></a>                <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-702" name="__codelineno-0-702"></a>                    <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-703" name="__codelineno-0-703"></a>                    <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-704" name="__codelineno-0-704"></a>                <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">Max</span><span class="p">(</span><span class="s1">&#39;attempt_number&#39;</span><span class="p">))[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
+<a id="__codelineno-0-705" name="__codelineno-0-705"></a>            <span class="p">)</span>
+<a id="__codelineno-0-706" name="__codelineno-0-706"></a>            <span class="n">submission</span> <span class="o">=</span> <span class="n">Submission</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-0-707" name="__codelineno-0-707"></a>                <span class="n">student</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-708" name="__codelineno-0-708"></a>                <span class="n">activity_link</span><span class="o">=</span><span class="n">activity_link</span><span class="p">,</span>
+<a id="__codelineno-0-709" name="__codelineno-0-709"></a>                <span class="n">attempt_number</span><span class="o">=</span><span class="n">last_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-710" name="__codelineno-0-710"></a>            <span class="p">)</span>
+<a id="__codelineno-0-711" name="__codelineno-0-711"></a>
+<a id="__codelineno-0-712" name="__codelineno-0-712"></a>    <span class="n">navigate_to_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exercise&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-713" name="__codelineno-0-713"></a>    <span class="n">navigate_to_pk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">navigate_to_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">navigate_to_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-714" name="__codelineno-0-714"></a>
+<a id="__codelineno-0-715" name="__codelineno-0-715"></a>    <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_context</span><span class="p">(</span><span class="n">activity_link</span><span class="p">,</span> <span class="n">submission</span><span class="p">,</span> <span class="n">navigate_to_pk</span><span class="p">)</span>
+<a id="__codelineno-0-716" name="__codelineno-0-716"></a>
+<a id="__codelineno-0-717" name="__codelineno-0-717"></a>    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
+<a id="__codelineno-0-718" name="__codelineno-0-718"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_activity_main.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-0-719" name="__codelineno-0-719"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_to_response</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -6095,17 +6095,7 @@ no exercício indicado por <code>navigate_to_pk</code>.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>student/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-711">711</a></span>
-<span class="normal"><a href="#__codelineno-0-712">712</a></span>
-<span class="normal"><a href="#__codelineno-0-713">713</a></span>
-<span class="normal"><a href="#__codelineno-0-714">714</a></span>
-<span class="normal"><a href="#__codelineno-0-715">715</a></span>
-<span class="normal"><a href="#__codelineno-0-716">716</a></span>
-<span class="normal"><a href="#__codelineno-0-717">717</a></span>
-<span class="normal"><a href="#__codelineno-0-718">718</a></span>
-<span class="normal"><a href="#__codelineno-0-719">719</a></span>
-<span class="normal"><a href="#__codelineno-0-720">720</a></span>
-<span class="normal"><a href="#__codelineno-0-721">721</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-721">721</a></span>
 <span class="normal"><a href="#__codelineno-0-722">722</a></span>
 <span class="normal"><a href="#__codelineno-0-723">723</a></span>
 <span class="normal"><a href="#__codelineno-0-724">724</a></span>
@@ -6144,56 +6134,66 @@ no exercício indicado por <code>navigate_to_pk</code>.</p>
 <span class="normal"><a href="#__codelineno-0-757">757</a></span>
 <span class="normal"><a href="#__codelineno-0-758">758</a></span>
 <span class="normal"><a href="#__codelineno-0-759">759</a></span>
-<span class="normal"><a href="#__codelineno-0-760">760</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-711" name="__codelineno-0-711"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
-<a id="__codelineno-0-712" name="__codelineno-0-712"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Salva a resposta do exercício atual e navega para o próximo ou para a revisão.</span>
-<a id="__codelineno-0-713" name="__codelineno-0-713"></a>
-<a id="__codelineno-0-714" name="__codelineno-0-714"></a><span class="sd">    ``go_review=1`` no POST redireciona para a tela de revisão (suporte a HTMX via</span>
-<a id="__codelineno-0-715" name="__codelineno-0-715"></a><span class="sd">    ``HX-Redirect``). Caso contrário, renderiza o fragmento ou a página completa</span>
-<a id="__codelineno-0-716" name="__codelineno-0-716"></a><span class="sd">    no exercício indicado por ``navigate_to_pk``.</span>
-<a id="__codelineno-0-717" name="__codelineno-0-717"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-718" name="__codelineno-0-718"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
-<a id="__codelineno-0-719" name="__codelineno-0-719"></a>
-<a id="__codelineno-0-720" name="__codelineno-0-720"></a>    <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_window</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
-<a id="__codelineno-0-721" name="__codelineno-0-721"></a>    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
-<a id="__codelineno-0-722" name="__codelineno-0-722"></a>        <span class="k">return</span> <span class="n">block</span>
+<span class="normal"><a href="#__codelineno-0-760">760</a></span>
+<span class="normal"><a href="#__codelineno-0-761">761</a></span>
+<span class="normal"><a href="#__codelineno-0-762">762</a></span>
+<span class="normal"><a href="#__codelineno-0-763">763</a></span>
+<span class="normal"><a href="#__codelineno-0-764">764</a></span>
+<span class="normal"><a href="#__codelineno-0-765">765</a></span>
+<span class="normal"><a href="#__codelineno-0-766">766</a></span>
+<span class="normal"><a href="#__codelineno-0-767">767</a></span>
+<span class="normal"><a href="#__codelineno-0-768">768</a></span>
+<span class="normal"><a href="#__codelineno-0-769">769</a></span>
+<span class="normal"><a href="#__codelineno-0-770">770</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-721" name="__codelineno-0-721"></a><span class="k">def</span><span class="w"> </span><span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">HttpRequest</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HttpResponse</span><span class="p">:</span>
+<a id="__codelineno-0-722" name="__codelineno-0-722"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Salva a resposta do exercício atual e navega para o próximo ou para a revisão.</span>
 <a id="__codelineno-0-723" name="__codelineno-0-723"></a>
-<a id="__codelineno-0-724" name="__codelineno-0-724"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_or_create_submission</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
-<a id="__codelineno-0-725" name="__codelineno-0-725"></a>
-<a id="__codelineno-0-726" name="__codelineno-0-726"></a>    <span class="k">if</span> <span class="n">submission</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">submission</span><span class="o">.</span><span class="n">submitted_at</span><span class="p">:</span>
-<a id="__codelineno-0-727" name="__codelineno-0-727"></a>        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
-<a id="__codelineno-0-728" name="__codelineno-0-728"></a>
-<a id="__codelineno-0-729" name="__codelineno-0-729"></a>    <span class="c1"># Save the current exercise answer</span>
-<a id="__codelineno-0-730" name="__codelineno-0-730"></a>    <span class="n">current_pk_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;current_exercise_pk&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-<a id="__codelineno-0-731" name="__codelineno-0-731"></a>    <span class="k">if</span> <span class="n">current_pk_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
-<a id="__codelineno-0-732" name="__codelineno-0-732"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-733" name="__codelineno-0-733"></a>            <span class="n">exercise</span> <span class="o">=</span> <span class="n">Exercise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span>
-<a id="__codelineno-0-734" name="__codelineno-0-734"></a>                <span class="s1">&#39;multiple_choice_exercise&#39;</span>
-<a id="__codelineno-0-735" name="__codelineno-0-735"></a>            <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-<a id="__codelineno-0-736" name="__codelineno-0-736"></a>                <span class="n">pk</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">current_pk_str</span><span class="p">),</span>
-<a id="__codelineno-0-737" name="__codelineno-0-737"></a>                <span class="n">activity_list</span><span class="o">=</span><span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="p">,</span>
-<a id="__codelineno-0-738" name="__codelineno-0-738"></a>            <span class="p">)</span>
-<a id="__codelineno-0-739" name="__codelineno-0-739"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_save_answer</span><span class="p">(</span><span class="n">submission</span><span class="p">,</span> <span class="n">exercise</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
-<a id="__codelineno-0-740" name="__codelineno-0-740"></a>        <span class="k">except</span> <span class="n">Exercise</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
-<a id="__codelineno-0-741" name="__codelineno-0-741"></a>            <span class="k">pass</span>
-<a id="__codelineno-0-742" name="__codelineno-0-742"></a>
-<a id="__codelineno-0-743" name="__codelineno-0-743"></a>    <span class="c1"># Redirect to review page after saving</span>
-<a id="__codelineno-0-744" name="__codelineno-0-744"></a>    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;go_review&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
-<a id="__codelineno-0-745" name="__codelineno-0-745"></a>        <span class="n">review_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;student:activity_review&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;link_pk&#39;</span><span class="p">:</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">pk</span><span class="p">})</span>
-<a id="__codelineno-0-746" name="__codelineno-0-746"></a>        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
-<a id="__codelineno-0-747" name="__codelineno-0-747"></a>            <span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">()</span>
-<a id="__codelineno-0-748" name="__codelineno-0-748"></a>            <span class="n">response</span><span class="p">[</span><span class="s1">&#39;HX-Redirect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">review_url</span>
-<a id="__codelineno-0-749" name="__codelineno-0-749"></a>            <span class="k">return</span> <span class="n">response</span>
-<a id="__codelineno-0-750" name="__codelineno-0-750"></a>        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">review_url</span><span class="p">)</span>
-<a id="__codelineno-0-751" name="__codelineno-0-751"></a>
-<a id="__codelineno-0-752" name="__codelineno-0-752"></a>    <span class="c1"># Determine where to navigate after saving</span>
-<a id="__codelineno-0-753" name="__codelineno-0-753"></a>    <span class="n">navigate_to_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;navigate_to_pk&#39;</span><span class="p">,</span> <span class="n">current_pk_str</span><span class="p">)</span>
-<a id="__codelineno-0-754" name="__codelineno-0-754"></a>    <span class="n">navigate_to_pk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">navigate_to_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">navigate_to_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-755" name="__codelineno-0-755"></a>
-<a id="__codelineno-0-756" name="__codelineno-0-756"></a>    <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_context</span><span class="p">(</span><span class="n">activity_link</span><span class="p">,</span> <span class="n">submission</span><span class="p">,</span> <span class="n">navigate_to_pk</span><span class="p">)</span>
-<a id="__codelineno-0-757" name="__codelineno-0-757"></a>
-<a id="__codelineno-0-758" name="__codelineno-0-758"></a>    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
-<a id="__codelineno-0-759" name="__codelineno-0-759"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_activity_main.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-0-760" name="__codelineno-0-760"></a>    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_name</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-0-724" name="__codelineno-0-724"></a><span class="sd">    ``go_review=1`` no POST redireciona para a tela de revisão (suporte a HTMX via</span>
+<a id="__codelineno-0-725" name="__codelineno-0-725"></a><span class="sd">    ``HX-Redirect``). Caso contrário, renderiza o fragmento ou a página completa</span>
+<a id="__codelineno-0-726" name="__codelineno-0-726"></a><span class="sd">    no exercício indicado por ``navigate_to_pk``.</span>
+<a id="__codelineno-0-727" name="__codelineno-0-727"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-728" name="__codelineno-0-728"></a>    <span class="n">activity_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_activity_link</span><span class="p">()</span>
+<a id="__codelineno-0-729" name="__codelineno-0-729"></a>
+<a id="__codelineno-0-730" name="__codelineno-0-730"></a>    <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_window</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
+<a id="__codelineno-0-731" name="__codelineno-0-731"></a>    <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
+<a id="__codelineno-0-732" name="__codelineno-0-732"></a>        <span class="k">return</span> <span class="n">block</span>
+<a id="__codelineno-0-733" name="__codelineno-0-733"></a>
+<a id="__codelineno-0-734" name="__codelineno-0-734"></a>    <span class="n">submission</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_or_create_submission</span><span class="p">(</span><span class="n">activity_link</span><span class="p">)</span>
+<a id="__codelineno-0-735" name="__codelineno-0-735"></a>
+<a id="__codelineno-0-736" name="__codelineno-0-736"></a>    <span class="k">if</span> <span class="n">submission</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">submission</span><span class="o">.</span><span class="n">submitted_at</span><span class="p">:</span>
+<a id="__codelineno-0-737" name="__codelineno-0-737"></a>        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;student:activity_result&#39;</span><span class="p">,</span> <span class="n">link_pk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;link_pk&#39;</span><span class="p">])</span>
+<a id="__codelineno-0-738" name="__codelineno-0-738"></a>
+<a id="__codelineno-0-739" name="__codelineno-0-739"></a>    <span class="c1"># Save the current exercise answer</span>
+<a id="__codelineno-0-740" name="__codelineno-0-740"></a>    <span class="n">current_pk_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;current_exercise_pk&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<a id="__codelineno-0-741" name="__codelineno-0-741"></a>    <span class="k">if</span> <span class="n">current_pk_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+<a id="__codelineno-0-742" name="__codelineno-0-742"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-743" name="__codelineno-0-743"></a>            <span class="n">exercise</span> <span class="o">=</span> <span class="n">Exercise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span>
+<a id="__codelineno-0-744" name="__codelineno-0-744"></a>                <span class="s1">&#39;multiple_choice_exercise&#39;</span>
+<a id="__codelineno-0-745" name="__codelineno-0-745"></a>            <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+<a id="__codelineno-0-746" name="__codelineno-0-746"></a>                <span class="n">pk</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">current_pk_str</span><span class="p">),</span>
+<a id="__codelineno-0-747" name="__codelineno-0-747"></a>                <span class="n">activity_list</span><span class="o">=</span><span class="n">activity_link</span><span class="o">.</span><span class="n">activity_list</span><span class="p">,</span>
+<a id="__codelineno-0-748" name="__codelineno-0-748"></a>            <span class="p">)</span>
+<a id="__codelineno-0-749" name="__codelineno-0-749"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_save_answer</span><span class="p">(</span><span class="n">submission</span><span class="p">,</span> <span class="n">exercise</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+<a id="__codelineno-0-750" name="__codelineno-0-750"></a>        <span class="k">except</span> <span class="n">Exercise</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+<a id="__codelineno-0-751" name="__codelineno-0-751"></a>            <span class="k">pass</span>
+<a id="__codelineno-0-752" name="__codelineno-0-752"></a>
+<a id="__codelineno-0-753" name="__codelineno-0-753"></a>    <span class="c1"># Redirect to review page after saving</span>
+<a id="__codelineno-0-754" name="__codelineno-0-754"></a>    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;go_review&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
+<a id="__codelineno-0-755" name="__codelineno-0-755"></a>        <span class="n">review_url</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;student:activity_review&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;link_pk&#39;</span><span class="p">:</span> <span class="n">activity_link</span><span class="o">.</span><span class="n">pk</span><span class="p">})</span>
+<a id="__codelineno-0-756" name="__codelineno-0-756"></a>        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
+<a id="__codelineno-0-757" name="__codelineno-0-757"></a>            <span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">()</span>
+<a id="__codelineno-0-758" name="__codelineno-0-758"></a>            <span class="n">response</span><span class="p">[</span><span class="s1">&#39;HX-Redirect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">review_url</span>
+<a id="__codelineno-0-759" name="__codelineno-0-759"></a>            <span class="k">return</span> <span class="n">response</span>
+<a id="__codelineno-0-760" name="__codelineno-0-760"></a>        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">review_url</span><span class="p">)</span>
+<a id="__codelineno-0-761" name="__codelineno-0-761"></a>
+<a id="__codelineno-0-762" name="__codelineno-0-762"></a>    <span class="c1"># Determine where to navigate after saving</span>
+<a id="__codelineno-0-763" name="__codelineno-0-763"></a>    <span class="n">navigate_to_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;navigate_to_pk&#39;</span><span class="p">,</span> <span class="n">current_pk_str</span><span class="p">)</span>
+<a id="__codelineno-0-764" name="__codelineno-0-764"></a>    <span class="n">navigate_to_pk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">navigate_to_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">navigate_to_str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-765" name="__codelineno-0-765"></a>
+<a id="__codelineno-0-766" name="__codelineno-0-766"></a>    <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_context</span><span class="p">(</span><span class="n">activity_link</span><span class="p">,</span> <span class="n">submission</span><span class="p">,</span> <span class="n">navigate_to_pk</span><span class="p">)</span>
+<a id="__codelineno-0-767" name="__codelineno-0-767"></a>
+<a id="__codelineno-0-768" name="__codelineno-0-768"></a>    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HX-Request&#39;</span><span class="p">):</span>
+<a id="__codelineno-0-769" name="__codelineno-0-769"></a>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;student/partials/_activity_main.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-0-770" name="__codelineno-0-770"></a>    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_name</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

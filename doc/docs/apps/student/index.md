@@ -8,7 +8,8 @@ Após aceitar o convite de uma turma, o aluno acessa seu dashboard com as turmas
 
 | Módulo | Conteúdo |
 |--------|----------|
-| models | [Submission](models/Submission.md), [ExerciseAnswer](models/ExerciseAnswer.md) |
+| models | [Submission](models/Submission.md), [ExerciseAnswer](models/ExerciseAnswer.md), [CodeExecution](models/CodeExecution.md) |
+| tasks | [execute_code_task](tasks/execute_code_task.md) |
 | views (aluno) | [StudentDashboardView](views/StudentDashboardView.md), [StudentGroupDetailView](views/StudentGroupDetailView.md), [StudentActivityView](views/StudentActivityView.md), [StudentSubmitView](views/StudentSubmitView.md), [StudentResultView](views/StudentResultView.md) |
 | views (professor) | [TeacherSubmissionsView](views/TeacherSubmissionsView.md), [TeacherGradeView](views/TeacherGradeView.md) |
 

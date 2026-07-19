@@ -15,38 +15,86 @@
     </div>
 </div>
 
+{% elif complete_code %}
+<div class="mt-2">
+    <div class="rounded-3 overflow-hidden" style="border:1px solid {% if is_correct %}#2ea04333{% else %}#f8514933{% endif %};background:#0d1117">
+        <div style="background:{% if is_correct %}#1a2d1f{% else %}#2d1f1f{% endif %};padding:.4rem .75rem;display:flex;align-items:center;gap:.45rem">
+            {% if is_correct %}
+                <i class="bi bi-check-circle-fill" style="color:#2ea043;font-size:.8rem"></i>
+                <span style="font-size:.72rem;font-weight:600;color:#2ea043;text-transform:uppercase;letter-spacing:.4px">Correto</span>
+            {% else %}
+                <i class="bi bi-x-circle-fill" style="color:#f85149;font-size:.8rem"></i>
+                <span style="font-size:.72rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">Errado</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 {% elif run_only %}
-<div class="mt-2 rounded-3 overflow-hidden" style="border:1px solid {% if status == 'time_limit' %}#d29922{% elif status == 'runtime_error' %}#f8514933{% else %}#2ea04333{% endif %};background:#0d1117">
-    <div style="background:{% if status == 'time_limit' %}#2d2a1a{% elif status == 'runtime_error' %}#2d1f1f{% else %}#1a2d1f{% endif %};padding:.45rem .75rem;border-bottom:1px solid {% if status == 'time_limit' %}#d2992244{% elif status == 'runtime_error' %}#f8514922{% else %}#2ea04322{% endif %};display:flex;align-items:center;gap:.5rem">
-        {% if status == 'time_limit' %}
-            <i class="bi bi-clock-fill" style="color:#d29922;font-size:.85rem"></i>
-            <span style="font-size:.75rem;font-weight:600;color:#d29922;text-transform:uppercase;letter-spacing:.4px">Tempo limite excedido</span>
+<div class="mt-2">
+
+    {% comment %} Banner correto / errado (apenas quando is_correct não é None) {% endcomment %}
+    {% if is_correct is not None %}
+    <div class="mb-2">
+        {% if is_correct %}
+        <div style="display:inline-flex;align-items:center;gap:.4rem;background:#1a2d1f;border:1px solid #2ea04344;border-radius:6px;padding:.3rem .7rem">
+            <i class="bi bi-check-circle-fill" style="color:#2ea043;font-size:.8rem"></i>
+            <span style="font-size:.75rem;font-weight:600;color:#2ea043">Resposta correta</span>
+        </div>
         {% elif status == 'runtime_error' %}
-            <i class="bi bi-exclamation-circle-fill" style="color:#f85149;font-size:.85rem"></i>
-            <span style="font-size:.75rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">Erro em tempo de execução</span>
+        <div style="display:inline-flex;align-items:center;gap:.4rem;border:1px solid #f8514933;border-radius:6px;padding:.3rem .7rem">
+            <i class="bi bi-exclamation-circle-fill" style="color:#f85149;font-size:.8rem"></i>
+            <span style="font-size:.75rem;font-weight:600;color:#f85149">Erro de execução</span>
+        </div>
+        {% elif status == 'time_limit' %}
+        <div style="display:inline-flex;align-items:center;gap:.4rem;border:1px solid #d2992233;border-radius:6px;padding:.3rem .7rem">
+            <i class="bi bi-clock-fill" style="color:#d29922;font-size:.8rem"></i>
+            <span style="font-size:.75rem;font-weight:600;color:#d29922">Tempo limite excedido</span>
+        </div>
         {% else %}
-            <i class="bi bi-terminal-fill" style="color:#2ea043;font-size:.85rem"></i>
-            <span style="font-size:.75rem;font-weight:600;color:#2ea043;text-transform:uppercase;letter-spacing:.4px">Output</span>
+        <div style="display:inline-flex;align-items:center;gap:.4rem;border:1px solid #f8514933;border-radius:6px;padding:.3rem .7rem">
+            <i class="bi bi-x-circle-fill" style="color:#f85149;font-size:.8rem"></i>
+            <span style="font-size:.75rem;font-weight:600;color:#f85149">Resposta incorreta</span>
+        </div>
         {% endif %}
     </div>
-    <div style="background:#161b22;padding:.6rem .75rem">
-        {% if stdout %}
-            <pre class="mb-0" style="font-size:.82rem;color:#c9d1d9;white-space:pre-wrap;line-height:1.6">{{ stdout }}</pre>
-        {% else %}
-            <span style="font-size:.82rem;color:#484f58;font-style:italic">(sem saída)</span>
-        {% endif %}
-        {% if stderr %}
-            <div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid #30363d">
-                <pre class="mb-0" style="font-size:.78rem;color:#ffa198;white-space:pre-wrap;line-height:1.5">{{ stderr }}</pre>
-            </div>
-        {% endif %}
+    {% endif %}
+
+    {% comment %} Card de output {% endcomment %}
+    <div class="rounded-3 overflow-hidden" style="border:1px solid {% if status == 'time_limit' %}#d29922{% elif status == 'runtime_error' %}#f8514933{% else %}#2ea04333{% endif %};background:#0d1117">
+        <div style="background:{% if status == 'time_limit' %}#2d2a1a{% elif status == 'runtime_error' %}#2d1f1f{% else %}#1a2d1f{% endif %};padding:.45rem .75rem;border-bottom:1px solid {% if status == 'time_limit' %}#d2992244{% elif status == 'runtime_error' %}#f8514922{% else %}#2ea04322{% endif %};display:flex;align-items:center;gap:.5rem">
+            {% if status == 'time_limit' %}
+                <i class="bi bi-clock-fill" style="color:#d29922;font-size:.85rem"></i>
+                <span style="font-size:.75rem;font-weight:600;color:#d29922;text-transform:uppercase;letter-spacing:.4px">Tempo limite excedido</span>
+            {% elif status == 'runtime_error' %}
+                <i class="bi bi-exclamation-circle-fill" style="color:#f85149;font-size:.85rem"></i>
+                <span style="font-size:.75rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">Erro em tempo de execução</span>
+            {% else %}
+                <i class="bi bi-terminal-fill" style="color:#2ea043;font-size:.85rem"></i>
+                <span style="font-size:.75rem;font-weight:600;color:#2ea043;text-transform:uppercase;letter-spacing:.4px">Output</span>
+            {% endif %}
+        </div>
+        <div style="background:#161b22;padding:.6rem .75rem">
+            {% if stdout %}
+                <pre class="mb-0" style="font-size:.82rem;color:#c9d1d9;white-space:pre-wrap;line-height:1.6">{{ stdout }}</pre>
+            {% else %}
+                <span style="font-size:.82rem;color:#484f58;font-style:italic">(sem saída)</span>
+            {% endif %}
+            {% if stderr %}
+                <div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid #30363d">
+                    <pre class="mb-0" style="font-size:.78rem;color:#ffa198;white-space:pre-wrap;line-height:1.5">{{ stderr }}</pre>
+                </div>
+            {% endif %}
+        </div>
     </div>
+
 </div>
 
 {% else %}
 <div class="mt-2">
 
-    {% comment %} Resumo geral {% endcomment %}
+    {% comment %} Resumo geral (oculto para complete_code) {% endcomment %}
+    {% if not complete_code %}
     <div class="mb-2">
         {% if all_correct %}
         <div style="display:inline-flex;align-items:center;gap:.4rem;background:#1a2d1f;border:1px solid #2ea04344;border-radius:6px;padding:.3rem .7rem">
@@ -60,6 +108,7 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
 
     {% comment %} Um card por caso de teste {% endcomment %}
     <div style="display:flex;flex-direction:column;gap:.5rem">
@@ -71,16 +120,16 @@
                 <div style="display:flex;align-items:center;gap:.45rem">
                     {% if r.status == 'correct' %}
                         <i class="bi bi-check-circle-fill" style="color:#2ea043;font-size:.8rem"></i>
-                        <span style="font-size:.72rem;font-weight:600;color:#2ea043;text-transform:uppercase;letter-spacing:.4px">Caso {{ forloop.counter }} — Correto</span>
+                        <span style="font-size:.72rem;font-weight:600;color:#2ea043;text-transform:uppercase;letter-spacing:.4px">{% if complete_code %}Correto{% else %}Caso {{ forloop.counter }} — Correto{% endif %}</span>
                     {% elif r.status == 'time_limit' %}
                         <i class="bi bi-clock-fill" style="color:#d29922;font-size:.8rem"></i>
-                        <span style="font-size:.72rem;font-weight:600;color:#d29922;text-transform:uppercase;letter-spacing:.4px">Caso {{ forloop.counter }} — Tempo limite</span>
+                        <span style="font-size:.72rem;font-weight:600;color:#d29922;text-transform:uppercase;letter-spacing:.4px">{% if complete_code %}Tempo limite{% else %}Caso {{ forloop.counter }} — Tempo limite{% endif %}</span>
                     {% elif r.status == 'runtime_error' %}
                         <i class="bi bi-exclamation-circle-fill" style="color:#f85149;font-size:.8rem"></i>
-                        <span style="font-size:.72rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">Caso {{ forloop.counter }} — Erro de execução</span>
+                        <span style="font-size:.72rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">{% if complete_code %}Erro de execução{% else %}Caso {{ forloop.counter }} — Erro de execução{% endif %}</span>
                     {% else %}
                         <i class="bi bi-x-circle-fill" style="color:#f85149;font-size:.8rem"></i>
-                        <span style="font-size:.72rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">Caso {{ forloop.counter }} — Errado</span>
+                        <span style="font-size:.72rem;font-weight:600;color:#f85149;text-transform:uppercase;letter-spacing:.4px">{% if complete_code %}Errado{% else %}Caso {{ forloop.counter }} — Errado{% endif %}</span>
                     {% endif %}
                 </div>
             </div>

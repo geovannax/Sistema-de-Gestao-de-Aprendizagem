@@ -5835,27 +5835,27 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>group/views.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-155">155</a></span>
-<span class="normal"><a href="#__codelineno-0-156">156</a></span>
-<span class="normal"><a href="#__codelineno-0-157">157</a></span>
-<span class="normal"><a href="#__codelineno-0-158">158</a></span>
-<span class="normal"><a href="#__codelineno-0-159">159</a></span>
-<span class="normal"><a href="#__codelineno-0-160">160</a></span>
-<span class="normal"><a href="#__codelineno-0-161">161</a></span>
-<span class="normal"><a href="#__codelineno-0-162">162</a></span>
-<span class="normal"><a href="#__codelineno-0-163">163</a></span>
-<span class="normal"><a href="#__codelineno-0-164">164</a></span>
-<span class="normal"><a href="#__codelineno-0-165">165</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-155" name="__codelineno-0-155"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-0-156" name="__codelineno-0-156"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna turmas compartilhadas com o usuário (ativas e não arquivadas).&quot;&quot;&quot;</span>
-<a id="__codelineno-0-157" name="__codelineno-0-157"></a>    <span class="n">qs_archived</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_archived_group_ids</span><span class="p">()</span>
-<a id="__codelineno-0-158" name="__codelineno-0-158"></a>
-<a id="__codelineno-0-159" name="__codelineno-0-159"></a>    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-<a id="__codelineno-0-160" name="__codelineno-0-160"></a>        <span class="n">sharings__shared_with</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-<a id="__codelineno-0-161" name="__codelineno-0-161"></a>        <span class="n">sharings__is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-162" name="__codelineno-0-162"></a>        <span class="n">deleted_at__isnull</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-163" name="__codelineno-0-163"></a>    <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164"></a>        <span class="n">Exists</span><span class="p">(</span><span class="n">qs_archived</span><span class="p">)</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165"></a>    <span class="p">)</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-176">176</a></span>
+<span class="normal"><a href="#__codelineno-0-177">177</a></span>
+<span class="normal"><a href="#__codelineno-0-178">178</a></span>
+<span class="normal"><a href="#__codelineno-0-179">179</a></span>
+<span class="normal"><a href="#__codelineno-0-180">180</a></span>
+<span class="normal"><a href="#__codelineno-0-181">181</a></span>
+<span class="normal"><a href="#__codelineno-0-182">182</a></span>
+<span class="normal"><a href="#__codelineno-0-183">183</a></span>
+<span class="normal"><a href="#__codelineno-0-184">184</a></span>
+<span class="normal"><a href="#__codelineno-0-185">185</a></span>
+<span class="normal"><a href="#__codelineno-0-186">186</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retorna turmas compartilhadas com o usuário (ativas e não arquivadas).&quot;&quot;&quot;</span>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a>    <span class="n">qs_archived</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_archived_group_ids</span><span class="p">()</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a>    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a>        <span class="n">sharings__shared_with</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>        <span class="n">sharings__is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>        <span class="n">deleted_at__isnull</span><span class="o">=</span><span class="kc">True</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>    <span class="p">)</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>        <span class="n">Exists</span><span class="p">(</span><span class="n">qs_archived</span><span class="p">)</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

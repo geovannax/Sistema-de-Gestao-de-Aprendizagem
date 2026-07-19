@@ -1,0 +1,104 @@
+{% extends "global/partials/base.html" %}
+{% load static %}
+
+{% block title %}Turmas{% endblock title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+    <link rel="stylesheet" href="{% static 'global/css/page-title.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/profile.css' %}">
+    <script src="{% static 'accounts/js/profile.js' %}"></script>
+{% endblock extra_head %}
+
+{% block main_content %}
+
+    {% with page_title="Perfil" page_description="Suas informações, notas e atividades em um só lugar." %}
+        {% include "global/partials/_page_header.html" %}
+    {% endwith %}
+
+    <div class="row g-3">
+
+        <!-- ASIDE -->
+        <div class="col-lg-2 col-md-4">
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+
+                <div class="text-center pb-3 mb-2" style="border-bottom:1px solid var(--gray-300,#e5e7eb)">
+                    <div class="pm-avatar">{{ initials }}</div>
+                    <div style="font-size:.9rem;font-weight:700;color:var(--gray-800,#1f2937)">{{ full_name }}</div>
+                    <div style="font-size:.7rem;color:var(--gray-500,#6b7280);margin-top:.15rem">{{ request.user.username }}</div>
+                    <span class="badge text-bg-secondary rounded-pill mt-2" style="font-size:.62rem">Aluno</span>
+                </div>
+
+                <nav class="side-nav">
+                    <a href="{% url 'accounts:overview' %}">
+                        <i class="bi bi-grid-fill"></i>Visão Geral
+                    </a>
+                    <a href="{% url 'accounts:pending' %}">
+                        <i class="bi bi-list-task"></i>Pendentes
+                    </a>
+                    <a href="{% url 'accounts:notes' %}">
+                        <i class="bi bi-award-fill"></i>Notas
+                    </a>
+                    <a href="{% url 'accounts:turmas' %}" class="active">
+                        <i class="bi bi-people-fill"></i>Turmas
+                    </a>
+                </nav>
+
+            </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="col-lg-10 col-md-8">
+            <div class="detail-left-card p-3 mb-4 rounded-3">
+
+                <div class="detail-left-title mb-2">
+                    <i class="bi bi-people-fill" style="color: var(--blue-500);"></i>
+                    Turmas
+                </div>
+                <hr class="mb-3 mt-1">
+
+                {% if turmas %}
+                <div class="{% if turmas|length > 5 %}turmas-grid{% endif %}" id="turmas-grid">
+                    {% for turma in turmas %}
+                    <a class="turma-row" href="{% url 'student:group_detail' turma.pk %}">
+                        <div class="turma-icon-wrap">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="turma-name">{{ turma.name }}</div>
+                            <div class="turma-meta">Prof. {{ turma.teacher }} &nbsp;·&nbsp; {{ turma.total }} atividade{{ turma.total|pluralize }}</div>
+                            <div class="turma-progress">
+                                <div class="turma-progress-fill" style="width:{{ turma.pct }}%"></div>
+                            </div>
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                            <div class="fw-bold" style="font-size:.88rem;font-variant-numeric:tabular-nums;{% if turma.pending > 0 %}color:#dc2626{% endif %}">{{ turma.submitted }}/{{ turma.total }}</div>
+                            <div class="text-muted" style="font-size:.65rem">entregues</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                {% if turmas|length > 5 %}
+                <div class="text-center mt-2 d-none" id="turmas-expand-btn">
+                    <button class="btn btn-sm btn-outline-secondary rounded-5 px-4"
+                            onclick="expandGrid('turmas-grid', 'turmas-expand-btn')">
+                        <i class="bi bi-chevron-down me-1"></i>
+                        Ver todas ({{ turmas|length }} turmas)
+                    </button>
+                </div>
+                <script>document.addEventListener('DOMContentLoaded', function() { requestAnimationFrame(function() { requestAnimationFrame(function() { limitGridRows('turmas-grid', 'turmas-expand-btn', 5); }); }); });</script>
+                {% endif %}
+                {% else %}
+                    <div class="empty-state d-flex flex-column align-items-center py-5">
+                        <i class="bi bi-people empty-state-icon"></i>
+                        <p class="empty-state-text mb-0">Nenhuma turma matriculada.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+
+{% endblock main_content %}
