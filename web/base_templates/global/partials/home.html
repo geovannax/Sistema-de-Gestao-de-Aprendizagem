@@ -3,6 +3,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'global/css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
     <script>
         if (localStorage.getItem('viewMode') === 'aluno') {
             window.location.replace('/accounts/profile/');
@@ -12,115 +13,380 @@
 
 {% block main_content %}
 
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Gestão de Aprendizagem</h1>
-                <p>Uma plataforma completa para gerenciar turmas, atividades e acompanhar o progresso dos alunos com
-                    facilidade.</p>
-                <div>
-                    <a href="#" id="startBtn" class="btn btn-primary btn-lg me-3">
-                        <i class="bi bi-play-fill"></i> Começar
+<!-- ── HERO ──────────────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-inner">
+
+            <div class="hero-text">
+                <h1>Gerencie turmas,<br><span>atividades e correções</span><br>em um só lugar.</h1>
+                <p>
+                    Crie exercícios de múltipla escolha, código, discursivos e de completar código.
+                    Compartilhe turmas, acompanhe submissões e corrija tudo sem sair da plataforma.
+                </p>
+                <div class="hero-actions">
+                    <a href="{% url 'group:active' %}" class="btn btn-primary">
+                        <i class="bi bi-collection me-1"></i> Minhas Turmas
                     </a>
-                    <a href="#features" class="btn btn-outline-primary btn-lg">
-                        <i class="bi bi-arrow-down"></i> Saiba mais
+                    <a href="{% url 'activity:list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list-task me-1"></i> Atividades
                     </a>
                 </div>
-                <script>
-                    document.getElementById('startBtn').addEventListener('click', function (e) {
-                        e.preventDefault();
-                        var mode = localStorage.getItem('viewMode');
-                        window.location.href = (mode === 'aluno') ? '/student/' : '/group/active/';
-                    });
-                </script>
+            </div>
+
+            <div class="hero-panel">
+                <div class="hero-stat">
+                    <i class="bi bi-collection hero-stat-icon"></i>
+                    <span class="hero-stat-label">Turmas</span>
+                    <span class="hero-stat-value">∞</span>
+                    <span class="hero-stat-desc">Crie e arquive sem limite</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="bi bi-code-slash hero-stat-icon"></i>
+                    <span class="hero-stat-label">Linguagens</span>
+                    <span class="hero-stat-value">5</span>
+                    <span class="hero-stat-desc">Python · C · C++ · JS · Java</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="bi bi-puzzle hero-stat-icon"></i>
+                    <span class="hero-stat-label">Tipos de exercício</span>
+                    <span class="hero-stat-value">4</span>
+                    <span class="hero-stat-desc">Código, múltipla escolha e mais</span>
+                </div>
+                <div class="hero-stat">
+                    <i class="bi bi-shield-check hero-stat-icon"></i>
+                    <span class="hero-stat-label">Execução</span>
+                    <span class="hero-stat-value">Isolada</span>
+                    <span class="hero-stat-desc">Sandbox com ulimits</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── FLUXO DE USO ──────────────────────────────────────────────── -->
+<section class="workflow">
+    <div class="container">
+        <p class="section-eyebrow">Como funciona</p>
+        <h2 class="section-title">Do zero à correção em 4 passos</h2>
+        <p class="section-subtitle">O fluxo típico para criar e acompanhar uma atividade.</p>
+
+        <div class="wf-steps">
+
+            <div class="wf-step">
+                <div class="wf-num">1</div>
+                <h6>Criar Turma</h6>
+                <p>Defina nome, turno e descrição. Compartilhe com outros professores se necessário.</p>
+            </div>
+
+            <div class="wf-step">
+                <div class="wf-num">2</div>
+                <h6>Criar Atividade</h6>
+                <p>Adicione exercícios de qualquer tipo. Configure pontos, prazo e número de tentativas.</p>
+            </div>
+
+            <div class="wf-step">
+                <div class="wf-num">3</div>
+                <h6>Vincular e Convidar</h6>
+                <p>Vincule a atividade à turma com datas opcionais. Envie o link de convite aos alunos.</p>
+            </div>
+
+            <div class="wf-step">
+                <div class="wf-num">4</div>
+                <h6>Revisar e Corrigir</h6>
+                <p>Acompanhe entregas em tempo real e corrija respostas manuais pela aba Revisão.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── ACESSO RÁPIDO ─────────────────────────────────────────────── -->
+<section class="quick-access">
+    <div class="container">
+        <p class="section-eyebrow">Navegação rápida</p>
+        <h2 class="section-title">Por onde começar?</h2>
+        <p class="section-subtitle">Acesse diretamente as áreas principais da plataforma.</p>
+
+        <div class="qa-grid">
+
+            <a href="{% url 'group:active' %}" class="qa-card" style="--qa-color: var(--blue-500)">
+                <i class="bi bi-collection qa-card-icon"></i>
+                <h4>Turmas Ativas</h4>
+                <p>Gerencie suas turmas, adicione alunos via convite por link e acompanhe a participação.</p>
+                <span class="qa-card-arrow">Ir para Turmas <i class="bi bi-arrow-right"></i></span>
+            </a>
+
+            <a href="{% url 'activity:list' %}" class="qa-card" style="--qa-color: #0749c8">
+                <i class="bi bi-list-task qa-card-icon"></i>
+                <h4>Listas de Atividade</h4>
+                <p>Crie listas com exercícios polimórficos, defina prazos e vincule a uma ou mais turmas.</p>
+                <span class="qa-card-arrow">Ir para Atividades <i class="bi bi-arrow-right"></i></span>
+            </a>
+
+            <a href="{% url 'group:active' %}" class="qa-card" style="--qa-color: var(--green-500)">
+                <i class="bi bi-check2-circle qa-card-icon"></i>
+                <h4>Revisão de Submissões</h4>
+                <p>Acesse a aba Revisão em qualquer turma para corrigir respostas discursivas e acompanhar entregas.</p>
+                <span class="qa-card-arrow">Ver Turmas <i class="bi bi-arrow-right"></i></span>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── TIPOS DE EXERCÍCIO ────────────────────────────────────────── -->
+<section class="exercises">
+    <div class="container">
+        <p class="section-eyebrow">Exercícios</p>
+        <h2 class="section-title">Quatro tipos disponíveis</h2>
+        <p class="section-subtitle">Combine tipos diferentes em uma mesma lista de atividade.</p>
+
+        <div class="ex-grid">
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#eef4ff; color:var(--blue-500)">
+                    <i class="bi bi-code-slash"></i> Código
+                </span>
+                <h5>Código</h5>
+                <p>O aluno escreve a solução completa em Python, C, C++, JavaScript ou Java. Cada exercício tem casos de teste com entrada e saída esperada. A correção é automática via sandbox.</p>
+            </div>
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#f0fff8; color:var(--green-600)">
+                    <i class="bi bi-pencil-square"></i> Completar
+                </span>
+                <h5>Completar Código</h5>
+                <p>Você fornece um trecho de código com lacunas. O aluno completa o código faltante. A correção compara o resultado normalizado com a solução esperada.</p>
+            </div>
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#fff8ec; color:var(--amber-600)">
+                    <i class="bi bi-ui-radios"></i> Múltipla Escolha
+                </span>
+                <h5>Múltipla Escolha</h5>
+                <p>Crie alternativas com exatamente uma resposta correta. A correção é automática na entrega — o professor só precisa revisar o resultado.</p>
+            </div>
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#fdf4ff; color:#7c3aed">
+                    <i class="bi bi-chat-left-text"></i> Discursivo
+                </span>
+                <h5>Discursivo</h5>
+                <p>O aluno responde em texto livre. A correção é manual pelo professor na aba de Revisão da turma — você marca cada resposta como correta ou incorreta.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── LEARNING ANALYTICS ────────────────────────────────────────── -->
+<section class="analytics">
+    <div class="container">
+        <p class="section-eyebrow">Learning Analytics</p>
+        <h2 class="section-title">Dados prontos para análise</h2>
+        <p class="section-subtitle">
+            Exporte os dados da sua turma em CSVs estruturados e prontos para Python, R ou qualquer ferramenta de BI.
+            Todos os alunos são anonimizados por hash SHA-256.
+        </p>
+
+        <div class="analytics-layout">
+            <div>
+                <ul class="analytics-bullets">
+                    <li>
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <span>Identidade dos alunos protegida — ID anônimo consistente entre todos os datasets, sem nenhum dado pessoal.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-funnel-fill"></i>
+                        <span>Filtre por turma e por atividade antes de exportar — baixe só o recorte que interessa.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-file-zip-fill"></i>
+                        <span>Baixe todos os datasets de uma vez em um único ZIP, ou escolha individualmente por CSV.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-bar-chart-line-fill"></i>
+                        <span>Cruze submissões, respostas e execuções para identificar padrões de dificuldade e engajamento da turma.</span>
+                    </li>
+                </ul>
+                <a href="{% url 'dataset:list' %}" class="btn btn-primary">
+                    <i class="bi bi-database me-2"></i>Acessar Datasets
+                </a>
+            </div>
+
+            <div class="analytics-datasets">
+                <div class="ds-row">
+                    <i class="bi bi-building ds-row-icon"></i>
+                    <span class="ds-row-name">Turmas</span>
+                    <span class="ds-row-desc">Metadados das turmas</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-people-fill ds-row-icon"></i>
+                    <span class="ds-row-name">Alunos</span>
+                    <span class="ds-row-desc">Roster anonimizado</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-journal-text ds-row-icon"></i>
+                    <span class="ds-row-name">Atividades</span>
+                    <span class="ds-row-desc">Catálogo + janela de datas</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-list-ol ds-row-icon"></i>
+                    <span class="ds-row-name">Exercícios</span>
+                    <span class="ds-row-desc">Enunciados e gabaritos</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-ui-radios ds-row-icon"></i>
+                    <span class="ds-row-name">Alternativas</span>
+                    <span class="ds-row-desc">Opções de múltipla escolha</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-send-fill ds-row-icon"></i>
+                    <span class="ds-row-name">Submissões</span>
+                    <span class="ds-row-desc">Entregas com nota e timestamp</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-check2-square ds-row-icon"></i>
+                    <span class="ds-row-name">Respostas por Exercício</span>
+                    <span class="ds-row-desc">Acerto, pontos e tempo gasto</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-activity ds-row-icon"></i>
+                    <span class="ds-row-name">Engajamento</span>
+                    <span class="ds-row-desc">Tentativas e persistência por aluno</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-terminal-fill ds-row-icon"></i>
+                    <span class="ds-row-name">Execuções de Código</span>
+                    <span class="ds-row-desc">Log de cada clique em Executar</span>
+                </div>
+                <div class="ds-row">
+                    <i class="bi bi-code-slash ds-row-icon"></i>
+                    <span class="ds-row-name">Jornada de Código</span>
+                    <span class="ds-row-desc">Evolução do código + delta por execução</span>
+                </div>
+                <div class="ds-row ds-row-zip">
+                    <i class="bi bi-file-zip-fill ds-row-icon"></i>
+                    <span class="ds-row-name">Todos os Datasets</span>
+                    <span class="ds-row-desc">10 CSVs em um único ZIP</span>
+                </div>
             </div>
         </div>
-        <!-- Scroll Indicator -->
-        <a href="#features" class="scroll-indicator">
-            <span class="scroll-arrow">
-            </span>
+    </div>
+</section>
+
+<!-- ── AVALIAÇÃO FORMATIVA ────────────────────────────────────────── -->
+<section class="formativa">
+    <div class="container">
+        <p class="section-eyebrow">Avaliação Formativa</p>
+        <h2 class="section-title">Acompanhe o processo, não só o resultado</h2>
+        <p class="section-subtitle">
+            Cada clique em <strong>Executar</strong> é registrado em ordem cronológica — código enviado, testes passados e progressão.
+            Você vê como o aluno chegou à resposta, não só se chegou.
+        </p>
+
+        <div class="formativa-layout">
+            <div>
+                <ul class="formativa-bullets">
+                    <li>
+                        <i class="bi bi-clock-history"></i>
+                        <span>Timeline completa de execuções — da primeira tentativa à solução final, com o código de cada momento.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span><strong>delta_correct</strong>: veja em qual execução o aluno progrediu ou regrediu em relação aos testes anteriores.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-repeat"></i>
+                        <span>Rastreia múltiplas tentativas da mesma atividade — o contador de execuções é contínuo entre tentativas.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-people"></i>
+                        <span>Compare a jornada entre alunos: quem resolveu rápido, quem precisou de mais iterações, quem desistiu no meio.</span>
+                    </li>
+                </ul>
+                <a href="{% url 'dataset:list' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-code-slash me-2"></i>Exportar Jornada de Código
+                </a>
+            </div>
+
+            <!-- mini timeline mockup -->
+            <div class="timeline-mock">
+
+                <div class="tl-item">
+                    <div class="tl-line"></div>
+                    <div class="tl-dot wrong">1</div>
+                    <div class="tl-body">
+                        <div class="tl-body-top">
+                            <span class="tl-exec-label">Execução #1 · 14:03</span>
+                            <span class="tl-tests none">0 / 3 testes</span>
+                        </div>
+                        <pre class="tl-code"><code class="language-python">def soma(a, b): return a - b</code></pre>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <div class="tl-line"></div>
+                    <div class="tl-dot partial">2</div>
+                    <div class="tl-body">
+                        <div class="tl-body-top">
+                            <span class="tl-exec-label">Execução #2 · 14:07</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="tl-delta up"><i class="bi bi-arrow-up"></i>+2</span>
+                                <span class="tl-tests some">2 / 3 testes</span>
+                            </div>
+                        </div>
+                        <pre class="tl-code"><code class="language-python">def soma(a, b): return a + b</code></pre>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <div class="tl-line"></div>
+                    <div class="tl-dot partial">3</div>
+                    <div class="tl-body">
+                        <div class="tl-body-top">
+                            <span class="tl-exec-label">Execução #3 · 14:09</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="tl-delta same"><i class="bi bi-dash"></i>0</span>
+                                <span class="tl-tests some">2 / 3 testes</span>
+                            </div>
+                        </div>
+                        <pre class="tl-code"><code class="language-python">def soma(a, b): return int(a + b)</code></pre>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <div class="tl-dot correct">4</div>
+                    <div class="tl-body">
+                        <div class="tl-body-top">
+                            <span class="tl-exec-label">Execução #4 · 14:12</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="tl-delta up"><i class="bi bi-arrow-up"></i>+1</span>
+                                <span class="tl-tests all">3 / 3 testes ✓</span>
+                            </div>
+                        </div>
+                        <pre class="tl-code"><code class="language-python">def soma(a, b): return float(a + b)</code></pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA FINAL ─────────────────────────────────────────────────── -->
+<section class="cta-strip">
+    <div class="container">
+        <h2>Pronto para começar?</h2>
+        <p>Acesse suas turmas e crie sua primeira atividade agora.</p>
+        <a href="{% url 'group:active' %}" class="btn btn-light">
+            <i class="bi bi-collection me-2"></i>Ver Turmas Ativas
         </a>
-    </section>
+    </div>
+</section>
 
-    <!-- FEATURES SECTION -->
-    <section id="features" class="features">
-        <div class="container">
-            <h2 class="text-center mb-5 mt-5 fw-bold" style="font-size: 2.5rem; color: #1f2937;">
-                Funcionalidades Principais
-            </h2>
-
-            <div class="row g-4">
-                <!-- Feature 1 -->
-                <a href="{% url 'group:active' %}" class="col-md-6 col-lg-4 text-decoration-none">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-collection"></i>
-                        </div>
-                        <h5>Gerenciar Turmas</h5>
-                        <p>Crie e organize suas turmas de forma simples. Defina turnos, descrições e compartilhe com
-                            outros educadores.</p>
-                    </div>
-                </a>
-
-                <!-- Feature 2 -->
-                <a href="{% url 'activity:list' %}" class="col-md-6 col-lg-4 text-decoration-none">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-list-task"></i>
-                        </div>
-                        <h5>Atividades</h5>
-                        <p>Cadastre e acompanhe atividades de cada turma. Defina prazos e monitore a entrega dos alunos.
-                        </p>
-                    </div>
-                </a>
-
-                <!-- Feature 3 -->
-                <a href="{% url 'group:active' %}" class="col-md-6 col-lg-4 text-decoration-none">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-share"></i>
-                        </div>
-                        <h5>Compartilhamento</h5>
-                        <p>Compartilhe turmas e atividades com colegas educadores. Colabore e organize juntos.</p>
-                    </div>
-                </a>
-
-                <!-- Feature 4 -->
-                <a class="col-md-6 col-lg-4 text-decoration-none" onclick="showAlert()">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-graph-up"></i>
-                        </div>
-                        <h5>Relatórios</h5>
-                        <p>Visualize métricas e relatórios do progresso. Acompanhe dados de forma visual e clara.</p>
-                    </div>
-                </a>
-
-                <!-- Feature 5 -->
-                <a class="col-md-6 col-lg-4 text-decoration-none" onclick="showAlert()">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-shield-check"></i>
-                        </div>
-                        <h5>Segurança</h5>
-                        <p>Dados protegidos com autenticação segura. Seus dados estão sempre protegidos.</p>
-                    </div>
-                </a>
-
-                <!-- Feature 6 -->
-                <a class="col-md-6 col-lg-4 text-decoration-none" onclick="showAlert()">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-phone"></i>
-                        </div>
-                        <h5>Responsivo</h5>
-                        <p>Acesse de qualquer dispositivo. Funciona perfeitamente em computadores, tablets e celulares.
-                        </p>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </section>
-   
+<script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
+<script>document.querySelectorAll('.tl-code code').forEach(function(el){ hljs.highlightElement(el); });</script>
 {% endblock %}

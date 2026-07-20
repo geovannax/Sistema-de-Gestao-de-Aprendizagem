@@ -491,6 +491,19 @@ class DatasetGroupView(AuthPermissionMixin, ObjectAccessRequiredMixin, DetailVie
 class DatasetDownloadView(AuthPermissionMixin, View):
     """Generates and returns a CSV or ZIP for the given scope."""
 
+    _PT_NAMES: dict[str, str] = {
+        'groups':       'turmas',
+        'students':     'alunos',
+        'activities':   'atividades',
+        'exercises':    'exercicios',
+        'options':      'alternativas',
+        'submissions':  'submissoes',
+        'answers':      'respostas',
+        'engagement':   'engajamento',
+        'executions':   'execucoes',
+        'code_journey': 'jornada_de_codigo',
+    }
+
     def get(self, request: HttpRequest, ds_type: str, *args: Any, **kwargs: Any) -> HttpResponse:
         user = request.user
         group_pks = request.GET.getlist('group')
@@ -511,7 +524,8 @@ class DatasetDownloadView(AuthPermissionMixin, View):
             buf = self._build_csv(groups, link_pks, ds_type)
             if buf is None:
                 return HttpResponse('Dataset inválido.', status=404)
-            filename = f"{ds_type}_g{g_label}_a{a_label}.csv"
+            pt_name = self._PT_NAMES.get(ds_type, ds_type)
+            filename = f"{pt_name}_g{g_label}_a{a_label}.csv"
             response = HttpResponse(buf.getvalue(), content_type='text/csv; charset=utf-8-sig')
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
@@ -546,7 +560,8 @@ class DatasetDownloadView(AuthPermissionMixin, View):
             for ds_type in ['groups', 'students', 'activities', 'exercises', 'options', 'submissions', 'answers', 'engagement', 'executions', 'code_journey']:
                 buf = self._build_csv(groups, link_pks, ds_type)
                 if buf:
-                    zf.writestr(f'{ds_type}.csv', buf.read())
+                    pt_name = self._PT_NAMES.get(ds_type, ds_type)
+                    zf.writestr(f'{pt_name}.csv', buf.read())
         zip_buf.seek(0)
         filename = f"dataset_g{group_pk}_a{activity_pk}.zip"
         response = HttpResponse(zip_buf.read(), content_type='application/zip')

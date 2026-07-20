@@ -1323,7 +1323,7 @@ class GroupInviteConfirmView(AuthPermissionMixin, View):
             f'Você entrou na turma "{invite.group.name}" com sucesso.'
         )
 
-        return redirect('student:dashboard')
+        return redirect('accounts:turmas')
 
 
 ##### INICIO VIEW DE SOFT DELETE DE TURMA #####

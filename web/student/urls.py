@@ -1,9 +1,9 @@
 from django.urls import path
+from django.views.generic import RedirectView
 from student.views import (
     StudentAbandonView,
     StudentActivityView,
     StudentActivityReviewView,
-    StudentDashboardView,
     StudentExercisePingView,
     StudentFeedbackView,
     StudentGroupDetailView,
@@ -19,7 +19,7 @@ from student.views import (
 app_name = 'student'
 
 urlpatterns = [
-    path('', StudentDashboardView.as_view(), name='dashboard'),
+    path('', RedirectView.as_view(pattern_name='accounts:turmas', permanent=False), name='dashboard'),
     path('group/<int:pk>/', StudentGroupDetailView.as_view(), name='group_detail'),
     path('activity/<int:link_pk>/', StudentActivityView.as_view(), name='activity'),
     path('activity/<int:link_pk>/review/', StudentActivityReviewView.as_view(), name='activity_review'),
