@@ -79,122 +79,6 @@
     </div>
 </section>
 
-<!-- ── FLUXO DE USO ──────────────────────────────────────────────── -->
-<section class="workflow">
-    <div class="container">
-        <p class="section-eyebrow">Como funciona</p>
-        <h2 class="section-title">Do zero à correção em 4 passos</h2>
-        <p class="section-subtitle">O fluxo típico para criar e acompanhar uma atividade.</p>
-
-        <div class="wf-steps">
-
-            <div class="wf-step">
-                <div class="wf-num">1</div>
-                <h6>Criar Turma</h6>
-                <p>Defina nome, turno e descrição. Compartilhe com outros professores se necessário.</p>
-            </div>
-
-            <div class="wf-step">
-                <div class="wf-num">2</div>
-                <h6>Criar Atividade</h6>
-                <p>Adicione exercícios de qualquer tipo. Configure pontos, prazo e número de tentativas.</p>
-            </div>
-
-            <div class="wf-step">
-                <div class="wf-num">3</div>
-                <h6>Vincular e Convidar</h6>
-                <p>Vincule a atividade à turma com datas opcionais. Envie o link de convite aos alunos.</p>
-            </div>
-
-            <div class="wf-step">
-                <div class="wf-num">4</div>
-                <h6>Revisar e Corrigir</h6>
-                <p>Acompanhe entregas em tempo real e corrija respostas manuais pela aba Revisão.</p>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-<!-- ── ACESSO RÁPIDO ─────────────────────────────────────────────── -->
-<section class="quick-access">
-    <div class="container">
-        <p class="section-eyebrow">Navegação rápida</p>
-        <h2 class="section-title">Por onde começar?</h2>
-        <p class="section-subtitle">Acesse diretamente as áreas principais da plataforma.</p>
-
-        <div class="qa-grid">
-
-            <a href="{% url 'group:active' %}" class="qa-card" style="--qa-color: var(--blue-500)">
-                <i class="bi bi-collection qa-card-icon"></i>
-                <h4>Turmas Ativas</h4>
-                <p>Gerencie suas turmas, adicione alunos via convite por link e acompanhe a participação.</p>
-                <span class="qa-card-arrow">Ir para Turmas <i class="bi bi-arrow-right"></i></span>
-            </a>
-
-            <a href="{% url 'activity:list' %}" class="qa-card" style="--qa-color: #0749c8">
-                <i class="bi bi-list-task qa-card-icon"></i>
-                <h4>Listas de Atividade</h4>
-                <p>Crie listas com exercícios polimórficos, defina prazos e vincule a uma ou mais turmas.</p>
-                <span class="qa-card-arrow">Ir para Atividades <i class="bi bi-arrow-right"></i></span>
-            </a>
-
-            <a href="{% url 'group:active' %}" class="qa-card" style="--qa-color: var(--green-500)">
-                <i class="bi bi-check2-circle qa-card-icon"></i>
-                <h4>Revisão de Submissões</h4>
-                <p>Acesse a aba Revisão em qualquer turma para corrigir respostas discursivas e acompanhar entregas.</p>
-                <span class="qa-card-arrow">Ver Turmas <i class="bi bi-arrow-right"></i></span>
-            </a>
-
-        </div>
-    </div>
-</section>
-
-<!-- ── TIPOS DE EXERCÍCIO ────────────────────────────────────────── -->
-<section class="exercises">
-    <div class="container">
-        <p class="section-eyebrow">Exercícios</p>
-        <h2 class="section-title">Quatro tipos disponíveis</h2>
-        <p class="section-subtitle">Combine tipos diferentes em uma mesma lista de atividade.</p>
-
-        <div class="ex-grid">
-
-            <div class="ex-card">
-                <span class="ex-badge" style="background:#eef4ff; color:var(--blue-500)">
-                    <i class="bi bi-code-slash"></i> Código
-                </span>
-                <h5>Código</h5>
-                <p>O aluno escreve a solução completa em Python, C, C++, JavaScript ou Java. Cada exercício tem casos de teste com entrada e saída esperada. A correção é automática via sandbox.</p>
-            </div>
-
-            <div class="ex-card">
-                <span class="ex-badge" style="background:#f0fff8; color:var(--green-600)">
-                    <i class="bi bi-pencil-square"></i> Completar
-                </span>
-                <h5>Completar Código</h5>
-                <p>Você fornece um trecho de código com lacunas. O aluno completa o código faltante. A correção compara o resultado normalizado com a solução esperada.</p>
-            </div>
-
-            <div class="ex-card">
-                <span class="ex-badge" style="background:#fff8ec; color:var(--amber-600)">
-                    <i class="bi bi-ui-radios"></i> Múltipla Escolha
-                </span>
-                <h5>Múltipla Escolha</h5>
-                <p>Crie alternativas com exatamente uma resposta correta. A correção é automática na entrega — o professor só precisa revisar o resultado.</p>
-            </div>
-
-            <div class="ex-card">
-                <span class="ex-badge" style="background:#fdf4ff; color:#7c3aed">
-                    <i class="bi bi-chat-left-text"></i> Discursivo
-                </span>
-                <h5>Discursivo</h5>
-                <p>O aluno responde em texto livre. A correção é manual pelo professor na aba de Revisão da turma — você marca cada resposta como correta ou incorreta.</p>
-            </div>
-
-        </div>
-    </div>
-</section>
-
 <!-- ── LEARNING ANALYTICS ────────────────────────────────────────── -->
 <section class="analytics">
     <div class="container">
@@ -386,6 +270,122 @@
                 </div>
 
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FLUXO DE USO ──────────────────────────────────────────────── -->
+<section class="workflow">
+    <div class="container">
+        <p class="section-eyebrow">Como funciona</p>
+        <h2 class="section-title">Do zero à correção em 4 passos</h2>
+        <p class="section-subtitle">O fluxo típico para criar e acompanhar uma atividade.</p>
+
+        <div class="wf-steps">
+
+            <div class="wf-step">
+                <div class="wf-num">1</div>
+                <h6>Criar Turma</h6>
+                <p>Defina nome, turno e descrição. Compartilhe com outros professores se necessário.</p>
+            </div>
+
+            <div class="wf-step">
+                <div class="wf-num">2</div>
+                <h6>Criar Atividade</h6>
+                <p>Adicione exercícios de qualquer tipo. Configure pontos, prazo e número de tentativas.</p>
+            </div>
+
+            <div class="wf-step">
+                <div class="wf-num">3</div>
+                <h6>Vincular e Convidar</h6>
+                <p>Vincule a atividade à turma com datas opcionais. Envie o link de convite aos alunos.</p>
+            </div>
+
+            <div class="wf-step">
+                <div class="wf-num">4</div>
+                <h6>Revisar e Corrigir</h6>
+                <p>Acompanhe entregas em tempo real e corrija respostas manuais pela aba Revisão.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── ACESSO RÁPIDO ─────────────────────────────────────────────── -->
+<section class="quick-access">
+    <div class="container">
+        <p class="section-eyebrow">Navegação rápida</p>
+        <h2 class="section-title">Por onde começar?</h2>
+        <p class="section-subtitle">Acesse diretamente as áreas principais da plataforma.</p>
+
+        <div class="qa-grid">
+
+            <a href="{% url 'group:active' %}" class="qa-card" style="--qa-color: var(--blue-500)">
+                <i class="bi bi-collection qa-card-icon"></i>
+                <h4>Turmas Ativas</h4>
+                <p>Gerencie suas turmas, adicione alunos via convite por link e acompanhe a participação.</p>
+                <span class="qa-card-arrow">Ir para Turmas <i class="bi bi-arrow-right"></i></span>
+            </a>
+
+            <a href="{% url 'activity:list' %}" class="qa-card" style="--qa-color: #0749c8">
+                <i class="bi bi-list-task qa-card-icon"></i>
+                <h4>Listas de Atividade</h4>
+                <p>Crie listas com exercícios polimórficos, defina prazos e vincule a uma ou mais turmas.</p>
+                <span class="qa-card-arrow">Ir para Atividades <i class="bi bi-arrow-right"></i></span>
+            </a>
+
+            <a href="{% url 'group:active' %}" class="qa-card" style="--qa-color: var(--green-500)">
+                <i class="bi bi-check2-circle qa-card-icon"></i>
+                <h4>Revisão de Submissões</h4>
+                <p>Acesse a aba Revisão em qualquer turma para corrigir respostas discursivas e acompanhar entregas.</p>
+                <span class="qa-card-arrow">Ver Turmas <i class="bi bi-arrow-right"></i></span>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── TIPOS DE EXERCÍCIO ────────────────────────────────────────── -->
+<section class="exercises">
+    <div class="container">
+        <p class="section-eyebrow">Exercícios</p>
+        <h2 class="section-title">Quatro tipos disponíveis</h2>
+        <p class="section-subtitle">Combine tipos diferentes em uma mesma lista de atividade.</p>
+
+        <div class="ex-grid">
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#eef4ff; color:var(--blue-500)">
+                    <i class="bi bi-code-slash"></i> Código
+                </span>
+                <h5>Código</h5>
+                <p>O aluno escreve a solução completa em Python, C, C++, JavaScript ou Java. Cada exercício tem casos de teste com entrada e saída esperada. A correção é automática via sandbox.</p>
+            </div>
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#f0fff8; color:var(--green-600)">
+                    <i class="bi bi-pencil-square"></i> Completar
+                </span>
+                <h5>Completar Código</h5>
+                <p>Você fornece um trecho de código com lacunas. O aluno completa o código faltante. A correção compara o resultado normalizado com a solução esperada.</p>
+            </div>
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#fff8ec; color:var(--amber-600)">
+                    <i class="bi bi-ui-radios"></i> Múltipla Escolha
+                </span>
+                <h5>Múltipla Escolha</h5>
+                <p>Crie alternativas com exatamente uma resposta correta. A correção é automática na entrega — o professor só precisa revisar o resultado.</p>
+            </div>
+
+            <div class="ex-card">
+                <span class="ex-badge" style="background:#fdf4ff; color:#7c3aed">
+                    <i class="bi bi-chat-left-text"></i> Discursivo
+                </span>
+                <h5>Discursivo</h5>
+                <p>O aluno responde em texto livre. A correção é manual pelo professor na aba de Revisão da turma — você marca cada resposta como correta ou incorreta.</p>
+            </div>
+
         </div>
     </div>
 </section>

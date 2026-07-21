@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="{% static 'global/css/list-view-card.css' %}">
     <link rel="stylesheet" href="{% static 'student/css/activity_review.css' %}">
     <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
-    <link rel="stylesheet" href="{% static 'global/codemirror/codemirror.min.css' %}">
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 {% endblock extra_head %}
 
@@ -164,18 +163,20 @@
 {% endblock main_content %}
 
 {% block extra_script %}
-    <script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
-    <script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+    <script src="{% static 'global/codemirror6/editor.min.js' %}"></script>
     <script src="{% static 'activity/js/multiple_choice_form.js' %}"></script>
     <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
     <script>
     (function () {
         const LANG_MAP = {
-            python: 'python', javascript: 'javascript',
-            java: 'text/x-java', c: 'text/x-csrc', cpp: 'text/x-c++src',
+            python:     CM6.languages.python,
+            javascript: CM6.languages.javascript,
+            java:       CM6.languages.java,
+            c:          CM6.languages.cpp,
+            cpp:        CM6.languages.cpp,
         };
+
+        /* Cada entrada: { view, textarea, wrapper, langComp } */
         let codeEditors = [];
 
         function getLang() {
@@ -185,11 +186,15 @@
 
         function destroyEditorsIn(container) {
             var toDestroy = codeEditors.filter(function (ed) {
-                var ta = ed.getTextArea();
-                return ta && container.contains(ta);
+                return container.contains(ed.textarea);
             });
             toDestroy.forEach(function (ed) {
-                try { ed.toTextArea(); } catch (e) {}
+                try {
+                    ed.textarea.value = ed.view.state.doc.toString();
+                    ed.view.destroy();
+                    ed.wrapper.remove();
+                    ed.textarea.style.display = '';
+                } catch (e) {}
             });
             codeEditors = codeEditors.filter(function (ed) {
                 return toDestroy.indexOf(ed) === -1;
@@ -197,60 +202,80 @@
         }
 
         function initSingleEditor(textarea) {
-            var editor = CodeMirror.fromTextArea(textarea, {
-                lineNumbers: true,
-                mode: LANG_MAP[getLang()] || 'python',
-                theme: 'atom-one-dark',
-                indentUnit: 4, tabSize: 4, lineWrapping: true,
-            });
+            var langFn = LANG_MAP[getLang()] || CM6.languages.python;
+            var langComp = new CM6.Compartment();
+
+            var wrapper = document.createElement('div');
+            textarea.parentElement.insertBefore(wrapper, textarea);
+            textarea.style.display = 'none';
             textarea.removeAttribute('required');
-            codeEditors.push(editor);
-            return editor;
+
+            var view = new CM6.EditorView({
+                state: CM6.EditorState.create({
+                    doc: textarea.value,
+                    extensions: [
+                        CM6.lmsSetup,
+                        CM6.oneDark,
+                        langComp.of(langFn()),
+                        CM6.keymap.of([CM6.indentWithTab]),
+                        CM6.EditorView.lineWrapping,
+                        CM6.EditorView.updateListener.of(function (update) {
+                            if (update.docChanged) {
+                                textarea.value = update.state.doc.toString();
+                            }
+                        }),
+                    ],
+                }),
+                parent: wrapper,
+            });
+
+            var entry = { view: view, textarea: textarea, wrapper: wrapper, langComp: langComp };
+            codeEditors.push(entry);
+            return entry;
         }
 
         function initEditorsIn(container) {
             container.querySelectorAll('textarea.font-monospace').forEach(function (ta) {
-                if (ta.nextSibling && ta.nextSibling.classList && ta.nextSibling.classList.contains('CodeMirror')) {
-                    return;
-                }
+                if (codeEditors.some(function (ed) { return ed.textarea === ta; })) return;
                 initSingleEditor(ta);
             });
         }
 
         window.initSingleEditor = initSingleEditor;
 
-        // Push CodeMirror values into HTMX requests
+        /* Push CM6 values into HTMX requests */
         document.addEventListener('htmx:configRequest', function (e) {
             codeEditors.forEach(function (ed) {
                 try {
-                    var ta = ed.getTextArea();
-                    if (ta && ta.name) {
-                        e.detail.parameters[ta.name] = ed.getValue();
+                    if (ed.textarea && ed.textarea.name) {
+                        e.detail.parameters[ed.textarea.name] = ed.view.state.doc.toString();
                     }
                 } catch (err) {}
             });
         });
 
-        // Destroy editors in elements being replaced
+        /* Destroy editors before HTMX replaces content */
         document.addEventListener('htmx:beforeSwap', function (e) {
             if (e.detail.target) {
                 destroyEditorsIn(e.detail.target);
             }
         });
 
-        // Init editors in newly swapped content
+        /* Init editors in newly swapped content */
         document.addEventListener('htmx:afterSwap', function (e) {
             if (e.detail.elt) {
                 initEditorsIn(e.detail.elt);
             }
         });
 
-        // Language change: update all active editors
+        /* Language change: reconfigure todos os editores ativos */
         document.addEventListener('change', function (e) {
             if (e.target.name === 'secondary-language') {
-                var mode = LANG_MAP[e.target.value] || 'python';
+                var langFn = LANG_MAP[e.target.value] || CM6.languages.python;
                 codeEditors.forEach(function (ed) {
-                    ed.setOption('mode', mode);
+                    ed.view.dispatch({
+                        effects: ed.langComp.reconfigure(langFn())
+                    });
                 });
             }
         });
