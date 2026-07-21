@@ -186,33 +186,46 @@ class Command(BaseCommand):  # pragma: no cover
         self.stdout.write(self.style.SUCCESS('  ✓ Exercício discursivo criado'))
 
     def _create_code(self, activity: ActivityList) -> None:
-        exercise = Exercise.objects.create(
-            activity_list=activity,
-            type='code',
-            statement=(
-                'Escreva um programa que leia dois números inteiros e imprima a soma deles.'
-            ),
-            points=25,
-            order=2,
-        )
-        code_ex = CodeExercise.objects.create(
-            exercise=exercise,
-            language='python',
-            max_executions=10,
-        )
-        CodeTestCase.objects.create(
-            exercise=code_ex,
-            input='2\n3',
-            expected_output='5',
-            order=1,
-        )
-        CodeTestCase.objects.create(
-            exercise=code_ex,
-            input='10\n20',
-            expected_output='30',
-            order=2,
-        )
-        self.stdout.write(self.style.SUCCESS('  ✓ Exercício de código criado'))
+        # Um exercício de "soma de dois inteiros" por linguagem suportada.
+        # Entrada: dois inteiros em linhas separadas. Saída: a soma.
+        languages = [
+            ('python',     'Python',     2),
+            ('javascript', 'JavaScript', 3),
+            ('java',       'Java',       4),
+            ('c',          'C',          5),
+            ('cpp',        'C++',        6),
+        ]
+        test_cases = [
+            ('2\n3',    '5',   1),
+            ('10\n20',  '30',  2),
+            ('0\n0',    '0',   3),
+            ('-5\n5',   '0',   4),
+            ('100\n1',  '101', 5),
+        ]
+        for lang, label, order in languages:
+            exercise = Exercise.objects.create(
+                activity_list=activity,
+                type='code',
+                statement=(
+                    f'[{label}] Escreva um programa que leia dois números inteiros '
+                    f'(um por linha) e imprima a soma deles.'
+                ),
+                points=10,
+                order=order,
+            )
+            code_ex = CodeExercise.objects.create(
+                exercise=exercise,
+                language=lang,
+                max_executions=10,
+            )
+            for inp, out, tc_order in test_cases:
+                CodeTestCase.objects.create(
+                    exercise=code_ex,
+                    input=inp,
+                    expected_output=out,
+                    order=tc_order,
+                )
+            self.stdout.write(self.style.SUCCESS(f'  ✓ Exercício de código [{label}] criado'))
 
     def _create_complete_code(self, activity: ActivityList) -> None:
         exercise = Exercise.objects.create(
@@ -222,7 +235,7 @@ class Command(BaseCommand):  # pragma: no cover
                 'Complete o código abaixo para que ele imprima a mensagem "Olá, Mundo!".'
             ),
             points=25,
-            order=3,
+            order=7,
         )
         CompleteCodeExercise.objects.create(
             exercise=exercise,
@@ -240,7 +253,7 @@ class Command(BaseCommand):  # pragma: no cover
                 'Qual é a complexidade de tempo no pior caso do algoritmo Bubble Sort?'
             ),
             points=25,
-            order=4,
+            order=8,
         )
         mc = MultipleChoiceExercise.objects.create(exercise=exercise)
         options = [

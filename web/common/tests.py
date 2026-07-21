@@ -445,6 +445,193 @@ class TestExecutor:
         assert len(results) == 2
 
 
+# ─── Supressão de prompt (preludes) ──────────────────────────────────────────
+
+class TestPreludeSuppression:
+    """Testa a estrutura dos preludes e a injeção no arquivo fonte."""
+
+    def test_python_and_js_have_preludes(self):
+        from common.executor import _PRELUDES
+        assert 'python' in _PRELUDES
+        assert 'javascript' in _PRELUDES
+
+    def test_java_has_no_file_level_prelude(self):
+        """Java usa injeção dentro da classe, não prefixo de arquivo."""
+        from common.executor import _PRELUDES
+        assert 'java' not in _PRELUDES
+
+    def test_c_and_cpp_have_preludes(self):
+        from common.executor import _PRELUDES
+        assert 'c' in _PRELUDES
+        assert 'cpp' in _PRELUDES
+
+    def test_python_prelude_patches_builtin_input(self):
+        from common.executor import _PYTHON_PRELUDE
+        assert 'builtins' in _PYTHON_PRELUDE
+        assert 'input' in _PYTHON_PRELUDE
+        assert 'readline' in _PYTHON_PRELUDE
+
+    def test_js_prelude_sets_readline_output_null(self):
+        from common.executor import _JS_PRELUDE
+        assert 'readline' in _JS_PRELUDE
+        assert 'output' in _JS_PRELUDE
+        assert 'null' in _JS_PRELUDE
+
+    def test_python_prelude_is_valid_python_and_cleans_namespace(self):
+        """Prelude deve ser Python válido e não vazar variáveis temporárias."""
+        from common.executor import _PYTHON_PRELUDE
+        ns: dict = {}
+        exec(_PYTHON_PRELUDE, ns)  # não deve lançar
+        assert '_sys' not in ns
+        assert '_bt' not in ns
+
+    def test_python_prelude_prepended_in_written_file(self):
+        from pathlib import Path
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code, _PYTHON_PRELUDE
+
+        student_code = 'print("oi")'
+        written: dict[str, str] = {}
+        orig = Path.write_text
+
+        def spy(self, data, **kw):
+            written[str(self)] = data
+            return orig(self, data, **kw)
+
+        mock_proc = MagicMock(returncode=0, stdout='oi\n', stderr='')
+        with patch.object(Path, 'write_text', spy), \
+             patch('subprocess.run', return_value=mock_proc):
+            execute_code('python', student_code, [{'input': '', 'expected_output': 'oi'}])
+
+        py_written = [v for k, v in written.items() if k.endswith('.py')]
+        assert py_written, 'Nenhum .py foi escrito'
+        assert py_written[0].startswith(_PYTHON_PRELUDE)
+        assert student_code in py_written[0]
+
+    def test_js_prelude_prepended_in_written_file(self):
+        from pathlib import Path
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code, _JS_PRELUDE
+
+        student_code = 'console.log("ok")'
+        written: dict[str, str] = {}
+        orig = Path.write_text
+
+        def spy(self, data, **kw):
+            written[str(self)] = data
+            return orig(self, data, **kw)
+
+        mock_proc = MagicMock(returncode=0, stdout='ok\n', stderr='')
+        with patch.object(Path, 'write_text', spy), \
+             patch('subprocess.run', return_value=mock_proc):
+            execute_code('javascript', student_code, [{'input': '', 'expected_output': 'ok'}])
+
+        js_written = [v for k, v in written.items() if k.endswith('.js')]
+        assert js_written, 'Nenhum .js foi escrito'
+        assert js_written[0].startswith(_JS_PRELUDE)
+        assert student_code in js_written[0]
+
+    def test_java_prelude_injected_in_class_body(self):
+        """_inject_java_prelude deve inserir o static block dentro de 'public class Main'."""
+        from common.executor import _inject_java_prelude, _JAVA_STATIC_BLOCK
+        src = 'public class Main {\n  public static void main(String[] a) {}\n}'
+        result = _inject_java_prelude(src)
+        assert _JAVA_STATIC_BLOCK in result
+        assert result.startswith('public class Main {')
+        # static block vem antes de main()
+        assert result.index(_JAVA_STATIC_BLOCK) < result.index('main')
+
+    def test_java_prelude_not_prepended_to_file(self):
+        """Java usa injeção, não prefixo — o arquivo não deve começar com nenhum _PRELUDES."""
+        from pathlib import Path
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code, _PRELUDES
+
+        java_src = 'public class Main { public static void main(String[] a) {} }'
+        written: dict[str, str] = {}
+        orig = Path.write_text
+
+        def spy(self, data, **kw):
+            written[str(self)] = data
+            return orig(self, data, **kw)
+
+        compile_ok = MagicMock(returncode=0, stderr='', stdout='')
+        run_ok = MagicMock(returncode=0, stdout='\n', stderr='')
+
+        with patch.object(Path, 'write_text', spy), \
+             patch('subprocess.run', side_effect=[compile_ok, run_ok]):
+            execute_code('java', java_src, [{'input': '', 'expected_output': ''}])
+
+        java_written = [v for k, v in written.items() if k.endswith('.java')]
+        assert java_written, 'Nenhum .java foi escrito'
+        content = java_written[0]
+        for prelude in _PRELUDES.values():
+            assert not content.startswith(prelude), 'Java não deve começar com prelude de arquivo'
+
+    def test_inject_java_prelude_with_extends(self):
+        """Regex deve funcionar mesmo com 'extends' ou 'implements'."""
+        from common.executor import _inject_java_prelude, _JAVA_STATIC_BLOCK
+        src = 'public class Main extends Object {\n  public static void main(String[] a) {}\n}'
+        result = _inject_java_prelude(src)
+        assert _JAVA_STATIC_BLOCK in result
+
+    def test_inject_java_prelude_not_found_returns_original(self):
+        """Se a classe Main não for encontrada, retorna o código sem alteração."""
+        from common.executor import _inject_java_prelude
+        src = 'class Foo { void bar() {} }'
+        assert _inject_java_prelude(src) == src
+
+    def test_c_prelude_prepended_in_written_file(self):
+        from pathlib import Path
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code, _C_PRELUDE
+
+        student_code = '#include <stdio.h>\nint main(){printf("ok\\n");return 0;}'
+        written: dict[str, str] = {}
+        orig = Path.write_text
+
+        def spy(self, data, **kw):
+            written[str(self)] = data
+            return orig(self, data, **kw)
+
+        compile_ok = MagicMock(returncode=0, stderr='', stdout='')
+        run_ok = MagicMock(returncode=0, stdout='ok\n', stderr='')
+
+        with patch.object(Path, 'write_text', spy), \
+             patch('subprocess.run', side_effect=[compile_ok, run_ok]):
+            execute_code('c', student_code, [{'input': '', 'expected_output': 'ok'}])
+
+        c_written = [v for k, v in written.items() if k.endswith('.c')]
+        assert c_written, 'Nenhum .c foi escrito'
+        assert c_written[0].startswith(_C_PRELUDE)
+        assert student_code in c_written[0]
+
+    def test_cpp_prelude_prepended_in_written_file(self):
+        from pathlib import Path
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code, _CPP_PRELUDE
+
+        student_code = '#include <iostream>\nint main(){std::cout<<"ok"<<std::endl;return 0;}'
+        written: dict[str, str] = {}
+        orig = Path.write_text
+
+        def spy(self, data, **kw):
+            written[str(self)] = data
+            return orig(self, data, **kw)
+
+        compile_ok = MagicMock(returncode=0, stderr='', stdout='')
+        run_ok = MagicMock(returncode=0, stdout='ok\n', stderr='')
+
+        with patch.object(Path, 'write_text', spy), \
+             patch('subprocess.run', side_effect=[compile_ok, run_ok]):
+            execute_code('cpp', student_code, [{'input': '', 'expected_output': 'ok'}])
+
+        cpp_written = [v for k, v in written.items() if k.endswith('.cpp')]
+        assert cpp_written, 'Nenhum .cpp foi escrito'
+        assert cpp_written[0].startswith(_CPP_PRELUDE)
+        assert student_code in cpp_written[0]
+
+
 # ─── duration filter ─────────────────────────────────────────────────────────
 
 class TestDurationFilter:
@@ -540,6 +727,71 @@ class TestExecutorIntegrationC:
         assert results[0]['status'] == 'runtime_error'
         assert results[0]['is_correct'] is False
 
+    def test_scanf_without_prompt_reads_stdin_correctly(self):
+        """scanf sem printf de prompt: somente o resultado vai para o stdout."""
+        src = '#include <stdio.h>\nint main(){int n;scanf("%d",&n);printf("%d\\n",n*2);return 0;}'
+        results = self._run(src, [
+            {'input': '5',  'expected_output': '10'},
+            {'input': '0',  'expected_output': '0'},
+            {'input': '21', 'expected_output': '42'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_printf_prompt_suppressed_before_scanf(self):
+        """printf("prompt") antes de scanf deve ser suprimido pelo prelude de C."""
+        src = (
+            '#include <stdio.h>\n'
+            'int main(){\n'
+            '  int n;\n'
+            '  printf("Digite um numero: ");\n'
+            '  scanf("%d",&n);\n'
+            '  printf("%d\\n",n);\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [{'input': '42', 'expected_output': '42'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == '42'
+
+    def test_multiple_scanf_without_prompts(self):
+        """Múltiplos scanf sem prompts leem linhas consecutivas do stdin corretamente."""
+        src = (
+            '#include <stdio.h>\n'
+            'int main(){\n'
+            '  int a,b,c;\n'
+            '  scanf("%d%d%d",&a,&b,&c);\n'
+            '  printf("%d\\n",a+b+c);\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '1 2 3', 'expected_output': '6'},
+            {'input': '10 20 30', 'expected_output': '60'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_two_prompts_both_suppressed(self):
+        """Dois printf de prompt (um antes de cada scanf) devem ser ambos suprimidos."""
+        src = (
+            '#include <stdio.h>\n'
+            'int main(){\n'
+            '  int a,b;\n'
+            '  printf("Digite a: ");\n'
+            '  scanf("%d",&a);\n'
+            '  printf("Digite b: ");\n'
+            '  scanf("%d",&b);\n'
+            '  printf("%d\\n",a+b);\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '3\n4', 'expected_output': '7'},
+            {'input': '10\n20', 'expected_output': '30'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+        assert results[0]['stdout'] == '7'
+        assert results[1]['stdout'] == '30'
+
 
 # ─── Integração C++ (sem mock — requer g++ no container) ────────────────────
 
@@ -599,6 +851,97 @@ class TestExecutorIntegrationCpp:
         src = '#include <vector>\nint main(){std::vector<int> v;return v.at(99);}'
         results = self._run(src, [{'input': '', 'expected_output': ''}])
         assert results[0]['status'] == 'runtime_error'
+
+    def test_cin_without_prompt_reads_stdin_correctly(self):
+        """cin sem cout de prompt: somente o resultado vai para o stdout."""
+        src = (
+            '#include <iostream>\n'
+            'int main(){\n'
+            '  int n;\n'
+            '  std::cin>>n;\n'
+            '  std::cout<<n*2<<std::endl;\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '5',  'expected_output': '10'},
+            {'input': '0',  'expected_output': '0'},
+            {'input': '21', 'expected_output': '42'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_cout_prompt_suppressed_before_cin(self):
+        """cout<<"prompt" antes de cin deve ser suprimido pelo prelude de C++."""
+        src = (
+            '#include <iostream>\n'
+            'int main(){\n'
+            '  int n;\n'
+            '  std::cout<<"Digite um numero: ";\n'
+            '  std::cin>>n;\n'
+            '  std::cout<<n<<std::endl;\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [{'input': '42', 'expected_output': '42'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == '42'
+
+    def test_multiple_cin_without_prompts(self):
+        """Múltiplos cin sem prompts leem valores consecutivos do stdin corretamente."""
+        src = (
+            '#include <iostream>\n'
+            'int main(){\n'
+            '  int a,b,c;\n'
+            '  std::cin>>a>>b>>c;\n'
+            '  std::cout<<a+b+c<<std::endl;\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '1 2 3',    'expected_output': '6'},
+            {'input': '10 20 30', 'expected_output': '60'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_getline_without_prompt(self):
+        """getline lê linha completa do stdin sem poluir o stdout."""
+        src = (
+            '#include <iostream>\n'
+            '#include <string>\n'
+            'int main(){\n'
+            '  std::string s;\n'
+            '  std::getline(std::cin,s);\n'
+            '  std::cout<<s.length()<<std::endl;\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': 'hello', 'expected_output': '5'},
+            {'input': 'ab',    'expected_output': '2'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_two_cout_prompts_both_suppressed(self):
+        """Dois cout de prompt (um antes de cada cin) devem ser ambos suprimidos."""
+        src = (
+            '#include <iostream>\n'
+            'int main(){\n'
+            '  int a,b;\n'
+            '  std::cout<<"Digite a: ";\n'
+            '  std::cin>>a;\n'
+            '  std::cout<<"Digite b: ";\n'
+            '  std::cin>>b;\n'
+            '  std::cout<<a+b<<std::endl;\n'
+            '  return 0;\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '3\n4',   'expected_output': '7'},
+            {'input': '10\n20', 'expected_output': '30'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+        assert results[0]['stdout'] == '7'
+        assert results[1]['stdout'] == '30'
 
 
 # ─── Integração Python (sem mock) ───────────────────────────────────────────
@@ -660,6 +1003,35 @@ class TestExecutorIntegrationPython:
             {'input': '0', 'expected_output': '0'},
         ])
         assert all(r['status'] == 'correct' for r in results)
+
+    def test_input_prompt_suppressed(self):
+        """input('prompt') não deve aparecer no stdout; leitura do stdin permanece correta."""
+        results = self._run(
+            "nome = input('Digite seu nome: ')\nprint(nome)",
+            [{'input': 'João', 'expected_output': 'João'}],
+        )
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'João'
+
+    def test_input_prompt_suppressed_across_test_cases(self):
+        """Supressão deve funcionar em todos os casos de teste, não só no primeiro."""
+        results = self._run(
+            "n = int(input('n: '))\nprint(n * 2)",
+            [
+                {'input': '3', 'expected_output': '6'},
+                {'input': '5', 'expected_output': '10'},
+            ],
+        )
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_multiple_input_prompts_suppressed(self):
+        """Múltiplos input('...') devem ler linhas consecutivas sem poluir o stdout."""
+        results = self._run(
+            "a = int(input('a: '))\nb = int(input('b: '))\nprint(a + b)",
+            [{'input': '3\n4', 'expected_output': '7'}],
+        )
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == '7'
 
 
 # ─── Integração JavaScript (sem mock — requer node no container) ─────────────
@@ -734,6 +1106,33 @@ class TestExecutorIntegrationJavaScript:
             {'input': '5 4',   'expected_output': '4 5'},
         ])
         assert all(r['status'] == 'correct' for r in results)
+
+    def test_readline_question_prompt_suppressed(self):
+        """rl.question('prompt', cb) não deve escrever o prompt no stdout."""
+        src = (
+            "const readline = require('readline');\n"
+            "const rl = readline.createInterface({input: process.stdin, output: process.stdout});\n"
+            "rl.question('Digite seu nome: ', (name) => { console.log(name); rl.close(); });\n"
+        )
+        results = self._run(src, [{'input': 'João', 'expected_output': 'João'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == 'João'
+
+    def test_readline_question_reads_stdin_correctly_after_suppression(self):
+        """Mesmo com prompt suprimido, a resposta do stdin deve chegar ao callback."""
+        src = (
+            "const readline = require('readline');\n"
+            "const rl = readline.createInterface({input: process.stdin, output: process.stdout});\n"
+            "rl.question('a: ', (a) => {\n"
+            "  rl.question('b: ', (b) => {\n"
+            "    console.log(Number(a) + Number(b));\n"
+            "    rl.close();\n"
+            "  });\n"
+            "});\n"
+        )
+        results = self._run(src, [{'input': '3\n4', 'expected_output': '7'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == '7'
 
 
 # ─── Integração Java (sem mock — requer javac/java no container) ─────────────
@@ -840,3 +1239,96 @@ class TestExecutorIntegrationJava:
         )
         results = self._run(src, [{'input': '', 'expected_output': '1 2 3'}])
         assert results[0]['status'] == 'correct'
+
+    def test_scanner_without_prompt_reads_stdin_correctly(self):
+        """Scanner sem System.out.print de prompt: somente o resultado vai para o stdout."""
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    System.out.println(sc.nextInt() * 2);\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '5',  'expected_output': '10'},
+            {'input': '0',  'expected_output': '0'},
+            {'input': '21', 'expected_output': '42'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_system_out_prompt_suppressed_before_scanner(self):
+        """System.out.print("prompt") antes de Scanner deve ser suprimido pelo prelude Java."""
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    System.out.print("Digite um numero: ");\n'
+            '    System.out.println(sc.nextInt());\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [{'input': '42', 'expected_output': '42'}])
+        assert results[0]['status'] == 'correct'
+        assert results[0]['stdout'] == '42'
+
+    def test_multiple_scanner_reads_without_prompts(self):
+        """Múltiplos nextInt() sem prompts leem valores consecutivos do stdin corretamente."""
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    int x = sc.nextInt(), y = sc.nextInt(), z = sc.nextInt();\n'
+            '    System.out.println(x + y + z);\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '1 2 3',    'expected_output': '6'},
+            {'input': '10 20 30', 'expected_output': '60'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+
+    def test_two_system_out_prompts_both_suppressed(self):
+        """Dois System.out.print de prompt (um antes de cada nextInt) devem ser ambos suprimidos."""
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    System.out.print("Digite a: ");\n'
+            '    int x = sc.nextInt();\n'
+            '    System.out.print("Digite b: ");\n'
+            '    int y = sc.nextInt();\n'
+            '    System.out.println(x + y);\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': '3\n4',   'expected_output': '7'},
+            {'input': '10\n20', 'expected_output': '30'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
+        assert results[0]['stdout'] == '7'
+        assert results[1]['stdout'] == '30'
+
+    def test_scanner_nextline_without_prompt(self):
+        """nextLine() lê linha completa do stdin sem poluir o stdout."""
+        src = (
+            'import java.util.Scanner;\n'
+            'public class Main {\n'
+            '  public static void main(String[] a) {\n'
+            '    Scanner sc = new Scanner(System.in);\n'
+            '    String s = sc.nextLine();\n'
+            '    System.out.println(s.length());\n'
+            '  }\n'
+            '}'
+        )
+        results = self._run(src, [
+            {'input': 'hello', 'expected_output': '5'},
+            {'input': 'ab',    'expected_output': '2'},
+        ])
+        assert all(r['status'] == 'correct' for r in results)
