@@ -3,7 +3,7 @@
 }
 
 .select2-container--open {
-  z-index: 9999 !important;
+  z-index: 1060 !important;
 }
 
 .select2-search__field, .select2-search, .select2-search--inline {

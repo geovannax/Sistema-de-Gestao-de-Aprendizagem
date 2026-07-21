@@ -1,0 +1,204 @@
+/* ════════════════════════════════════════════════════════════════
+   EDUCATRIX — Guided Tour Engine
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Overlay & Spotlight ──────────────────────────────────────── */
+
+#tour-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .55);
+    z-index: 9970;
+    /* pointer-events: all — blocks clicks outside the spotlight cutout */
+    transition: opacity .3s;
+}
+
+#tour-highlight {
+    position: fixed;
+    z-index: 9975;
+    border-radius: 8px;
+    pointer-events: none;
+    box-shadow: 0 0 0 3px #3b82f6, 0 0 0 6px rgba(59,130,246,.25);
+    transition: top .3s ease, left .3s ease, width .3s ease, height .3s ease;
+    animation: tourGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes tourGlow {
+    0%, 100% { box-shadow: 0 0 0 3px #3b82f6, 0 0 0 6px rgba(59,130,246,.25); }
+    50%       { box-shadow: 0 0 0 5px #60a5fa, 0 0 0 10px rgba(59,130,246,.35); }
+}
+
+/* ── Tooltip card ─────────────────────────────────────────────── */
+
+#tour-tooltip {
+    position: fixed;
+    z-index: 9980;
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.25rem 1.4rem 1.1rem;
+    width: 320px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.1);
+    transition: top .3s ease, left .3s ease, opacity .2s;
+}
+
+/* Arrow pointer */
+#tour-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    transform: rotate(45deg);
+    z-index: -1;
+}
+#tour-tooltip.arrow-top::before    { top: -7px;  left: 22px; }
+#tour-tooltip.arrow-bottom::before { bottom: -7px; left: 22px; }
+#tour-tooltip.arrow-right::before  { right: -7px; top: 22px; }
+#tour-tooltip.arrow-left::before   { left: -7px;  top: 22px; }
+
+.tour-tt-eyebrow {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .55rem;
+}
+
+.tour-tt-counter {
+    font-size: .72rem;
+    font-weight: 600;
+    color: #9ca3af;
+}
+
+.tour-tt-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: .4rem;
+    line-height: 1.3;
+}
+
+.tour-tt-desc {
+    font-size: .84rem;
+    color: #4b5563;
+    line-height: 1.65;
+    margin-bottom: 1rem;
+}
+
+/* Progress dots */
+.tour-tt-dots {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 1rem;
+}
+
+.tour-tt-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    transition: background .2s, transform .2s;
+    cursor: default;
+}
+.tour-tt-dot.done   { background: #22c55e; }
+.tour-tt-dot.active { background: #3b82f6; transform: scale(1.45); }
+
+/* Actions row */
+.tour-tt-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem;
+}
+
+/* ── Floating Action Button ───────────────────────────────────── */
+
+#tour-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9965;
+    background: #1e293b;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: .5rem 1rem .5rem .6rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    font-family: inherit;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,.32);
+    transition: opacity .25s, transform .25s, box-shadow .2s;
+}
+
+#tour-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 24px rgba(0,0,0,.38);
+}
+
+#tour-fab.tour-fab--hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+}
+
+.tour-fab-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    flex-shrink: 0;
+}
+
+.tour-fab-right {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.tour-fab-sub {
+    font-size: .68rem;
+    font-weight: 400;
+    opacity: .65;
+    margin-top: 1px;
+}
+
+/* ── Wrong-page state ─────────────────────────────────────────── */
+
+#tour-nav-bar {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9965;
+    background: #1e293b;
+    color: #fff;
+    border-radius: 50px;
+    padding: .6rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    font-size: .84rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
+    transition: opacity .25s, transform .25s;
+}
+
+#tour-nav-bar.tour-bar--hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(10px);
+}

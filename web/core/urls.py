@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
-from common.views import page_not_found, permission_denied, LandingPage, HomeView
+from common.views import page_not_found, permission_denied, LandingPage, HomeView, TutorialView
 
 
 handler403 = permission_denied
@@ -26,6 +26,7 @@ handler404 = page_not_found
 urlpatterns = [
     path('', LandingPage.as_view(), name='landing'),
     path('home/', HomeView.as_view(), name='home'),
+    path('tutorial/', TutorialView.as_view(), name='tutorial'),
 
     path('accounts/login/', LoginView.as_view(), name='login'),
     path('accounts/logout/', LogoutView.as_view(), name='logout'),

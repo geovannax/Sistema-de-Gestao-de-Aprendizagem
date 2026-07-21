@@ -23,6 +23,11 @@ class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'global/partials/home.html'
 
 
+class TutorialView(LoginRequiredMixin, TemplateView):
+    """Tutorial interativo do ciclo completo do sistema."""
+    template_name = 'global/partials/tutorial.html'
+
+
 def permission_denied(request: HttpRequest, exception: Exception | None = None) -> HttpResponse:
     """Handler para erros HTTP 403 (acesso negado).
 

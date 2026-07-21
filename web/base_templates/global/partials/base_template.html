@@ -18,6 +18,7 @@
         <link href="{% static 'global/css/modal.css' %}" rel="stylesheet">
         <link href="{% static 'global/css/notification-popup.css' %}" rel="stylesheet">
 
+        <link href="{% static 'global/css/tour.css' %}" rel="stylesheet">
         {% block extra_head %} {% endblock extra_head %}
     </head>
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-boost="false">
@@ -43,6 +44,10 @@
         <script src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
         {% block extra_script %} {% endblock extra_script %}
         <script src="{% static 'global/js/notification.popup.js' %}"></script>
+        {% if user.is_authenticated %}
+        <script>window.__tourUserId__ = {{ user.pk }};</script>
+        <script src="{% static 'global/js/tour.js' %}"></script>
+        {% endif %}
         <script type="text/javascript">
             function showAlert() {
                 showNotificationPopup('Warning','Em desenvolvimento');

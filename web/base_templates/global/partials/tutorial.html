@@ -1,0 +1,862 @@
+{% extends 'global/partials/base_not_padding.html' %}
+{% load static %}
+
+{% block title %}Tutorial — Ciclo Completo do Sistema{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'global/css/tutorial.css' %}">
+<link rel="stylesheet" href="{% static 'global/css/form.css' %}">
+<link rel="stylesheet" href="{% static 'global/css/detail.css' %}">
+<link rel="stylesheet" href="{% static 'global/css/nav_tabs.css' %}">
+<link rel="stylesheet" href="{% static 'student/css/activity_review.css' %}">
+<link rel="stylesheet" href="{% static 'student/css/teacher_grade.css' %}">
+<link rel="stylesheet" href="{% static 'student/css/teacher_submissions.css' %}">
+{% endblock extra_head %}
+
+{% block main_content %}
+
+<!-- HERO -->
+<section class="tut-hero">
+  <div class="container">
+    <div class="tut-hero-inner">
+      <p class="tut-step-eyebrow" style="margin-bottom:.5rem;">
+        <i class="bi bi-map me-1"></i>Guia passo a passo
+      </p>
+      <h1>Do zero ao ciclo completo em 8 passos</h1>
+      <p>Aprenda a criar uma turma, montar uma atividade com exercícios, convidar alunos e corrigir submissões — o fluxo inteiro do Educatrix.</p>
+      <div class="tut-progress-bar" id="tutProgress">
+        {% for i in "12345678" %}
+        <div class="tut-prog-seg" data-step="{{ forloop.counter }}"></div>
+        {% endfor %}
+      </div>
+      <button class="tut-start-btn" id="tourStartBtn">
+        <i class="bi bi-play-fill"></i>
+        <span id="tourStartLabel">Iniciar Tour Guiado</span>
+        <span class="tut-resume-badge" id="tourResumeBadge">Continuar</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section class="tut-steps">
+  <div class="container">
+
+    <!-- ── STEP 1 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">1</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-people-fill me-1"></i>Configuração inicial</span>
+            <h2 class="tut-step-title">Criar uma Turma</h2>
+            <p class="tut-step-desc">
+              Toda atividade precisa de uma turma. Defina o <strong>nome</strong>, o <strong>turno</strong> e uma <strong>descrição</strong> opcional e salve.
+              A turma fica ativa e pronta para receber atividades e alunos.<br><br>
+              Você pode criar quantas turmas quiser — por semestre, por disciplina ou por tema.
+            </p>
+            <a href="{% url 'group:create' %}" class="tut-step-link">
+              <i class="bi bi-plus-circle"></i> Criar Turma agora
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-link">Turmas</span>
+                  <span class="mini-nav-link">Atividades</span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width:30px;height:30px;padding:0;flex-shrink:0"><i class="bi bi-arrow-left" style="font-size:.8rem"></i></button>
+                      <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Nova Turma</h5>
+                    </div>
+                  </div>
+                  <div class="form-card p-3 rounded-3">
+                    <div class="form-card-header d-flex mb-0">
+                      <div>
+                        <div class="form-card-title mb-0">Dados da Turma</div>
+                        <div class="form-card-subtitle">Configure o nome, turno e descrição</div>
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="form-group mb-3">
+                      <label class="form-label" style="font-size:.9rem;font-weight:600;color:var(--gray-550)">Nome *</label>
+                      <input class="form-control" type="text" value="Algoritmos — 2025.2" readonly>
+                    </div>
+                    <div class="form-group mb-3">
+                      <label class="form-label" style="font-size:.9rem;font-weight:600;color:var(--gray-550)">Turno *</label>
+                      <select class="form-select"><option>Noturno</option></select>
+                    </div>
+                    <div class="form-group mb-3">
+                      <label class="form-label" style="font-size:.9rem;font-weight:600;color:var(--gray-550)">Descrição</label>
+                      <textarea class="form-control" rows="2" style="resize:none">Turma de algoritmos e estruturas de dados 2025.2</textarea>
+                    </div>
+                    <hr class="mt-0">
+                    <div class="d-flex justify-content-end gap-2">
+                      <button class="btn btn-outline-secondary rounded-5"><i class="bi bi-x-circle me-1"></i>Cancelar</button>
+                      <button class="btn btn-outline-primary rounded-5"><i class="bi bi-check-circle me-1"></i>Salvar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">2</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-journals me-1"></i>Conteúdo</span>
+            <h2 class="tut-step-title">Criar uma Atividade</h2>
+            <p class="tut-step-desc">
+              Uma atividade é uma lista de exercícios com <strong>título</strong>, <strong>descrição</strong> e <strong>máximo de tentativas</strong>.
+              Crie a atividade primeiro — os exercícios são adicionados depois, diretamente na página de detalhes.<br><br>
+              Atividades podem ser reutilizadas em múltiplas turmas ou compartilhadas com outros professores.
+            </p>
+            <a href="{% url 'activity:create' %}" class="tut-step-link">
+              <i class="bi bi-plus-circle"></i> Criar Atividade agora
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-link">Turmas</span>
+                  <span class="mini-nav-link">Atividades</span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Nova Atividade</h5>
+                    </div>
+                  </div>
+                  <div class="form-card p-3 rounded-3">
+                    <div class="form-card-header d-flex mb-0">
+                      <div>
+                        <div class="form-card-title mb-0">Dados da Atividade</div>
+                        <div class="form-card-subtitle">Defina título, descrição e tentativas</div>
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="form-group mb-3">
+                      <label class="form-label" style="font-size:.9rem;font-weight:600;color:var(--gray-550)">Título *</label>
+                      <input class="form-control" type="text" value="Lista 1 — Ordenação" readonly>
+                    </div>
+                    <div class="form-group mb-3">
+                      <label class="form-label" style="font-size:.9rem;font-weight:600;color:var(--gray-550)">Descrição *</label>
+                      <textarea class="form-control" rows="2" style="resize:none">Implemente os algoritmos de ordenação estudados em sala de aula.</textarea>
+                    </div>
+                    <div class="form-group mb-3">
+                      <label class="form-label" style="font-size:.9rem;font-weight:600;color:var(--gray-550)">Máximo de Tentativas</label>
+                      <input class="form-control" type="number" value="3" readonly>
+                    </div>
+                    <label class="terms-card d-flex gap-2 align-items-center px-3 py-2 rounded-2 mb-3">
+                      <input type="checkbox" checked disabled>
+                      <div class="text">
+                        <strong>Termo de aceite</strong>
+                        <p>Confirmo que as informações serão visíveis para os alunos vinculados.</p>
+                      </div>
+                    </label>
+                    <div class="d-flex justify-content-end gap-2">
+                      <button class="btn btn-outline-secondary rounded-5"><i class="bi bi-x-circle me-1"></i>Cancelar</button>
+                      <button class="btn btn-outline-primary rounded-5"><i class="bi bi-check-circle me-1"></i>Salvar e Continuar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">3</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-puzzle-fill me-1"></i>Exercícios</span>
+            <h2 class="tut-step-title">Adicionar Exercícios</h2>
+            <p class="tut-step-desc">
+              Na página de detalhes da atividade, clique em <strong>+ Adicionar Exercício</strong> e escolha o tipo:<br><br>
+              <strong>Código</strong> — o aluno escreve e executa no sandbox.<br>
+              <strong>Completar código</strong> — lacunas em código existente.<br>
+              <strong>Múltipla escolha</strong> — correção automática na entrega.<br>
+              <strong>Discursivo</strong> — resposta livre, correção manual.
+            </p>
+            <a href="{% url 'activity:list' %}" class="tut-step-link">
+              <i class="bi bi-arrow-right-circle"></i> Ir para Atividades
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width:30px;height:30px;padding:0;flex-shrink:0"><i class="bi bi-arrow-left" style="font-size:.8rem"></i></button>
+                        <div>
+                          <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Lista 1 — Ordenação</h5>
+                          <small style="color:var(--info)"><i class="bi bi-person-circle me-1"></i>Prof. Edgar Reis</small>
+                        </div>
+                      </div>
+                      <button class="btn btn-outline-primary rounded-5 btn-sm"><i class="bi bi-eye me-1"></i>Revisar</button>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                    <div class="fw-semibold" style="font-size:.9rem;color:var(--gray-700)"><i class="bi bi-list-task me-1"></i>Exercícios</div>
+                    <div class="text-muted" style="font-size:.85rem">Total: 30 pts</div>
+                  </div>
+                  <!-- rv-card: código -->
+                  <div class="rv-card mb-3">
+                    <div class="rv-card-stripe rv-stripe-code"></div>
+                    <div class="rv-card-inner">
+                      <div class="rv-card-head">
+                        <div class="rv-card-meta">
+                          <span class="rv-num-box rv-num-code">1</span>
+                          <span class="rv-card-label">Questão</span>
+                        </div>
+                        <div class="rv-card-badges">
+                          <span class="rv-type-pill rv-pill-code"><i class="bi bi-code-slash"></i> Código</span>
+                          <span class="rv-type-pill" style="background:var(--gray-100);color:var(--gray-600)">10 pts</span>
+                          <button class="btn btn-sm btn-outline-primary rounded-5 px-2"><i class="bi bi-pencil"></i></button>
+                          <button class="btn btn-sm btn-outline-danger rounded-5 px-2"><i class="bi bi-trash3"></i></button>
+                        </div>
+                      </div>
+                      <div class="rv-statement">Implemente o algoritmo Bubble Sort em Python.</div>
+                      <div style="font-size:.82rem;color:var(--gray-500)"><i class="bi bi-code-slash me-1"></i>Linguagem: <strong>Python</strong></div>
+                    </div>
+                  </div>
+                  <!-- rv-card: múltipla escolha -->
+                  <div class="rv-card mb-3">
+                    <div class="rv-card-stripe rv-stripe-multiple_choice"></div>
+                    <div class="rv-card-inner">
+                      <div class="rv-card-head">
+                        <div class="rv-card-meta">
+                          <span class="rv-num-box rv-num-multiple_choice">2</span>
+                          <span class="rv-card-label">Questão</span>
+                        </div>
+                        <div class="rv-card-badges">
+                          <span class="rv-type-pill rv-pill-multiple_choice"><i class="bi bi-list-check"></i> Múltipla Escolha</span>
+                          <span class="rv-type-pill" style="background:var(--gray-100);color:var(--gray-600)">5 pts</span>
+                          <button class="btn btn-sm btn-outline-primary rounded-5 px-2"><i class="bi bi-pencil"></i></button>
+                          <button class="btn btn-sm btn-outline-danger rounded-5 px-2"><i class="bi bi-trash3"></i></button>
+                        </div>
+                      </div>
+                      <div class="rv-statement">Qual a complexidade de tempo do Merge Sort?</div>
+                      <div class="rv-answer-mc-list mt-2">
+                        <div class="rv-mc-option"><span class="rv-mc-radio"></span>O(n)</div>
+                        <div class="rv-mc-option rv-mc-selected"><span class="rv-mc-radio"></span>O(n log n) <span class="ms-2 badge bg-success" style="font-size:.65rem">Correta</span></div>
+                        <div class="rv-mc-option"><span class="rv-mc-radio"></span>O(n²)</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-center py-2">
+                    <button class="btn btn-outline-secondary rounded-5 px-4"><i class="bi bi-plus-circle me-2"></i>Adicionar Exercício</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">4</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-link-45deg me-1"></i>Vinculação</span>
+            <h2 class="tut-step-title">Vincular Atividade à Turma</h2>
+            <p class="tut-step-desc">
+              Na página de detalhes da atividade, clique em <strong>Vincular a Turma</strong>.
+              Selecione a turma desejada e configure datas de <strong>início</strong> e <strong>encerramento</strong> opcionais.<br><br>
+              A mesma atividade pode ser vinculada a várias turmas com prazos diferentes. O aluno só vê a atividade após o vínculo.
+            </p>
+            <a href="{% url 'activity:list' %}" class="tut-step-link">
+              <i class="bi bi-arrow-right-circle"></i> Ir para Atividades
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width:30px;height:30px;padding:0;flex-shrink:0"><i class="bi bi-arrow-left" style="font-size:.8rem"></i></button>
+                        <div>
+                          <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Lista 1 — Ordenação</h5>
+                          <small style="color:var(--info)"><i class="bi bi-person-circle me-1"></i>Prof. Edgar Reis</small>
+                        </div>
+                      </div>
+                      <button class="btn btn-outline-primary rounded-5 btn-sm"><i class="bi bi-link me-1"></i>Vincular a Turma</button>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                    <div class="fw-semibold" style="font-size:.9rem;color:var(--gray-700)"><i class="bi bi-diagram-2 me-1"></i>Turmas Vinculadas</div>
+                    <div class="text-muted" style="font-size:.85rem">2 turmas</div>
+                  </div>
+                  <div class="form-card p-2 rounded-3 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div style="font-weight:600;font-size:.9rem;color:var(--gray-700)">Algoritmos — 2025.2</div>
+                        <div style="font-size:.78rem;color:var(--gray-500)"><i class="bi bi-calendar3 me-1"></i>Encerra 15/08/2025</div>
+                      </div>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary rounded-5 px-2"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger rounded-5 px-2"><i class="bi bi-trash3"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-card p-2 rounded-3" style="opacity:.5">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div style="font-weight:600;font-size:.9rem;color:var(--gray-700)">Estruturas de Dados — 2025.2</div>
+                        <div style="font-size:.78rem;color:var(--gray-500)"><i class="bi bi-calendar3 me-1"></i>Sem prazo definido</div>
+                      </div>
+                      <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary rounded-5 px-2"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger rounded-5 px-2"><i class="bi bi-trash3"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">5</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-person-plus-fill me-1"></i>Alunos</span>
+            <h2 class="tut-step-title">Convidar Alunos</h2>
+            <p class="tut-step-desc">
+              Na página da turma, acesse a aba <strong>Compartilhamento</strong> → seção <em>Convite para Alunos</em> e gere um link.
+              Defina <strong>expiração</strong> e <strong>máximo de usos</strong> conforme precisar.<br><br>
+              Compartilhe o link gerado. Ao acessar, os alunos se matriculam automaticamente na turma.
+            </p>
+            <a href="{% url 'group:active' %}" class="tut-step-link">
+              <i class="bi bi-arrow-right-circle"></i> Ir para Turmas
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-link">Turmas</span>
+                  <span class="mini-nav-link">Atividades</span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Algoritmos — 2025.2</h5>
+                    <div style="font-size:.78rem;color:var(--info);display:flex;align-items:center;gap:.3rem"><i class="bi bi-person-circle"></i>Prof. Edgar Reis</div>
+                  </div>
+                  <hr style="margin:.6rem 0">
+                  <div class="detail-left-card p-3 rounded-3">
+                    <!-- nav-tabs -->
+                    <ul class="nav nav-tabs mb-3" style="font-size:.82rem;flex-wrap:nowrap">
+                      <li class="nav-item"><a class="nav-link active" href="#">Compartilhamento</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Estatística</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Notas</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Revisão</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Dataset</a></li>
+                    </ul>
+                    <!-- invite section content -->
+                    <div style="font-size:.9rem;font-weight:600;color:var(--gray-650);text-transform:uppercase;font-size:.8rem;letter-spacing:.5px;margin-bottom:.75rem">
+                      <i class="bi bi-link-45deg me-1" style="color:var(--blue-500)"></i>Convite para Alunos
+                    </div>
+                    <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:.75rem">Gere um link temporário para que alunos confirmem a entrada nesta turma.</p>
+                    <!-- generated link -->
+                    <div style="font-size:.75rem;color:var(--gray-500);margin-bottom:.3rem;display:flex;justify-content:space-between">
+                      <span><i class="bi bi-link-45deg me-1"></i>Link de convite</span>
+                      <span>Expira em 30/08/2025 23:59</span>
+                    </div>
+                    <div class="input-group input-group-sm mb-2">
+                      <input type="text" class="form-control" value="https://…/group/invite/xK8mQz4p/" readonly>
+                      <button class="btn btn-outline-primary" type="button"><i class="bi bi-clipboard me-1"></i>Copiar</button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger rounded-5"><i class="bi bi-clock-history me-1"></i>Expirar link agora</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 6 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">6</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-share-fill me-1"></i>Colaboração</span>
+            <h2 class="tut-step-title">Compartilhar com Professor</h2>
+            <p class="tut-step-desc">
+              Na aba <strong>Compartilhamento</strong> da turma, busque pelo nome do professor e compartilhe.<br><br>
+              O professor convidado terá acesso à turma — pode ver as submissões e os resultados, mas não edita atividades nem cria convites.
+            </p>
+            <a href="{% url 'group:active' %}" class="tut-step-link">
+              <i class="bi bi-arrow-right-circle"></i> Ir para Turmas
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-link">Turmas</span>
+                  <span class="mini-nav-link">Atividades</span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Algoritmos — 2025.2</h5>
+                    <div style="font-size:.78rem;color:var(--info);display:flex;align-items:center;gap:.3rem"><i class="bi bi-person-circle"></i>Prof. Edgar Reis</div>
+                  </div>
+                  <hr style="margin:.6rem 0">
+                  <div class="detail-left-card p-3 rounded-3">
+                    <ul class="nav nav-tabs mb-3" style="font-size:.82rem;flex-wrap:nowrap">
+                      <li class="nav-item"><a class="nav-link active" href="#">Compartilhamento</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Estatística</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Notas</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Revisão</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Dataset</a></li>
+                    </ul>
+                    <div style="font-size:.8rem;font-weight:600;color:var(--gray-650);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem">
+                      <i class="bi bi-person-plus me-1" style="color:var(--blue-500)"></i>Compartilhar com Professores
+                    </div>
+                    <div class="form-control form-control-sm mb-1" style="color:var(--gray-400)">Buscar professor pelo nome…</div>
+                    <div class="field-hint mb-3"><i class="bi bi-info-circle me-1"></i>Comece a digitar para buscar professores.</div>
+                    <hr>
+                    <div style="font-size:.8rem;font-weight:600;color:var(--gray-650);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem">
+                      <i class="bi bi-check2-circle me-1" style="color:var(--blue-500)"></i>Compartilhado com
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom" style="font-size:.85rem">
+                      <span><i class="bi bi-person-circle me-1 text-muted"></i>Prof. Maria Silva</span>
+                      <button class="btn btn-sm btn-outline-danger rounded-5 py-0 px-2" style="font-size:.75rem">Remover</button>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between py-2" style="font-size:.85rem">
+                      <span><i class="bi bi-person-circle me-1 text-muted"></i>Prof. João Mendes</span>
+                      <button class="btn btn-sm btn-outline-danger rounded-5 py-0 px-2" style="font-size:.75rem">Remover</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 7 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">7</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-clipboard2-check-fill me-1"></i>Acompanhamento</span>
+            <h2 class="tut-step-title">Acompanhar as Submissões</h2>
+            <p class="tut-step-desc">
+              Acesse a aba <strong>Revisão</strong> na página da turma. Você verá todas as atividades com a contagem de <strong>submissões recebidas</strong> e <strong>pendentes de correção</strong>.<br><br>
+              Clique em <em>Corrigir</em> ao lado de uma atividade para ver a lista de alunos e o status de cada submissão.
+            </p>
+            <a href="{% url 'group:active' %}" class="tut-step-link">
+              <i class="bi bi-arrow-right-circle"></i> Ir para Turmas
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-link">Turmas</span>
+                  <span class="mini-nav-link">Atividades</span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="mini-page-hdr">
+                    <h5 class="mb-0" style="font-size:1.05rem;font-weight:700;color:var(--gray-600)">Algoritmos — 2025.2</h5>
+                    <div style="font-size:.78rem;color:var(--info);display:flex;align-items:center;gap:.3rem"><i class="bi bi-person-circle"></i>Prof. Edgar Reis</div>
+                  </div>
+                  <hr style="margin:.6rem 0">
+                  <div class="detail-left-card p-3 rounded-3">
+                    <ul class="nav nav-tabs mb-3" style="font-size:.82rem;flex-wrap:nowrap">
+                      <li class="nav-item"><a class="nav-link" href="#">Compartilhamento</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Estatística</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Notas</a></li>
+                      <li class="nav-item"><a class="nav-link active" href="#">Revisão</a></li>
+                      <li class="nav-item"><a class="nav-link" href="#">Dataset</a></li>
+                    </ul>
+                    <!-- header -->
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                      <span class="fw-semibold" style="font-size:.85rem;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)">
+                        <i class="bi bi-list-check me-1" style="color:var(--blue-500)"></i>Atividades
+                      </span>
+                      <small class="text-muted">3 atividades</small>
+                    </div>
+                    <!-- review-row 1 -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--gray-200)">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:.9rem;color:var(--gray-700);margin-bottom:.2rem">Lista 1 — Ordenação</div>
+                        <div style="font-size:.78rem;color:var(--gray-600);display:flex;align-items:center;gap:.75rem">
+                          <span><i class="bi bi-send-check me-1"></i>32 entregues</span>
+                          <span class="badge-pending"><i class="bi bi-clock me-1"></i>5 pendentes</span>
+                        </div>
+                      </div>
+                      <a class="btn btn-sm btn-warning rounded-5 flex-shrink-0"><i class="bi bi-pencil-square me-1"></i>Corrigir</a>
+                    </div>
+                    <!-- review-row 2 -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--gray-200)">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:.9rem;color:var(--gray-700);margin-bottom:.2rem">Lista 2 — Grafos</div>
+                        <div style="font-size:.78rem;color:var(--gray-600);display:flex;align-items:center;gap:.75rem">
+                          <span><i class="bi bi-send-check me-1"></i>37 entregues</span>
+                          <span class="badge-ok"><i class="bi bi-check-lg me-1"></i>Tudo corrigido</span>
+                        </div>
+                      </div>
+                      <a class="btn btn-sm btn-outline-secondary rounded-5 flex-shrink-0"><i class="bi bi-pencil-square me-1"></i>Corrigir</a>
+                    </div>
+                    <!-- review-row 3 -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:.9rem;color:var(--gray-700);margin-bottom:.2rem">Lista 3 — Programação Dinâmica</div>
+                        <div style="font-size:.78rem;color:var(--gray-600)">
+                          <span><i class="bi bi-send-check me-1"></i>0 entregues</span>
+                        </div>
+                      </div>
+                      <a class="btn btn-sm btn-outline-secondary rounded-5 flex-shrink-0"><i class="bi bi-pencil-square me-1"></i>Corrigir</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 8 ────────────────────────────────────────────── -->
+    <div class="tut-step">
+      <div class="tut-step-num">8</div>
+      <div class="tut-step-card">
+        <div class="tut-step-card-inner">
+          <div class="tut-step-info">
+            <span class="tut-step-eyebrow"><i class="bi bi-patch-check-fill me-1"></i>Correção</span>
+            <h2 class="tut-step-title">Corrigir Submissões</h2>
+            <p class="tut-step-desc">
+              Ao clicar em <strong>Corrigir</strong> na aba Revisão, você vê todos os alunos organizados em três colunas: <strong>Para Correção</strong> (entregaram e aguardam avaliação), <strong>Concluíram</strong> (já corrigidos) e <strong>Pendentes</strong> (ainda não entregaram).<br><br>
+              Clique em <em>Corrigir</em> ao lado de um aluno para abrir o formulário de avaliação. Múltipla escolha é corrigida automaticamente; código e discursiva exigem avaliação manual com feedback opcional.<br><br>
+              Após salvar, o aluno acessa o resultado com nota e comentários do professor.
+            </p>
+            <a href="{% url 'group:active' %}" class="tut-step-link">
+              <i class="bi bi-arrow-right-circle"></i> Ir para Turmas
+            </a>
+          </div>
+          <div class="tut-mock">
+            <div class="mini-ui-wrap">
+              <div class="mini-ui-scale">
+                <div class="mini-navbar">
+                  <span class="mini-brand">Educatrix</span>
+                  <span class="mini-nav-spacer"></span>
+                  <span class="mini-nav-user"><i class="bi bi-person-circle"></i> Prof. Edgar</span>
+                </div>
+                <div class="mini-page">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width:30px;height:30px;padding:0;flex-shrink:0"><i class="bi bi-arrow-left" style="font-size:.8rem"></i></button>
+                    <div>
+                      <h5 class="mb-0 fw-semibold" style="font-size:1rem;color:var(--gray-700)">Lista 1 — Ordenação</h5>
+                      <small class="text-muted">Algoritmos — 2025.2</small>
+                    </div>
+                  </div>
+                  <!-- stat boxes -->
+                  <div class="d-flex gap-2 mb-2">
+                    <div class="stat-box p-2 text-center" style="flex:1">
+                      <div class="stat-value" style="font-size:1.2rem">32</div>
+                      <div class="stat-label">Entregues</div>
+                    </div>
+                    <div class="stat-box p-2 text-center" style="flex:1">
+                      <div class="stat-value" style="font-size:1.2rem;color:#d97706">5</div>
+                      <div class="stat-label">Para Corrigir</div>
+                    </div>
+                    <div class="stat-box p-2 text-center" style="flex:1">
+                      <div class="stat-value" style="font-size:1.2rem;color:var(--gray-500)">5</div>
+                      <div class="stat-label">Pendentes</div>
+                    </div>
+                  </div>
+                  <!-- 3-column student list -->
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <div class="section-header-label mb-2">Para Correção</div>
+                      <div class="sub-card flex-column align-items-start gap-1 p-2 mb-2">
+                        <div class="d-flex align-items-center gap-2 w-100">
+                          <div class="sub-avatar" style="width:28px;height:28px;font-size:.72rem;flex-shrink:0">AL</div>
+                          <div class="sub-name" style="font-size:.78rem">Ana Lima</div>
+                        </div>
+                        <span class="badge-pending" style="font-size:.68rem">Aguardando</span>
+                        <button class="btn btn-warning rounded-5 w-100" style="font-size:.7rem;padding:.15rem .3rem"><i class="bi bi-pencil-square me-1"></i>Corrigir</button>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="section-header-label mb-2">Concluíram</div>
+                      <div class="sub-card flex-column align-items-start gap-1 p-2 mb-2">
+                        <div class="d-flex align-items-center gap-2 w-100">
+                          <div class="sub-avatar" style="width:28px;height:28px;font-size:.72rem;flex-shrink:0;background:#22c55e">MS</div>
+                          <div class="sub-name" style="font-size:.78rem">Maria Santos</div>
+                        </div>
+                        <span class="badge-done" style="font-size:.68rem">Corrigido</span>
+                        <button class="btn btn-outline-secondary rounded-5 w-100" style="font-size:.7rem;padding:.15rem .3rem"><i class="bi bi-eye me-1"></i>Ver</button>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="section-header-label mb-2">Pendentes</div>
+                      <div class="sub-card flex-column align-items-start gap-1 p-2 mb-2" style="opacity:.65">
+                        <div class="d-flex align-items-center gap-2 w-100">
+                          <div class="sub-avatar" style="width:28px;height:28px;font-size:.72rem;flex-shrink:0;background:var(--gray-400)">JO</div>
+                          <div class="sub-name" style="font-size:.78rem">João Oliveira</div>
+                        </div>
+                        <span class="badge-not-started" style="font-size:.68rem">Não entregou</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+</section>
+
+<!-- CTA -->
+<section class="tut-cta">
+  <div class="container">
+    <h2>Pronto para começar?</h2>
+    <p>Crie sua primeira turma agora e convide seus alunos em minutos.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{% url 'group:create' %}" class="btn btn-light fw-bold px-4 py-2">
+        <i class="bi bi-plus-circle me-2"></i>Criar Turma
+      </a>
+      <a href="{% url 'home' %}" class="btn btn-outline-light px-4 py-2">
+        <i class="bi bi-house me-2"></i>Voltar ao Início
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── TOUR BAR ──────────────────────────────────────────────── -->
+<div class="tut-tour-bar tut-bar--hidden" id="tourBar" role="region" aria-label="Navegação do tour">
+  <span class="tut-tour-label">Tour</span>
+  <div class="tut-tour-dots" id="tourDots"></div>
+  <span class="tut-tour-counter" id="tourCounter">1 / 8</span>
+  <button class="btn btn-sm btn-outline-light rounded-5 px-3" id="tourPrev" style="font-size:.82rem">
+    <i class="bi bi-arrow-left me-1"></i>Anterior
+  </button>
+  <button class="btn btn-sm btn-warning rounded-5 px-3" id="tourNext" style="font-size:.82rem">
+    Próximo<i class="bi bi-arrow-right ms-1"></i>
+  </button>
+  <button class="btn btn-link text-white-50 p-1 ms-1" id="tourClose" aria-label="Fechar tour" style="font-size:.9rem;text-decoration:none">✕</button>
+</div>
+
+{% endblock main_content %}
+
+{% block extra_script %}
+<script>
+(function () {
+  'use strict';
+  const STORAGE_KEY = 'educatrix_tour_v1';
+  const TOTAL = 8;
+
+  /* ── State ── */
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function saveState(s) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
+  }
+
+  let state = loadState();
+  // defaults
+  if (typeof state.current !== 'number') state.current = 0;
+  if (!Array.isArray(state.done))        state.done    = [];
+  if (typeof state.active !== 'boolean') state.active  = false;
+
+  /* ── DOM refs ── */
+  const bar       = document.getElementById('tourBar');
+  const prevBtn   = document.getElementById('tourPrev');
+  const nextBtn   = document.getElementById('tourNext');
+  const closeBtn  = document.getElementById('tourClose');
+  const counter   = document.getElementById('tourCounter');
+  const dotsWrap  = document.getElementById('tourDots');
+  const startBtn  = document.getElementById('tourStartBtn');
+  const startLbl  = document.getElementById('tourStartLabel');
+  const resumeBdg = document.getElementById('tourResumeBadge');
+  const steps     = Array.from(document.querySelectorAll('.tut-step'));
+  const progSegs  = Array.from(document.querySelectorAll('.tut-prog-seg'));
+
+  /* ── Build dots ── */
+  steps.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'tut-tour-dot';
+    d.setAttribute('aria-label', 'Ir para passo ' + (i + 1));
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.querySelectorAll('.tut-tour-dot'));
+
+  /* ── Render ── */
+  function render() {
+    const cur = state.current;
+    const done = state.done;
+
+    /* bar visibility */
+    bar.classList.toggle('tut-bar--hidden', !state.active);
+
+    /* step classes */
+    steps.forEach((el, i) => {
+      el.classList.toggle('tut-step--focused', state.active && i === cur);
+      el.classList.toggle('tut-step--done',    done.includes(i));
+    });
+
+    /* progress bar segments */
+    progSegs.forEach((seg, i) => seg.classList.toggle('done', done.includes(i)));
+
+    /* dots */
+    dots.forEach((d, i) => {
+      d.classList.toggle('done',   done.includes(i) && i !== cur);
+      d.classList.toggle('active', i === cur && state.active);
+    });
+
+    /* counter */
+    counter.textContent = (cur + 1) + ' / ' + TOTAL;
+
+    /* prev/next buttons */
+    prevBtn.disabled = cur === 0;
+    const isLast = cur === TOTAL - 1;
+    nextBtn.innerHTML = isLast
+      ? 'Concluir <i class="bi bi-check-lg ms-1"></i>'
+      : 'Próximo <i class="bi bi-arrow-right ms-1"></i>';
+
+    /* start button state */
+    if (done.length >= TOTAL) {
+      startLbl.textContent = 'Reiniciar Tour';
+      resumeBdg.style.display = 'none';
+    } else if (done.length > 0) {
+      startLbl.textContent = 'Retomar Tour';
+      resumeBdg.style.display = 'inline';
+      resumeBdg.textContent = 'Passo ' + (cur + 1);
+    } else {
+      startLbl.textContent = 'Iniciar Tour Guiado';
+      resumeBdg.style.display = 'none';
+    }
+  }
+
+  /* ── Navigation ── */
+  function markDone(i) {
+    if (!state.done.includes(i)) state.done.push(i);
+  }
+
+  function goTo(i) {
+    i = Math.max(0, Math.min(i, TOTAL - 1));
+    markDone(i);
+    state.current = i;
+    saveState(state);
+    render();
+    // scroll step into view with offset for fixed navbar
+    const el = steps[i];
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }
+
+  /* ── Event listeners ── */
+  startBtn.addEventListener('click', () => {
+    if (state.done.length >= TOTAL) {
+      // Restart
+      state.done = [];
+      state.current = 0;
+    }
+    state.active = true;
+    saveState(state);
+    goTo(state.current);
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (state.current >= TOTAL - 1) {
+      // All done
+      markDone(state.current);
+      state.active = false;
+      saveState(state);
+      render();
+      // scroll to CTA
+      document.querySelector('.tut-cta')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      goTo(state.current + 1);
+    }
+  });
+
+  prevBtn.addEventListener('click', () => goTo(state.current - 1));
+
+  closeBtn.addEventListener('click', () => {
+    state.active = false;
+    saveState(state);
+    render();
+  });
+
+  /* ── Init ── */
+  render();
+  if (state.active) {
+    // auto-scroll to current step on page load
+    const el = steps[state.current];
+    if (el) setTimeout(() => {
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }, 300);
+  }
+})();
+</script>
+{% endblock extra_script %}
