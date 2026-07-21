@@ -262,10 +262,7 @@
 
 {% block extra_script %}
 <script src="{% static 'global/highlight.js/highlight.min.js' %}"></script>
-<script src="{% static 'global/codemirror/codemirror.min.js' %}"></script>
-<script src="{% static 'global/codemirror/mode/python/python.min.js' %}"></script>
-<script src="{% static 'global/codemirror/mode/javascript/javascript.min.js' %}"></script>
-<script src="{% static 'global/codemirror/mode/clike/clike.min.js' %}"></script>
+<script src="{% static 'global/codemirror6/editor.min.js' %}"></script>
 <script>
 (function () {
     'use strict';
@@ -301,13 +298,13 @@
         hljs.highlightElement(el);
     });
 
-    /* ── CodeMirror ───────────────────────────────────────── */
+    /* ── CodeMirror 6 ────────────────────────────────────── */
     var LANG_MAP = {
-        python: 'python',
-        javascript: 'javascript',
-        java: 'text/x-java',
-        c: 'text/x-csrc',
-        cpp: 'text/x-c++src',
+        python:     CM6.languages.python,
+        javascript: CM6.languages.javascript,
+        java:       CM6.languages.java,
+        c:          CM6.languages.cpp,
+        cpp:        CM6.languages.cpp,
     };
 
     function initEditorForSlide(idx) {
@@ -317,18 +314,34 @@
         if (cmEditors[pk]) return;
         var textarea = slide.querySelector('textarea.code-editor');
         if (!textarea) return;
-        cmEditors[pk] = CodeMirror.fromTextArea(textarea, {
-            lineNumbers: true,
-            mode: LANG_MAP[textarea.dataset.language] || 'python',
-            theme: 'atom-one-dark',
-            indentUnit: 4,
-            tabSize: 4,
-            lineWrapping: true,
+
+        var langFn = LANG_MAP[textarea.dataset.language] || CM6.languages.python;
+
+        /* Insere o wrapper exatamente onde a textarea está no DOM */
+        var wrapper = document.createElement('div');
+        textarea.parentElement.insertBefore(wrapper, textarea);
+        textarea.style.display = 'none';
+
+        var view = new CM6.EditorView({
+            state: CM6.EditorState.create({
+                doc: textarea.value,
+                extensions: [
+                    CM6.lmsSetup,
+                    CM6.oneDark,
+                    langFn(),
+                    CM6.keymap.of([CM6.indentWithTab]),
+                    CM6.EditorView.lineWrapping,
+                    CM6.EditorView.updateListener.of(function (update) {
+                        if (update.docChanged) {
+                            answered[idx] = update.state.doc.toString().trim().length > 0;
+                            updateUI();
+                        }
+                    }),
+                ],
+            }),
+            parent: wrapper,
         });
-        cmEditors[pk].on('change', function () {
-            answered[idx] = cmEditors[pk].getValue().trim().length > 0;
-            updateUI();
-        });
+        cmEditors[pk] = view;
     }
 
     /* ── CSRF ─────────────────────────────────────────────── */
@@ -359,7 +372,7 @@
 
         var ta = slide.querySelector('textarea[name="answer_text_' + pk + '"]');
         if (ta) {
-            data.answer_text = cmEditors[pk] ? cmEditors[pk].getValue() : ta.value;
+            data.answer_text = cmEditors[pk] ? cmEditors[pk].state.doc.toString() : ta.value;
         }
 
         var obs = slide.querySelector('textarea[name="student_observation_' + pk + '"]');
@@ -518,7 +531,7 @@
         var btn = e.detail.elt;
         if (!btn || !btn.classList.contains('btn-run-code')) return;
         var pk = btn.dataset.exercisePk;
-        var code = cmEditors[pk] ? cmEditors[pk].getValue() : '';
+        var code = cmEditors[pk] ? cmEditors[pk].state.doc.toString() : '';
         e.detail.parameters['answer_text'] = code;
         e.detail.parameters['exercise_pk'] = pk;
         e.detail.parameters['csrfmiddlewaretoken'] = getCsrf();

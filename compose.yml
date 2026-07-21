@@ -76,7 +76,7 @@ services:
       - -c
       - |
         apt update -y
-        apt install -y netcat-openbsd
+        apt install -y netcat-openbsd nodejs npm
 
         python -m venv /venv
         source /venv/bin/activate
@@ -96,6 +96,11 @@ services:
         done
 
         PYTHONPATH=/app mkdocs build --config-file /doc/mkdocs.yml --site-dir /doc/site -q
+
+        if [ ! -f /app/base_static/global/codemirror6/editor.min.js ]; then
+          echo "Building CodeMirror 6 bundle..."
+          cd /app/codemirror6 && npm install && npm run build && cd /app
+        fi
 
         python manage.py migrate
         python manage.py seed

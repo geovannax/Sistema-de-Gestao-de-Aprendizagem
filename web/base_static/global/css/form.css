@@ -198,35 +198,25 @@
     margin: 0;
 }
 
-/* Textareas substituídas por CodeMirror — esconder imediatamente */
-textarea.font-monospace {
-    display: none !important;
+/* Textareas de código são escondidas pelo JS ao montar o editor CM6 */
+textarea.code-editor {
+    display: none;
 }
 
-/* ---- CodeMirror base ---- */
-.CodeMirror {
+/* ---- CodeMirror 6 ---- */
+.cm-editor {
+    width: 100%;
     height: 220px;
     border-radius: 8px;
     font-size: 0.88rem;
     font-family: 'Courier New', Courier, monospace;
-    line-height: 1.5;
 }
 
-/* atom-one-dark theme */
-.cm-s-atom-one-dark.CodeMirror           { background: #282c34; color: #abb2bf; }
-.cm-s-atom-one-dark .CodeMirror-gutters  { background: #282c34; border-right: 1px solid #3e4451; }
-.cm-s-atom-one-dark .CodeMirror-linenumber { color: #636d83; }
-.cm-s-atom-one-dark .CodeMirror-cursor   { border-left: 1px solid #abb2bf; }
-.cm-s-atom-one-dark .CodeMirror-selected { background: #3e4451; }
-.cm-s-atom-one-dark .cm-keyword         { color: #c678dd; }
-.cm-s-atom-one-dark .cm-def             { color: #61afef; }
-.cm-s-atom-one-dark .cm-variable        { color: #abb2bf; }
-.cm-s-atom-one-dark .cm-variable-2      { color: #abb2bf; }
-.cm-s-atom-one-dark .cm-string          { color: #98c379; }
-.cm-s-atom-one-dark .cm-string-2        { color: #98c379; }
-.cm-s-atom-one-dark .cm-number          { color: #d19a66; }
-.cm-s-atom-one-dark .cm-comment         { color: #5c6370; font-style: italic; }
-.cm-s-atom-one-dark .cm-operator        { color: #56b6c2; }
-.cm-s-atom-one-dark .cm-builtin         { color: #e5c07b; }
-.cm-s-atom-one-dark .cm-meta            { color: #abb2bf; }
-.cm-s-atom-one-dark .cm-atom            { color: #d19a66; }
+.cm-editor.cm-focused {
+    outline: none;
+}
+
+.cm-scroller {
+    overflow: auto;
+    font-family: inherit;
+}
