@@ -257,10 +257,18 @@
                                                     <div class="tl-tc-row">
                                                         {% for r in ce.results %}
                                                         <span class="tl-tc-tag {% if r.is_correct %}tl-tc-ok{% else %}tl-tc-fail{% endif %}">
-                                                            TC{{ forloop.counter }}: {% if r.is_correct %}✓{% else %}✗{% endif %}
+                                                            {% if r.status == 'execution_error' %}Erro
+                                                            {% elif exercise.type == 'complete_code' %}Comparação: {% if r.is_correct %}✓{% else %}✗{% endif %}
+                                                            {% else %}TC{{ forloop.counter }}: {% if r.is_correct %}✓{% else %}✗{% endif %}
+                                                            {% endif %}
                                                         </span>
                                                         {% endfor %}
                                                     </div>
+                                                    {% for r in ce.results %}
+                                                        {% if r.stderr %}
+                                                        <div class="tl-error-msg">{{ r.stderr }}</div>
+                                                        {% endif %}
+                                                    {% endfor %}
                                                     {% endif %}
                                                 </div>
                                             </div>

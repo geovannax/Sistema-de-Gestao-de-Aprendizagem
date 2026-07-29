@@ -269,3 +269,16 @@ pre.answer-code.starter { background: #282c34; }
 .tl-tc-tag { font-size: 0.6rem; padding: 0.05rem 0.3rem; border-radius: 4px; font-family: monospace; }
 .tl-tc-ok  { background: #d1fae5; color: #065f46; }
 .tl-tc-fail{ background: #fee2e2; color: #991b1b; }
+
+.tl-error-msg {
+    margin-top: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    background: #2d0c0c;
+    border: 1px solid #f8514933;
+    border-radius: 6px;
+    color: #ffa198;
+    font-family: monospace;
+    font-size: 0.7rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

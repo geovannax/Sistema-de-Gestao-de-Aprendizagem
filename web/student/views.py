@@ -850,8 +850,13 @@ class TeacherSubmissionsView(_TeacherAccessMixin, TemplateView):
         for enrollment in pending_enrollments:
             enrollment.in_progress = enrollment.student_id in in_progress_ids
 
-        submissions_to_grade = [s for s in submitted if s.pending_count > 0 or s.answered_count < total_exercises]
-        submissions_graded = [s for s in submitted if s.pending_count == 0 and s.answered_count >= total_exercises]
+        # Questões que o aluno deixou em branco nunca ganham um ExerciseAnswer
+        # (ver StudentActivityView._save_answer), então não há nada que o
+        # professor possa corrigir nelas — usar answered_count < total_exercises
+        # aqui prenderia a submissão em "Para Correção" para sempre, mesmo após
+        # toda resposta existente já ter sido corrigida.
+        submissions_to_grade = [s for s in submitted if s.pending_count > 0]
+        submissions_graded = [s for s in submitted if s.pending_count == 0]
 
         context.update({
             'activity_link': activity_link,

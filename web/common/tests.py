@@ -42,20 +42,8 @@ class TestGetBtnAction:
         assert all(r is not None for r in result)
 
 
-# ─── LandingPage ────────────────────────────────────────────────────────────
-
-@pytest.mark.django_db
-class TestLandingPage:
-    def test_get_unauthenticated(self):
-        response = Client().get('/')
-        assert response.status_code == 200
-
-    def test_get_authenticated(self, authenticated_client):
-        response = authenticated_client.get('/')
-        assert response.status_code == 200
-
-
 # ─── HomeView ───────────────────────────────────────────────────────────────
+# Registrada tanto em '/' quanto em '/home/' — mesmo comportamento nas duas rotas.
 
 @pytest.mark.django_db
 class TestHomeView:
@@ -65,6 +53,15 @@ class TestHomeView:
 
     def test_get_unauthenticated_redirects(self):
         response = Client().get('/home/')
+        assert response.status_code == 302
+        assert '/accounts/login/' in response['Location']
+
+    def test_root_get_authenticated(self, authenticated_client):
+        response = authenticated_client.get('/')
+        assert response.status_code == 200
+
+    def test_root_get_unauthenticated_redirects(self):
+        response = Client().get('/')
         assert response.status_code == 302
         assert '/accounts/login/' in response['Location']
 
@@ -327,6 +324,33 @@ class TestExecutor:
                 {'input': '', 'expected_output': ''}
             ])
         assert results[0]['status'] == 'runtime_error'
+
+    def test_run_step_uses_errors_replace(self):
+        """Sem errors='replace', bytes inválidos no stdout de um crash de runtime
+        (comum em C/C++/Java) derrubam a thread interna de decode do subprocess e
+        retornam stdout=None, quebrando _normalize() com AttributeError antes do
+        CodeExecution ser salvo — a exceção escapa como 'Erro interno' genérico em
+        student.tasks.execute_code_task, sem persistir a execução na timeline."""
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code
+        mock_proc = MagicMock()
+        mock_proc.returncode = 1
+        mock_proc.stdout = ''
+        mock_proc.stderr = ''
+        with patch('subprocess.run', return_value=mock_proc) as mock_run:
+            execute_code('python', '1/0', [{'input': '', 'expected_output': ''}])
+        assert mock_run.call_args.kwargs['errors'] == 'replace'
+
+    def test_compile_step_uses_errors_replace(self):
+        from unittest.mock import patch, MagicMock
+        from common.executor import execute_code
+        mock_compile = MagicMock()
+        mock_compile.returncode = 0
+        mock_compile.stdout = ''
+        mock_compile.stderr = ''
+        with patch('subprocess.run', return_value=mock_compile) as mock_run:
+            execute_code('c', 'int main() { return 0; }', [])
+        assert mock_run.call_args.kwargs['errors'] == 'replace'
 
     def test_timeout_sets_time_limit_status(self):
         from unittest.mock import patch

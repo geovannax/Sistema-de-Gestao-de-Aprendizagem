@@ -267,10 +267,6 @@ class GroupCreateView(
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
-    def get_success_url(self) -> str:
-        """Redireciona para a lista de turmas ativas com sinal para o tour guiado."""
-        return '/group/active/?group_created=1'
-
 
 class GroupUpdateView(
     AuthPermissionMixin,

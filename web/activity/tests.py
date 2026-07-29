@@ -1189,23 +1189,23 @@ class TestActivityStatsView:
         assert dist['50–75%'] == 1   # s_dist2
 
         # exercise tags: avg accuracy & time depend on the 3 students above
-        # Ex0 (Q0): s_dist0 wrong, s_dist1 correct, s_dist2 correct → acc=67%, avg_t=200s → 'Trabalhosa'
-        # Ex1 (Q1): s_dist0 wrong, s_dist1 wrong, s_dist2 correct → acc=33%, avg_t=133s → 'Difícil'
-        # Ex2 (Q2): all wrong → acc=0%, avg_t=0 → 'Confusa'
-        # Ex3 (Q3): all wrong → acc=0%, avg_t=0 → 'Confusa'  (duplicate OK)
+        # Ex0 (Q0): s_dist0 wrong, s_dist1 correct, s_dist2 correct → acc=67%, avg_t=200s → 'Médio'
+        # Ex1 (Q1): s_dist0 wrong, s_dist1 wrong, s_dist2 correct → acc=33%, avg_t=133s → 'Alto'
+        # Ex2 (Q2): all wrong → acc=0%, avg_t=0 → 'Médio Alto'
+        # Ex3 (Q3): all wrong → acc=0%, avg_t=0 → 'Médio Alto'  (duplicate OK)
         tags = {row['exercise_id']: row['tag'] for row in ctx['exercise_rows']}
-        assert tags[exs[0].pk] == 'Trabalhosa'
-        assert tags[exs[1].pk] == 'Difícil'
-        assert tags[exs[2].pk] == 'Confusa'
+        assert tags[exs[0].pk] == 'Médio'
+        assert tags[exs[1].pk] == 'Alto'
+        assert tags[exs[2].pk] == 'Médio Alto'
 
-        # Also verify 'OK' tag: need acc in 40-80% and avg_t <= 180
-        # Ex3 all wrong → 'Confusa'; we need a new exercise
+        # Also verify 'Médio Baixo' tag: need acc in 40-80% and avg_t <= 180
+        # Ex3 all wrong → 'Médio Alto'; we need a new exercise
         ex_ok = Exercise.objects.create(
             activity_list=activity, type='discursive', statement='Q_ok', points=5,
         )
         DiscursiveExercise.objects.create(exercise=ex_ok, min_words=0)
 
-        # Add answers for the 3 students to ex_ok: 2/3 correct → acc=67%, avg_t=0 → 'OK'
+        # Add answers for the 3 students to ex_ok: 2/3 correct → acc=67%, avg_t=0 → 'Médio Baixo'
         for sub_username, correct in [('s_dist0', True), ('s_dist1', True), ('s_dist2', False)]:
             sub = Submission.objects.get(student__username=sub_username, activity_link=link)
             ExerciseAnswer.objects.create(submission=sub, exercise=ex_ok, is_correct=correct)
@@ -1213,4 +1213,4 @@ class TestActivityStatsView:
         response2 = activity_client.get(f'/activity/stats/{activity.pk}/')
         assert response2.status_code == 200
         tags2 = {row['exercise_id']: row['tag'] for row in response2.context['exercise_rows']}
-        assert tags2[ex_ok.pk] == 'OK'
+        assert tags2[ex_ok.pk] == 'Médio Baixo'

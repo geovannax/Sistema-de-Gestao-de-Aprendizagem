@@ -1,4 +1,4 @@
-"""Views globais do projeto: landing page, home e handlers de erro."""
+"""Views globais do projeto: home e handlers de erro."""
 from __future__ import annotations
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
@@ -6,26 +6,13 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 
 
-class LandingPage(TemplateView):
-    """Página inicial pública do sistema.
-
-    Acessível sem autenticação. Exibe a apresentação do produto e
-    links para login/cadastro.
-    """
-    template_name = 'global/partials/landing.html'
-
-
 class HomeView(LoginRequiredMixin, TemplateView):
     """Dashboard inicial para usuários autenticados.
 
     Redireciona para login se o usuário não estiver autenticado.
+    Registrada em ``core/urls.py`` tanto em ``/`` quanto em ``/home/``.
     """
     template_name = 'global/partials/home.html'
-
-
-class TutorialView(LoginRequiredMixin, TemplateView):
-    """Tutorial interativo do ciclo completo do sistema."""
-    template_name = 'global/partials/tutorial.html'
 
 
 def permission_denied(request: HttpRequest, exception: Exception | None = None) -> HttpResponse:

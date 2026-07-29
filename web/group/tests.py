@@ -20,6 +20,8 @@ from group.models import (
     GroupStudent,
     generate_group_invite_token,
 )
+from activity.models import ActivityList, ActivityListGroup, DiscursiveExercise, Exercise
+from student.models import ExerciseAnswer, Submission
 
 
 @pytest.mark.django_db
@@ -630,3 +632,166 @@ class TestGroupDetailView:
     def test_unauthenticated_redirects(self, group):
         response = Client().get(f'/group/{group.pk}/stats/')
         assert response.status_code == 302
+
+    def test_stats_with_submissions_and_at_risk_students(self, authenticated_client, user, group):
+        activity1 = ActivityList.objects.create(title='Ativ 1', created_by=user)
+        activity2 = ActivityList.objects.create(title='Ativ 2', created_by=user)
+        link1 = ActivityListGroup.objects.create(group=group, activity_list=activity1)
+        link2 = ActivityListGroup.objects.create(group=group, activity_list=activity2)
+
+        ex1 = Exercise.objects.create(activity_list=activity1, type='discursive', statement='Q1', points=5)
+        DiscursiveExercise.objects.create(exercise=ex1, min_words=0)
+        ex2 = Exercise.objects.create(activity_list=activity2, type='discursive', statement='Q2', points=10)
+        DiscursiveExercise.objects.create(exercise=ex2, min_words=0)
+
+        s1 = User.objects.create_user(username='s1', password='pass')
+        s2 = User.objects.create_user(username='s2', password='pass')
+        s3 = User.objects.create_user(username='s3', password='pass')
+        s4 = User.objects.create_user(username='s4', password='pass')
+        for s in (s1, s2, s3, s4):
+            GroupStudent.objects.create(group=group, student=s, is_active=True)
+
+        sub1a = Submission.objects.create(student=s1, activity_link=link1, submitted_at=timezone.now())
+        ExerciseAnswer.objects.create(submission=sub1a, exercise=ex1, is_correct=True, time_spent_seconds=120)
+        sub1b = Submission.objects.create(student=s1, activity_link=link2, submitted_at=timezone.now())
+        ExerciseAnswer.objects.create(submission=sub1b, exercise=ex2, is_correct=True, time_spent_seconds=90)
+
+        sub2a = Submission.objects.create(student=s2, activity_link=link1, submitted_at=timezone.now())
+        ExerciseAnswer.objects.create(submission=sub2a, exercise=ex1, is_correct=False, time_spent_seconds=30)
+
+        # s4 starts an attempt but never submits anything -> counts as "abandoned"
+        Submission.objects.create(student=s4, activity_link=link2)
+
+        # s3 never attempts anything -> fully at risk
+
+        response = authenticated_client.get(f'/group/{group.pk}/stats/')
+        assert response.status_code == 200
+        ctx = response.context
+        assert ctx['students_enrolled'] == 4
+        assert ctx['students_submitted'] == 2
+        assert ctx['students_abandoned'] >= 1
+        assert ctx['activities_count'] == 2
+        assert ctx['avg_points'] is not None
+        assert ctx['median_points'] is not None
+
+        at_risk_names = {r['name'] for r in ctx['at_risk_students']}
+        assert 's3' in at_risk_names or (s3.get_full_name() or s3.username) in at_risk_names
+        kpis = ctx['activity_kpis']
+        assert 'all' in kpis
+        assert str(link1.pk) in kpis
+        assert kpis[str(link1.pk)]['students_submitted'] == 2
+        stats_link1 = next(a for a in ctx['activity_stats'] if a.pk == link1.pk)
+        assert stats_link1.grades_submitted_count == 2
+
+
+# ─── GroupGradesView ─────────────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestGroupGradesView:
+    def test_owner_can_access(self, authenticated_client, group):
+        response = authenticated_client.get(f'/group/{group.pk}/grades/')
+        assert response.status_code == 200
+
+    def test_shared_teacher_can_access(self, user, group):
+        shared = User.objects.create_user(username='shared_grades', password='pass')
+        GroupSharing.objects.create(group=group, shared_with=shared, shared_by=user, is_active=True)
+        client = Client()
+        client.post('/accounts/login/', {'username': 'shared_grades', 'password': 'pass'})
+        response = client.get(f'/group/{group.pk}/grades/')
+        assert response.status_code == 200
+
+    def test_unrelated_user_gets_403(self, group):
+        other = User.objects.create_user(username='other_grades', password='pass')
+        client = Client()
+        client.post('/accounts/login/', {'username': 'other_grades', 'password': 'pass'})
+        response = client.get(f'/group/{group.pk}/grades/')
+        assert response.status_code == 403
+
+    def test_unauthenticated_redirects(self, group):
+        response = Client().get(f'/group/{group.pk}/grades/')
+        assert response.status_code == 302
+
+    def test_no_activities_grand_total_is_dash(self, authenticated_client, group, user):
+        s1 = User.objects.create_user(username='g_s1', password='pass')
+        GroupStudent.objects.create(group=group, student=s1, is_active=True)
+        response = authenticated_client.get(f'/group/{group.pk}/grades/')
+        assert response.context['total_activities'] == 0
+        row = response.context['students_grades'][0]
+        assert row['total_fmt'] == '—'
+        assert row['pct'] == 0
+        assert row['submitted'] is False
+
+    def test_grades_rows_reflect_submitted_and_pending(self, authenticated_client, user, group):
+        activity = ActivityList.objects.create(title='Ativ', created_by=user)
+        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
+        ex = Exercise.objects.create(activity_list=activity, type='discursive', statement='Q', points=10)
+        DiscursiveExercise.objects.create(exercise=ex, min_words=0)
+
+        s1 = User.objects.create_user(username='gr_s1', password='pass')
+        s2 = User.objects.create_user(username='gr_s2', password='pass')
+        GroupStudent.objects.create(group=group, student=s1, is_active=True)
+        GroupStudent.objects.create(group=group, student=s2, is_active=True)
+
+        sub = Submission.objects.create(student=s1, activity_link=link, submitted_at=timezone.now())
+        ExerciseAnswer.objects.create(submission=sub, exercise=ex, is_correct=True)
+
+        response = authenticated_client.get(f'/group/{group.pk}/grades/')
+        rows = {r['name']: r for r in response.context['students_grades']}
+        assert rows[s1.get_full_name() or s1.username]['submitted'] is True
+        assert rows[s1.get_full_name() or s1.username]['pct'] == 100
+        assert rows[s2.get_full_name() or s2.username]['submitted'] is False
+        breakdown_s2 = rows[s2.get_full_name() or s2.username]['breakdown'][0]
+        assert breakdown_s2['submitted'] is False
+        assert breakdown_s2['grade_class'] == 'd'
+
+
+# ─── Module-level formatting/grading helpers ─────────────────────────────────
+
+class TestGroupViewsHelpers:
+    def test_fmt_pts_none(self):
+        from group.views import _fmt_pts
+        assert _fmt_pts(None) == '—'
+
+    def test_fmt_pts_strips_trailing_zeros(self):
+        from group.views import _fmt_pts
+        assert _fmt_pts(5.0) == '5'
+        assert _fmt_pts(5.5) == '5.5'
+
+    def test_fmt_dur_none_or_zero(self):
+        from group.views import _fmt_dur
+        assert _fmt_dur(None) == '—'
+        assert _fmt_dur(0) == '—'
+
+    def test_fmt_dur_seconds_only(self):
+        from group.views import _fmt_dur
+        assert _fmt_dur(45) == '45s'
+
+    def test_fmt_dur_minutes_and_seconds(self):
+        from group.views import _fmt_dur
+        assert _fmt_dur(90) == '1min 30s'
+
+    def test_fmt_dur_minutes_only(self):
+        from group.views import _fmt_dur
+        assert _fmt_dur(120) == '2min'
+
+    def test_fmt_dur_hours_and_minutes(self):
+        from group.views import _fmt_dur
+        assert _fmt_dur(3900) == '1h 5min'
+
+    def test_fmt_dur_hours_only(self):
+        from group.views import _fmt_dur
+        assert _fmt_dur(7200) == '2h'
+
+    def test_grades_grade_class_boundaries(self):
+        from group.views import GroupGradesView
+        assert GroupGradesView._grade_class(95) == 'a'
+        assert GroupGradesView._grade_class(75) == 'b'
+        assert GroupGradesView._grade_class(55) == 'c'
+        assert GroupGradesView._grade_class(10) == 'd'
+
+    def test_rank_class(self):
+        from group.views import GroupGradesView
+        assert GroupGradesView._rank_class(1) == 'rank-1'
+        assert GroupGradesView._rank_class(2) == 'rank-2'
+        assert GroupGradesView._rank_class(3) == 'rank-3'
+        assert GroupGradesView._rank_class(4) == 'rank-n'

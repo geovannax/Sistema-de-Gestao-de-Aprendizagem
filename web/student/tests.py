@@ -117,72 +117,10 @@ class TestStudentDashboard:
         response = Client().get('/student/')
         assert response.status_code == 302
 
-    def test_empty_dashboard(self, authenticated_client):
+    def test_authenticated_redirects_to_turmas(self, authenticated_client):
         response = authenticated_client.get('/student/')
-        assert response.status_code == 200
-
-    def test_dashboard_with_enrollment(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        response = authenticated_client.get('/student/')
-        assert response.status_code == 200
-
-    def test_dashboard_table_view(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        response = authenticated_client.get('/student/?view_type=table')
-        assert response.status_code == 200
-
-    def test_dashboard_invalid_view_type(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        response = authenticated_client.get('/student/?view_type=invalid')
-        assert response.status_code == 200
-
-    def test_dashboard_with_open_activity(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        activity = ActivityList.objects.create(title='Open Act', created_by=user)
-        ActivityListGroup.objects.create(group=group, activity_list=activity)
-        response = authenticated_client.get('/student/')
-        assert response.status_code == 200
-
-    def test_dashboard_with_future_activity(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        activity = ActivityList.objects.create(title='Future Act', created_by=user)
-        ActivityListGroup.objects.create(
-            group=group,
-            activity_list=activity,
-            starts_at=timezone.now() + timedelta(days=1),
-        )
-        response = authenticated_client.get('/student/')
-        assert response.status_code == 200
-
-    def test_dashboard_with_closed_activity(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        activity = ActivityList.objects.create(title='Closed Act', created_by=user)
-        ActivityListGroup.objects.create(
-            group=group,
-            activity_list=activity,
-            ends_at=timezone.now() - timedelta(days=1),
-        )
-        response = authenticated_client.get('/student/')
-        assert response.status_code == 200
-
-    def test_dashboard_skips_completed_in_totals(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        activity = ActivityList.objects.create(title='Done Act', created_by=user)
-        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
-        Submission.objects.create(student=user, activity_link=link, submitted_at=timezone.now())
-        response = authenticated_client.get('/student/')
-        assert response.status_code == 200
-
-    def test_dashboard_limited_activity_completed(self, authenticated_client, user, group):
-        GroupStudent.objects.create(group=group, student=user, is_active=True)
-        activity = ActivityList.objects.create(title='Limited', created_by=user, max_attempts=2)
-        link = ActivityListGroup.objects.create(group=group, activity_list=activity)
-        Submission.objects.create(
-            student=user, activity_link=link,
-            submitted_at=timezone.now(), is_abandoned=False,
-        )
-        response = authenticated_client.get('/student/')
-        assert response.status_code == 200
+        assert response.status_code == 302
+        assert response['Location'] == '/accounts/profile/turmas/'
 
 
 # ─── Group Detail ─────────────────────────────────────────────────────────────
@@ -751,6 +689,36 @@ class TestTeacherSubmissionsView:
         assert response.status_code == 200
         assert len(response.context['submissions']) == 0
 
+    def test_unanswered_question_does_not_block_grading_forever(
+        self, authenticated_client, activity_link, enrolled, submitted_submission, discursive_exercise
+    ):
+        """Perguntas deixadas em branco nunca ganham ExerciseAnswer (ver
+        StudentActivityView._save_answer), então não há nada para o professor
+        corrigir nelas — a submissão não pode ficar presa em 'Para Correção'
+        esperando uma resposta que nunca vai existir."""
+        second_ex = Exercise.objects.create(
+            activity_list=activity_link.activity_list, type='discursive', statement='Q2', points=5,
+        )
+        DiscursiveExercise.objects.create(exercise=second_ex, min_words=0)
+        answer = ExerciseAnswer.objects.create(
+            submission=submitted_submission, exercise=discursive_exercise,
+            answer_text='Resposta', is_correct=None,
+        )
+
+        response = authenticated_client.get(f'/student/activity/{activity_link.pk}/submissions/')
+        sub = response.context['submissions'][0]
+        assert sub.answered_count == 1
+        assert sub in response.context['submissions_to_grade']
+
+        answer.is_correct = True
+        answer.save(update_fields=['is_correct'])
+
+        response2 = authenticated_client.get(f'/student/activity/{activity_link.pk}/submissions/')
+        sub2 = response2.context['submissions'][0]
+        assert sub2.answered_count == 1
+        assert sub2 in response2.context['submissions_graded']
+        assert sub2 not in response2.context['submissions_to_grade']
+
 
 # ─── Teacher Grade View ───────────────────────────────────────────────────────
 
@@ -880,6 +848,43 @@ class TestTeacherGradeView:
         answer.refresh_from_db()
         submitted_submission.refresh_from_db()
         assert submitted_submission.teacher_comment == 'Correção geral'
+
+    def test_grade_view_shows_code_execution_diff_timeline(
+        self, authenticated_client, activity_link, enrolled, submitted_submission, code_exercise
+    ):
+        from student.models import CodeExecution
+        exec1 = CodeExecution.objects.create(
+            submission=submitted_submission, exercise=code_exercise,
+            source_code='def f():\n    return 1\n',
+            results=[{'is_correct': False}],
+        )
+        exec2 = CodeExecution.objects.create(
+            submission=submitted_submission, exercise=code_exercise,
+            source_code='def f():\n    return 2\n',
+            results=[{'is_correct': True}],
+        )
+        exec3 = CodeExecution.objects.create(
+            submission=submitted_submission, exercise=code_exercise,
+            source_code='def f():\n    return 2\n\nprint(f())\n',
+            results=[{'is_correct': True}],
+        )
+        response = authenticated_client.get(
+            f'/student/activity/{activity_link.pk}/submissions/{submitted_submission.pk}/grade/'
+        )
+        assert response.status_code == 200
+        ex = next(e for e in response.context['exercises'] if e.pk == code_exercise.pk)
+        assert len(ex.code_executions_list) == 3
+        first, second, third = ex.code_executions_list
+        assert first.is_baseline is True
+        assert first.diff is None
+        assert second.is_baseline is False
+        assert second.diff is not None
+        change_lines = [ln for ln in second.diff if ln['t'] in ('rem', 'add')]
+        assert len(change_lines) == 2
+        ctx_lines = [ln for ln in second.diff if ln['t'] == 'ctx']
+        assert len(ctx_lines) == 1
+        insert_lines = [ln for ln in third.diff if ln['t'] == 'add']
+        assert len(insert_lines) >= 1
 
     def test_post_teacher_shared_access(self, activity_link, enrolled, submitted_submission):
         from group.models import GroupSharing
@@ -1667,6 +1672,20 @@ class TestStudentRunCodePollView:
             )
         assert response.status_code == 200
 
+    def test_task_complete_code_returns_result(
+        self, authenticated_client, activity_link, enrolled, complete_code_exercise, submission
+    ):
+        from unittest.mock import patch, MagicMock
+        mock_result = MagicMock()
+        mock_result.ready.return_value = True
+        mock_result.get.return_value = {'complete_code': True, 'is_correct': True}
+        with patch('celery.result.AsyncResult', return_value=mock_result):
+            response = authenticated_client.get(
+                f'/student/activity/{activity_link.pk}/run/poll/fake-id/'
+                f'?exercise_pk={complete_code_exercise.pk}',
+            )
+        assert response.status_code == 200
+
     def test_task_with_results_returns_result_html(
         self, authenticated_client, activity_link, enrolled, code_exercise, submission
     ):
@@ -1729,12 +1748,21 @@ class TestExecuteCodeTask:
         from unittest.mock import patch
         from student.tasks import execute_code_task
         from common.executor import CompilationError
+        from student.models import CodeExecution
         ex = self._make_code_exercise(activity_link.activity_list)
         sub = Submission.objects.create(student=user, activity_link=activity_link)
         with patch('common.executor.execute_code', side_effect=CompilationError('syntax error')):
             result = execute_code_task.run(sub.pk, ex.pk, 'bad code')
         assert 'error' in result
         assert 'compilação' in result['error']
+
+        # a submissão não pode ficar presa em "Aguardando revisão" para sempre —
+        # exercícios do tipo code não têm correção manual na tela do professor.
+        answer = ExerciseAnswer.objects.get(submission=sub, exercise=ex)
+        assert answer.is_correct is False
+        execution = CodeExecution.objects.get(submission=sub, exercise=ex)
+        assert execution.results[0]['status'] == 'execution_error'
+        assert 'syntax error' in execution.results[0]['stderr']
 
     def test_code_exercise_language_not_supported(self, user, activity_link):
         from unittest.mock import patch
@@ -1745,6 +1773,8 @@ class TestExecuteCodeTask:
         with patch('common.executor.execute_code', side_effect=LanguageNotSupportedError('no')):
             result = execute_code_task.run(sub.pk, ex.pk, 'x')
         assert 'error' in result
+        answer = ExerciseAnswer.objects.get(submission=sub, exercise=ex)
+        assert answer.is_correct is False
 
     def test_code_exercise_executor_error(self, user, activity_link):
         from unittest.mock import patch
@@ -1755,10 +1785,12 @@ class TestExecuteCodeTask:
         with patch('common.executor.execute_code', side_effect=ExecutorError('fail')):
             result = execute_code_task.run(sub.pk, ex.pk, 'x')
         assert 'error' in result
+        answer = ExerciseAnswer.objects.get(submission=sub, exercise=ex)
+        assert answer.is_correct is False
 
-    def test_complete_code_exercise_success(self, user, activity_link):
-        from unittest.mock import patch
+    def test_complete_code_exercise_correct_match(self, user, activity_link):
         from student.tasks import execute_code_task
+        from student.models import CodeExecution
         ex = Exercise.objects.create(
             activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
         )
@@ -1766,59 +1798,72 @@ class TestExecuteCodeTask:
             exercise=ex, language='python', starter_code='___', complete_code='print(1)'
         )
         sub = Submission.objects.create(student=user, activity_link=activity_link)
-        mock_results = [
-            {'stdin': '', 'expected_output': '', 'stdout': '1',
-             'stderr': '', 'is_correct': True, 'status': 'correct'}
-        ]
-        with patch('common.executor.execute_code', return_value=mock_results):
-            result = execute_code_task.run(sub.pk, ex.pk, 'print(1)')
-        assert result['run_only'] is True
-        assert result['stdout'] == '1'
+        result = execute_code_task.run(sub.pk, ex.pk, 'print(1)')
+        assert result == {'complete_code': True, 'is_correct': True}
 
-    def test_complete_code_compilation_error(self, user, activity_link):
-        from unittest.mock import patch
+        execution = CodeExecution.objects.get(submission=sub, exercise=ex)
+        assert execution.source_code == 'print(1)'
+        assert execution.results[0]['is_correct'] is True
+        assert execution.all_correct is True
+
+    def test_complete_code_exercise_wrong_match(self, user, activity_link):
         from student.tasks import execute_code_task
-        from common.executor import CompilationError
+        from student.models import CodeExecution
         ex = Exercise.objects.create(
             activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
         )
         CompleteCodeExercise.objects.create(
-            exercise=ex, language='python', starter_code='___', complete_code='x'
+            exercise=ex, language='python', starter_code='___', complete_code='print(1)'
         )
         sub = Submission.objects.create(student=user, activity_link=activity_link)
-        with patch('common.executor.execute_code', side_effect=CompilationError('err')):
-            result = execute_code_task.run(sub.pk, ex.pk, 'bad')
-        assert 'error' in result
+        result = execute_code_task.run(sub.pk, ex.pk, 'print(2)')
+        assert result == {'complete_code': True, 'is_correct': False}
 
-    def test_complete_code_language_not_supported(self, user, activity_link):
-        from unittest.mock import patch
+        execution = CodeExecution.objects.get(submission=sub, exercise=ex)
+        assert execution.results[0]['is_correct'] is False
+        assert execution.results[0]['status'] == 'wrong_answer'
+        assert execution.all_correct is False
+
+    def test_complete_code_exercise_ignores_formatting_differences(self, user, activity_link):
         from student.tasks import execute_code_task
-        from common.executor import LanguageNotSupportedError
         ex = Exercise.objects.create(
             activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
         )
         CompleteCodeExercise.objects.create(
-            exercise=ex, language='python', starter_code='___', complete_code='x'
+            exercise=ex, language='python', starter_code='___', complete_code='x = 1'
         )
         sub = Submission.objects.create(student=user, activity_link=activity_link)
-        with patch('common.executor.execute_code', side_effect=LanguageNotSupportedError('no')):
-            result = execute_code_task.run(sub.pk, ex.pk, 'x')
-        assert 'error' in result
+        result = execute_code_task.run(sub.pk, ex.pk, 'x=1')
+        assert result == {'complete_code': True, 'is_correct': True}
 
-    def test_complete_code_executor_error(self, user, activity_link):
-        from unittest.mock import patch
+    def test_complete_code_exercise_logs_evolution_across_multiple_runs(self, user, activity_link):
+        """Vários cliques em Executar geram uma entrada por tentativa, formando
+        a timeline de evolução exibida na tela de correção do professor."""
         from student.tasks import execute_code_task
-        from common.executor import ExecutorError
+        from student.models import CodeExecution
         ex = Exercise.objects.create(
             activity_list=activity_link.activity_list, type='complete_code', statement='Q', points=1
         )
         CompleteCodeExercise.objects.create(
-            exercise=ex, language='python', starter_code='___', complete_code='x'
+            exercise=ex, language='python', starter_code='___', complete_code='x = 1'
         )
         sub = Submission.objects.create(student=user, activity_link=activity_link)
-        with patch('common.executor.execute_code', side_effect=ExecutorError('err')):
-            result = execute_code_task.run(sub.pk, ex.pk, 'x')
-        assert 'error' in result
+
+        execute_code_task.run(sub.pk, ex.pk, 'x = 2')
+        execute_code_task.run(sub.pk, ex.pk, 'x = 1')
+
+        executions = list(
+            CodeExecution.objects.filter(submission=sub, exercise=ex).order_by('created_at')
+        )
+        assert len(executions) == 2
+        assert executions[0].source_code == 'x = 2'
+        assert executions[0].all_correct is False
+        assert executions[1].source_code == 'x = 1'
+        assert executions[1].all_correct is True
+
+        # ExerciseAnswer não é tocado por execute_code_task para complete_code —
+        # a nota final é decidida em StudentSubmitView._auto_grade no submit.
+        assert not ExerciseAnswer.objects.filter(submission=sub, exercise=ex).exists()
 
     def test_unsupported_exercise_type_returns_error(self, user, activity_link):
         from student.tasks import execute_code_task

@@ -31,21 +31,7 @@
                     <a href="{% url 'activity:list' %}" class="btn btn-outline-secondary">
                         <i class="bi bi-list-task me-1"></i> Atividades
                     </a>
-                    <button onclick="tourStart()" class="btn btn-outline-secondary" id="heroTourBtn">
-                        <i class="bi bi-map me-1"></i> <span id="heroTourLabel">Tour Guiado</span>
-                    </button>
                 </div>
-                <script>
-                  document.addEventListener('DOMContentLoaded', function () {
-                    var s = window.tourState && window.tourState();
-                    if (s && s.done && s.done.length > 0 && s.done.length < 9) {
-                      document.getElementById('heroTourLabel').textContent = 'Continuar Tour (passo ' + s.step + '/9)';
-                      document.getElementById('heroTourBtn').onclick = function () { tourResume(); };
-                    } else if (s && s.done && s.done.length >= 9) {
-                      document.getElementById('heroTourLabel').textContent = 'Reiniciar Tour';
-                    }
-                  });
-                </script>
             </div>
 
             <div class="hero-panel">

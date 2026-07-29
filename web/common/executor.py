@@ -41,7 +41,7 @@ FILE_LIMIT     = 1 * 1024 * 1024          # 1 MB por arquivo de saída
 PROC_LIMIT     = 64                        # processos filhos máximos
 EXECUTION_TIMEOUT = 10                     # wall-clock timeout (segundos)
 
-ExecutionStatus = Literal['correct', 'wrong_answer', 'runtime_error', 'time_limit']
+ExecutionStatus = Literal['correct', 'wrong_answer', 'runtime_error', 'time_limit', 'execution_error']
 
 
 class ExecutionResult(dict[str, Any]):
@@ -403,6 +403,7 @@ def execute_code(
                 cwd=str(workdir),
                 capture_output=True,
                 text=True,
+                errors='replace',
                 timeout=30,
             )
             if result.returncode != 0:
@@ -429,6 +430,7 @@ def execute_code(
                     input=stdin_data,
                     capture_output=True,
                     text=True,
+                    errors='replace',
                     timeout=EXECUTION_TIMEOUT,
                     cwd=str(workdir),
                     preexec_fn=preexec,

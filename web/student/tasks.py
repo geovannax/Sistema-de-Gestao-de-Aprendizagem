@@ -24,8 +24,21 @@ def execute_code_task(
     ``CodeExecution`` com os resultados e faz ``update_or_create`` no
     ``ExerciseAnswer`` correspondente.
 
+    Falhas de compilação, linguagem não suportada ou erro do executor
+    (``common.executor.ExecutorError`` e subclasses) também persistem um
+    ``CodeExecution`` (com a mensagem de erro em ``results[0]['stderr']``) e
+    marcam ``ExerciseAnswer.is_correct = False`` — sem isso, a submissão ficava
+    presa em "Aguardando revisão" para sempre, já que exercícios do tipo
+    ``code`` não têm correção manual na tela do professor.
+
     Para exercícios do tipo ``'complete_code'``, a correção é feita de forma
-    síncrona via ``normalize_code`` sem subprocess.
+    síncrona via ``normalize_code`` sem subprocess — mas ainda assim persiste
+    um ``CodeExecution`` a cada clique em Executar (resultado sintético de um
+    único item, sem casos de teste reais), para alimentar a timeline de
+    evolução na tela de correção do professor, igual ao tipo ``code``.
+    ``ExerciseAnswer.is_correct`` não é tocado aqui — quem decide a nota final
+    é ``StudentSubmitView._auto_grade``, que reavalia com base no texto
+    efetivamente entregue.
 
     Args:
         submission_pk: PK da ``Submission`` do aluno.
@@ -49,12 +62,7 @@ def execute_code_task(
         ``{'error': mensagem}``.
     """
     from activity.models import Exercise
-    from common.executor import (
-        CompilationError,
-        ExecutorError,
-        LanguageNotSupportedError,
-        execute_code,
-    )
+    from common.executor import CompilationError, ExecutorError, execute_code
     from student.models import CodeExecution, ExerciseAnswer, Submission
 
     try:
@@ -82,6 +90,19 @@ def execute_code_task(
                 normalize_code(source_code, ccx.language)
                 == normalize_code(ccx.complete_code, ccx.language)
             )
+            CodeExecution.objects.create(
+                submission=submission,
+                exercise=exercise,
+                source_code=source_code,
+                results=[{
+                    'stdin': '',
+                    'expected_output': '',
+                    'stdout': '',
+                    'stderr': '',
+                    'is_correct': is_correct,
+                    'status': 'correct' if is_correct else 'wrong_answer',
+                }],
+            )
             return {
                 'complete_code': True,
                 'is_correct': is_correct,
@@ -92,12 +113,32 @@ def execute_code_task(
 
         try:
             results: list[dict[str, Any]] = execute_code(language, source_code, test_cases)
-        except CompilationError as exc:
-            return {'error': f'Erro de compilação:\n{exc.output}'}
-        except LanguageNotSupportedError as exc:
-            return {'error': str(exc)}
         except ExecutorError as exc:
-            return {'error': str(exc)}
+            error_message = (
+                f'Erro de compilação:\n{exc.output}' if isinstance(exc, CompilationError) else str(exc)
+            )
+            CodeExecution.objects.create(
+                submission=submission,
+                exercise=exercise,
+                source_code=source_code,
+                results=[{
+                    'stdin': '',
+                    'expected_output': '',
+                    'stdout': '',
+                    'stderr': error_message,
+                    'is_correct': False,
+                    'status': 'execution_error',
+                }],
+            )
+            ExerciseAnswer.objects.update_or_create(
+                submission=submission,
+                exercise=exercise,
+                defaults={
+                    'answer_text': source_code,
+                    'is_correct': False,
+                },
+            )
+            return {'error': error_message}
 
         execution = CodeExecution.objects.create(
             submission=submission,
