@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{% static 'global/css/home.css' %}">
     <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
     <script>
-        if (localStorage.getItem('viewMode') === 'aluno') {
+        if (window.getViewMode() === 'aluno') {
             window.location.replace('/accounts/profile/');
         }
     </script>

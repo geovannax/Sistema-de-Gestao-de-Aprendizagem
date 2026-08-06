@@ -18,6 +18,24 @@
         <link href="{% static 'global/css/modal.css' %}" rel="stylesheet">
         <link href="{% static 'global/css/notification-popup.css' %}" rel="stylesheet">
 
+        <script>
+            (function () {
+                // Escopo por usuário: cada conta tem sua própria preferência de
+                // visualização (aluno/professor) no localStorage, para que um
+                // computador compartilhado não "herde" o modo do usuário anterior.
+                var storageKey = 'viewMode_{{ request.user.pk|default_if_none:"anon" }}';
+                window.getViewMode = function () {
+                    var raw = localStorage.getItem(storageKey);
+                    if (raw === 'teacher') return 'professor';
+                    if (raw === 'student') return 'aluno';
+                    return raw === 'professor' ? 'professor' : 'aluno';
+                };
+                window.setViewMode = function (mode) {
+                    localStorage.setItem(storageKey, mode);
+                };
+            })();
+        </script>
+
         {% block extra_head %} {% endblock extra_head %}
     </head>
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-boost="false">

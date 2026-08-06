@@ -7,8 +7,8 @@
                 <a class="navbar-brand text-primary fw-bolder fs-4 m-0" href="{% url 'home' %}">
                     <i class="bi bi-book"></i> Educatrix
                 </a>
-                <span id="viewModeBadge" class="view-mode-inline" data-mode="professor">
-                    <span data-view-mode-text>Professor</span>
+                <span id="viewModeBadge" class="view-mode-inline" data-mode="aluno">
+                    <span data-view-mode-text>Aluno</span>
                 </span>
             </div>
 
@@ -100,18 +100,19 @@
             const params = new URLSearchParams(window.location.search);
             const urlMode = params.get('tipo');
 
-            const normalizeViewMode = function (mode) {
+            const normalizeUrlMode = function (mode) {
                 if (mode === 'student') return 'aluno';
                 if (mode === 'teacher') return 'professor';
-                return mode === 'aluno' ? 'aluno' : 'professor';
+                return mode === 'aluno' || mode === 'professor' ? mode : null;
             };
 
-            if (urlMode === 'aluno' || urlMode === 'professor') {
-                localStorage.setItem('viewMode', urlMode);
+            const requestedMode = normalizeUrlMode(urlMode);
+            if (requestedMode) {
+                window.setViewMode(requestedMode);
             }
 
             const updateViewModeLabel = function () {
-                const currentMode = normalizeViewMode(localStorage.getItem('viewMode'));
+                const currentMode = window.getViewMode();
 
                 label.textContent = currentMode === 'aluno'
                     ? 'Visualizar como Professor'
@@ -131,14 +132,13 @@
                 });
             };
 
-            localStorage.setItem('viewMode', normalizeViewMode(localStorage.getItem('viewMode')));
             updateViewModeLabel();
 
             button.addEventListener('click', function () {
-                const currentMode = normalizeViewMode(localStorage.getItem('viewMode'));
+                const currentMode = window.getViewMode();
                 const nextMode = currentMode === 'aluno' ? 'professor' : 'aluno';
 
-                localStorage.setItem('viewMode', nextMode);
+                window.setViewMode(nextMode);
                 window.location.href = '/home/';
             });
         });
