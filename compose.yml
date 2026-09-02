@@ -4,19 +4,46 @@ x-postgres-env:
     POSTGRES_USER: ${POSTGRES_USER:-lms_user}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lms_password}
     POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-    POSTGRES_CONTAINER_NAME: ${POSTGRES_CONTAINER_NAME}
+    POSTGRES_CONTAINER_NAME: ${POSTGRES_CONTAINER_NAME:-lms_postgres}
 
 x-web-env:
   environment: &web-common-env
     <<: *postgres-common-env
     REDIS_PORT: ${REDIS_PORT:-6379}
     REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
-    REDIS_CONTAINER_NAME: ${REDIS_CONTAINER_NAME}
+    REDIS_CONTAINER_NAME: ${REDIS_CONTAINER_NAME:-lms_redis}
+    # Variáveis de ambiente para o Django
+    DJANGO_SETTINGS_MODULE: core.settings
+    WEB_PORT: ${WEB_PORT:-8000}
+    WEB_SECRET_KEY: ${WEB_SECRET_KEY}
+    WEB_DEBUG: ${WEB_DEBUG:-false}
+    WEB_ALLOWED_HOSTS: ${WEB_ALLOWED_HOSTS:-localhost,127.0.0.1}
+    WEB_CSRF_TRUSTED_ORIGINS: ${WEB_CSRF_TRUSTED_ORIGINS:-https://localhost,https://127.0.0.1}
+
+x-web-volumes:
+  volumes: &web-common-volumes
+    # Montagem dos diretórios
+    - ./web/accounts:/app/accounts:rw
+    - ./web/activity:/app/activity:rw
+    - ./web/base_static:/app/base_static:rw
+    - ./web/base_templates:/app/base_templates:rw
+    - ./web/common:/app/common:rw
+    - ./web/core:/app/core:rw
+    - ./web/dataset:/app/dataset:rw
+    - ./web/group:/app/group:rw
+    - ./web/student:/app/student:rw
+    # Montagem de arquivos individuais
+    - ./web/.coverage:/app/.coverage:rw
+    - ./web/.coveragerc:/app/.coveragerc:rw
+    - ./web/conftest.py:/app/conftest.py:rw
+    - ./web/manage.py:/app/manage.py:rw
+    - ./web/mypy.ini:/app/mypy.ini:rw
+    - ./web/pytest.ini:/app/pytest.ini:rw
 
 services:
   postgres:
     image: postgres:18-alpine
-    container_name: ${POSTGRES_CONTAINER_NAME}
+    container_name: ${POSTGRES_CONTAINER_NAME:-lms_postgres}
     environment:
       <<: *postgres-common-env
       POSTGRES_INITDB_ARGS: "--encoding=UTF8"
@@ -39,7 +66,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: ${REDIS_CONTAINER_NAME}
+    container_name: ${REDIS_CONTAINER_NAME:-lms_redis}
     restart: ${REDIS_RESTART_POLICY:-no}
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
     volumes:
@@ -54,35 +81,21 @@ services:
         ipv4_address: ${REDIS_IPV4_ADDRESS:-172.20.0.5}
 
   web:
-    image: python:3.14
-    container_name: ${WEB_CONTAINER_NAME}
-    restart: ${WEB_RESTART_POLICY:-no}
-    working_dir: /app
-    entrypoint: /bin/bash
-    environment:
-      PYTHONUNBUFFERED: 1
-      TZ: America/Sao_Paulo
-      DJANGO_SETTINGS_MODULE: core.settings
-      WEB_PORT: ${WEB_PORT:-8000}
-      WEB_SECRET_KEY: ${WEB_SECRET_KEY}
-      WEB_DEBUG: ${WEB_DEBUG:-false}
-      WEB_ALLOWED_HOSTS: ${WEB_ALLOWED_HOSTS:-localhost,127.0.0.1}
-      WEB_CSRF_TRUSTED_ORIGINS: ${WEB_CSRF_TRUSTED_ORIGINS:-https://localhost}
+    build: 
+      context: .
+      dockerfile: web/Dockerfile
+    
+    image: ${WEB_IMAGE_NAME:-lms-web:latest}
 
-      # Variáveis de ambiente para o PostgreSQL e Redis
+    container_name: ${WEB_CONTAINER_NAME:-lms_web}
+    restart: ${WEB_RESTART_POLICY:-no}
+
+    environment:
       <<: *web-common-env
 
     command:
       - -c
       - |
-        apt update -y
-        apt install -y netcat-openbsd nodejs npm
-
-        python -m venv /venv
-        source /venv/bin/activate
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
         POSTGRES_COUNTER=0
         until nc -z -v -w30 $$POSTGRES_CONTAINER_NAME $$POSTGRES_PORT
         do
@@ -95,34 +108,28 @@ services:
           fi
         done
 
-        PYTHONPATH=/app mkdocs build --config-file /doc/mkdocs.yml --site-dir /doc/site -q
-
-        if [ ! -f /app/base_static/global/codemirror6/editor.min.js ]; then
-          echo "Building CodeMirror 6 bundle..."
-          cd /app/codemirror6 && npm install && npm run build && cd /app
-        fi
-
         python manage.py migrate
         python manage.py seed
         python manage.py collectstatic --noinput
-        if [ "$WEB_DEBUG" = "true" ]; then
+
+        if [ "$$WEB_DEBUG" = "true" ]; then
           uvicorn core.asgi:application \
             --host 0.0.0.0 \
-            --port ${WEB_PORT} \
+            --port $${WEB_PORT} \
             --reload
         else
           uvicorn core.asgi:application \
             --host 0.0.0.0 \
-            --port ${WEB_PORT} \
+            --port $${WEB_PORT} \
             --workers 4 \
             --root-path /sistemadegestaodeaprendizagem
         fi
 
-    volumes:
-      - ./web:/app:rw
-      - ./doc:/doc:rw
+    volumes: *web-common-volumes
+
     ports:
       - "${WEB_PORT:-8000}:${WEB_PORT:-8000}"
+
     depends_on:
       - postgres
       - redis
@@ -132,30 +139,24 @@ services:
         ipv4_address: ${WEB_IPV4_ADDRESS:-172.20.0.3}
 
   celery:
-    image: python:3.14
-    container_name: ${CELERY_CONTAINER_NAME:-lms-celery}
+    build: 
+      context: .
+      dockerfile: celery/Dockerfile
+
+    image: ${CELERY_IMAGE_NAME:-lms-celery:latest}
+
+    container_name: ${CELERY_CONTAINER_NAME:-lms_celery}
     restart: ${CELERY_RESTART_POLICY:-no}
-    working_dir: /app
-    entrypoint: /bin/bash
+
     cap_add:
       - NET_ADMIN
+
     environment:
-      PYTHONUNBUFFERED: 1
-      TZ: America/Sao_Paulo
-      DJANGO_SETTINGS_MODULE: core.settings
-      WEB_SECRET_KEY: ${WEB_SECRET_KEY}
-      WEB_DEBUG: ${WEB_DEBUG:-false}
       <<: *web-common-env
+
     command:
       - -c
       - |
-        apt-get update -y -qq
-        apt-get install -y --no-install-recommends netcat-openbsd nodejs gcc g++ default-jdk iptables
-
-        python -m venv /venv
-        source /venv/bin/activate
-        pip install -q -r requirements.txt
-
         until nc -z -w5 $$POSTGRES_CONTAINER_NAME $$POSTGRES_PORT; do
           echo "Aguardando PostgreSQL..."; sleep 3
         done
@@ -163,34 +164,40 @@ services:
         # Bloqueia saída de rede do usuário nobody (isolamento do código dos alunos)
         iptables -A OUTPUT -m owner --uid-owner 65534 -j DROP || true
 
-        /venv/bin/celery -A core worker -l info --concurrency=8
-    volumes:
-      - ./web:/app:rw
+        celery -A core worker -l info --concurrency=8
+
+    volumes: *web-common-volumes
+
     depends_on:
-      - postgres
-      - redis
+      - web
+
     networks:
       lms-network:
         ipv4_address: ${CELERY_IPV4_ADDRESS:-172.20.0.6}
 
   nginx:
     image: nginx
-    container_name: ${NGINX_CONTAINER_NAME}
+
+    profiles:
+      - with_nginx
+
+    container_name: ${NGINX_CONTAINER_NAME:-lms_nginx}
     restart: ${NGINX_RESTART_POLICY:-no}
     entrypoint: /bin/bash
+
     environment:
       TZ: America/Sao_Paulo
       DEBIAN_FRONTEND: noninteractive
       # Variáveis de ambiente web
       WEB_PUBLIC_DOMAIN_NAME: ${WEB_PUBLIC_DOMAIN_NAME:-dev-lms.com.br}
-      WEB_CONTAINER_NAME: ${WEB_CONTAINER_NAME}
+      WEB_CONTAINER_NAME: ${WEB_CONTAINER_NAME:-lms_web}
       # Files ssl
       WEB_PUBLIC_PRIVATE_KEY: ${WEB_PUBLIC_PRIVATE_KEY:-/etc/ssl/private/automatos_web_public_private_key.key}
       WEB_PUBLIC_CERT_CSR: ${WEB_PUBLIC_CERT_CSR:-/etc/ssl/certs/automatos_web_public_certificate.csr}
       WEB_PUBLIC_CERT_CRT: ${WEB_PUBLIC_CERT_CRT:-/etc/ssl/certs/automatos_web_public_certificate.crt}
       # Credenciais da documentação
       DOCS_USER: ${DOCS_USER:-docs}
-      DOCS_PASSWORD: ${DOCS_PASSWORD}
+      DOCS_PASSWORD: ${DOCS_PASSWORD:-docs}
 
     command:
       - -c
@@ -213,12 +220,15 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template:ro
-      - ./web/static:/var/www/html/${WEB_CONTAINER_NAME}/static:ro
+      - ./web/static:/var/www/html/${WEB_CONTAINER_NAME:-lms_web}/static:ro
       - ./doc/site:/var/www/html/docs:ro
+    
     depends_on:
       - web
+
     networks:
       lms-network:
         ipv4_address: ${NGINX_IPV4_ADDRESS:-172.20.0.4}

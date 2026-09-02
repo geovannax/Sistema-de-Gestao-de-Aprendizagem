@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{% static 'global/highlight.js/styles/atom-one-dark.min.css' %}">
     <script>
         if (window.getViewMode() === 'aluno') {
-            window.location.replace('/accounts/profile/');
+            window.location.replace('{% url "accounts:profile" %}');
         }
     </script>
 {% endblock extra_head %}

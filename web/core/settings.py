@@ -24,17 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('WEB_SECRET_KEY', 'django-insecure-nf8=set_ENV')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv('WEB_DEBUG', 'False') == 'true')
+DEBUG = bool(os.getenv('WEB_DEBUG') == 'true')
 
-ALLOWED_HOSTS = os.getenv(
-    'WEB_ALLOWED_HOSTS',
-    'localhost,127.0.0.1,172.16.252.166'
-).split(',')
+ALLOWED_HOSTS = os.getenv('WEB_ALLOWED_HOSTS').split(',')
 
-CSRF_TRUSTED_ORIGINS = os.getenv(
-    'WEB_CSRF_TRUSTED_ORIGINS',
-    'http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1,http://172.16.252.166,https://172.16.252.166',
-).split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('WEB_CSRF_TRUSTED_ORIGINS').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -59,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -106,52 +101,28 @@ DATABASES = {
     }
 }
 
-# Use SQLite for development and testing
-if DEBUG:  # pragma: no cover
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': str(BASE_DIR / 'db.sqlite3'),
-        }
-    }
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'lms-default-cache',
-        },
-        'select2': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'lms-select2-cache',
-            'TIMEOUT': 3600,
-        }
-    }
-    SELECT2_CACHE_BACKEND = 'select2'
-
-
 # Cache Configuration
 # https://docs.djangoproject.com/en/6.0/topics/cache/#redis
-if not DEBUG:  # pragma: no cover
-
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                'SOCKET_CONNECT_TIMEOUT': 5,
-                'SOCKET_TIMEOUT': 5,
-                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-                'IGNORE_EXCEPTIONS': True,
-            }
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://:{os.getenv('REDIS_PASSWORD', 'redis_password')}@{os.getenv('REDIS_CONTAINER_NAME', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}/2",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+            'IGNORE_EXCEPTIONS': True,
         }
     }
+}
 
-    CACHES.update({
-        'select2': CACHES['default']
-    })
+CACHES.update({
+    'select2': CACHES['default']
+})
 
-    # Tell select2 which cache configuration to use:
-    SELECT2_CACHE_BACKEND = "select2"
+# Tell select2 which cache configuration to use:
+SELECT2_CACHE_BACKEND = "select2"
 
 # Session Configuration
 # cached_db: grava no Redis (rápido) + PostgreSQL (fallback). Resiliente a
@@ -193,14 +164,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "/sistemadegestaodeaprendizagem/static/"
 
-STATICFILES_DIRS = [ BASE_DIR / 'base_static',]
+STATICFILES_DIRS = [
+    BASE_DIR / "base_static",
+]
 
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / "static"
 
-LOGIN_REDIRECT_URL = '/home/'
-LOGOUT_REDIRECT_URL = '/'
+MEDIA_URL = "/sistemadegestaodeaprendizagem/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+FORCE_SCRIPT_NAME = "/sistemadegestaodeaprendizagem"
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "login"
+
 
 # ---------------------------------------------------------------------------
 # Celery
@@ -217,8 +197,3 @@ CELERY_TASK_SERIALIZER  = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT   = ['json']
 CELERY_TIMEZONE         = 'America/Sao_Paulo'
-
-if DEBUG:  # pragma: no cover
-    CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_BROKER_URL        = 'memory://'
-    CELERY_RESULT_BACKEND    = 'cache+memory://'

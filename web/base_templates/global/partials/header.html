@@ -5,7 +5,7 @@
             <!-- Brand/Logo -->
             <div class="d-flex align-items-center gap-2 ps-4">
                 <a class="navbar-brand text-primary fw-bolder fs-4 m-0" href="{% url 'home' %}">
-                    <i class="bi bi-book"></i> Educatrix
+                    <i class="bi bi-book"></i> <span class='text-dark'>Scire</span><span class='text-primary'>ON</span>
                 </a>
                 <span id="viewModeBadge" class="view-mode-inline" data-mode="aluno">
                     <span data-view-mode-text>Aluno</span>
@@ -139,7 +139,7 @@
                 const nextMode = currentMode === 'aluno' ? 'professor' : 'aluno';
 
                 window.setViewMode(nextMode);
-                window.location.href = '/home/';
+                window.location.href = '{% url "home" %}';
             });
         });
     </script>
