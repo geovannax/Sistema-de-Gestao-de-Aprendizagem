@@ -60,6 +60,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1.5G
+        reservations:
+          cpus: "0.25"
+          memory: 512M
     networks:
       lms-network:
         ipv4_address: ${POSTGRES_IPV4_ADDRESS:-172.20.0.2}
@@ -76,6 +84,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
     networks:
       lms-network:
         ipv4_address: ${REDIS_IPV4_ADDRESS:-172.20.0.5}
@@ -134,6 +150,15 @@ services:
       - postgres
       - redis
 
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 768M
+
     networks:
       lms-network:
         ipv4_address: ${WEB_IPV4_ADDRESS:-172.20.0.3}
@@ -170,6 +195,15 @@ services:
 
     depends_on:
       - web
+
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 5G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
 
     networks:
       lms-network:
