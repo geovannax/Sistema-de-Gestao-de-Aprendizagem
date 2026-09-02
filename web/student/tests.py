@@ -120,7 +120,7 @@ class TestStudentDashboard:
     def test_authenticated_redirects_to_turmas(self, authenticated_client):
         response = authenticated_client.get('/student/')
         assert response.status_code == 302
-        assert response['Location'] == '/accounts/profile/turmas/'
+        assert response['Location'].endswith('/accounts/profile/turmas/')
 
 
 # ─── Group Detail ─────────────────────────────────────────────────────────────

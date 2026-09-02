@@ -176,6 +176,22 @@ _CPP_PRELUDE = (
 # Mesma estratégia mark-on-read para Java:
 # _lmsFrom[0] é atualizado para _lmsBuf.size() a cada read() de System.in.
 # Shutdown hook descarrega _lmsBuf[_lmsFrom[0]:] no stdout real.
+#
+# read(byte[],off,len) devolve NO MÁXIMO 1 byte por chamada (em vez de
+# delegar 'len' direto a super.read()). Scanner/BufferedReader fazem leitura
+# em bloco: se toda a entrada já está disponível no pipe, uma única chamada
+# preenche o buffer interno deles com vários tokens de uma vez, e leituras
+# seguintes (ex.: o segundo nextInt()) não tocam mais o InputStream — logo
+# _lmsFrom nunca avança e um print() entre elas não é suprimido. Forçar
+# devolução de 1 byte por vez faz Scanner/BufferedReader chamarem read()
+# de novo a cada novo token, mantendo a marcação em dia com os prints.
+#
+# available()=0 é igualmente necessário: o StreamDecoder por trás do
+# InputStreamReader do Scanner consulta available() para decidir se drena
+# mais bytes na MESMA chamada em vez de devolver o controle após decodificar
+# 1 char — como o pipe real reporta todos os bytes já escritos como
+# disponíveis, sem essa suplantação ele ignora o throttle de 1 byte acima e
+# volta a ler tudo de uma vez.
 _JAVA_STATIC_BLOCK = (
     'static{'
     'final java.io.PrintStream _lmsOut=System.out;'
@@ -185,9 +201,14 @@ _JAVA_STATIC_BLOCK = (
     'byte[]all=_lmsBuf.toByteArray();int from=_lmsFrom[0];'
     'if(from<all.length)try{_lmsOut.write(all,from,all.length-from);_lmsOut.flush();}catch(Exception ignored){}}));'
     'System.setIn(new java.io.FilterInputStream(System.in){'
+    'public int available(){return 0;}'
     'public int read()throws java.io.IOException{_lmsFrom[0]=_lmsBuf.size();return super.read();}'
     'public int read(byte[]b,int o,int l)throws java.io.IOException{'
-    '_lmsFrom[0]=_lmsBuf.size();return super.read(b,o,l);}});'
+    '_lmsFrom[0]=_lmsBuf.size();'
+    'if(l<=0)return 0;'
+    'int c=super.read();'
+    'if(c==-1)return -1;'
+    'b[o]=(byte)c;return 1;}});'
     'System.setOut(new java.io.PrintStream(new java.io.OutputStream(){'
     'public void write(int b)throws java.io.IOException{_lmsBuf.write(b);}'
     'public void write(byte[]b,int o,int l)throws java.io.IOException{_lmsBuf.write(b,o,l);}},true));'
@@ -423,11 +444,14 @@ def execute_code(
         for tc in test_cases:
             stdin_data: str = tc.get('input') or ''
             expected: str = _normalize(tc.get('expected_output') or '')
+            # Sem \n final, o módulo readline do Node não emite 'line' para a
+            # última entrada (rl.question fica pendurado à espera do EOL).
+            proc_input = stdin_data if not stdin_data or stdin_data.endswith('\n') else stdin_data + '\n'
 
             try:
                 proc = subprocess.run(
                     config['run'],
-                    input=stdin_data,
+                    input=proc_input,
                     capture_output=True,
                     text=True,
                     errors='replace',

@@ -8,6 +8,9 @@ django-redis==5.4.0
 django-select2==8.1.2
 h11==0.16.0
 psycopg2==2.9.11
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-django==4.14.0
 redis==5.0.1
 sqlparse==0.5.5
 tzdata==2025.3

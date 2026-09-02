@@ -11,6 +11,9 @@ RUN apt-get update \
     netcat-openbsd \
     nodejs \
     npm \
+    gcc \
+    g++ \
+    default-jdk \
     && rm -rf /var/lib/apt/lists/*
 
 # upgrade do pip
