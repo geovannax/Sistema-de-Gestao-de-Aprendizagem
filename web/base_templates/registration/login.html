@@ -136,7 +136,7 @@
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a class="btn btn-sm btn-outline-primary w-100" onclick="showAlert()" href="#">
+                                <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'github_login' %}">
                                     <i class="bi bi-github me-1"></i>
                                     <span class="d-none d-sm-inline">GitHub</span>
                                 </a>
@@ -165,11 +165,6 @@
     <script src="{% static 'global/js/notification.popup.js' %}"></script>
     <script src="{% static 'global/js/login.js' %}"></script>
     <script>
-        // Temporarios que vão ser removidos quando as funcionalidades estiverem prontas
-        function showAlert() {
-            showNotificationPopup('Warning','Em desenvolvimento');
-        }
-
         const loginParams = new URLSearchParams(window.location.search);
         const loginType = loginParams.get('tipo');
 

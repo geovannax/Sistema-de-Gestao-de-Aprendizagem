@@ -22,6 +22,9 @@ x-web-env:
     # Login social (Google) — ver Google Cloud Console
     GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
     GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+    # Login social (GitHub) — ver GitHub Developer Settings
+    GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+    GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
     # 'true' cria os usuarios/turmas de teste (prof1-14, aluno1-5, etc.) via seed
     CREATE_SEED: ${CREATE_SEED:-false}
 

@@ -30,6 +30,14 @@ ALLOWED_HOSTS = os.getenv('WEB_ALLOWED_HOSTS').split(',')
 
 CSRF_TRUSTED_ORIGINS = os.getenv('WEB_CSRF_TRUSTED_ORIGINS').split(',')
 
+# O nginx (nginx/nginx.conf.template) sempre define X-Forwarded-Proto com o
+# scheme real da conexão do cliente, sobrescrevendo qualquer valor que o
+# cliente tenha enviado — seguro confiar nele. Sem isso, request.is_secure()
+# e request.build_absolute_uri() (usado pelo allauth pra montar o
+# redirect_uri do OAuth) assumem HTTP, já que a conexão nginx->uvicorn é
+# HTTP puro internamente.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -46,6 +54,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
 
     # Local apps
     'accounts',
@@ -195,19 +204,28 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Login social (allauth) — Google
+# Login social (allauth) — Google e GitHub
 #
-# Login via Google vincula direto (por e-mail) a um User já existente
-# (ver SocialAccountAdapter.pre_social_login em accounts/adapters.py). Se
-# não existir, cai no formulário de cadastro (SocialSignupForm), onde o
-# usuário escolhe o papel (Professor/Aluno) — sem convite/aprovação/domínio
-# restrito. AUTO_SIGNUP=False é o que faz o allauth sempre mostrar esse
-# formulário em vez de criar a conta silenciosamente.
+# Login social vincula direto (por e-mail) a um User já existente (ver
+# SocialAccountAdapter.pre_social_login em accounts/adapters.py). Se não
+# existir, cai no formulário de cadastro (SocialSignupForm), onde o usuário
+# escolhe o papel (Professor/Aluno) — sem convite/aprovação/domínio restrito.
+# AUTO_SIGNUP=False é o que faz o allauth sempre mostrar esse formulário em
+# vez de criar a conta silenciosamente. Mesma politica para os dois
+# provedores (o adapter não é específico de nenhum).
 # ---------------------------------------------------------------------------
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.SocialAccountAdapter'
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_FORMS = {'signup': 'accounts.forms.SocialSignupForm'}
+# Nunca dispara o fluxo de confirmação de e-mail local do allauth pro login
+# social — já confiamos no e-mail verificado pelo provedor (é a base do
+# vínculo por e-mail em pre_social_login). Sem isso, um usuário sem e-mail
+# verificado utilizável (ex.: perfil GitHub com e-mail privado sem retorno
+# em /user/emails) faz o allauth tentar mandar e-mail de confirmação, que
+# quebra: 'account_confirm_email' não existe no urlconf (allauth.account.urls
+# não está incluído, de propósito — sem login/cadastro local por senha).
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -217,6 +235,16 @@ SOCIALACCOUNT_PROVIDERS = {
             'key': '',
         },
         'SCOPE': ['profile', 'email'],
+    },
+    'github': {
+        'APP': {
+            'client_id': os.getenv('GITHUB_OAUTH_CLIENT_ID', ''),
+            'secret': os.getenv('GITHUB_OAUTH_CLIENT_SECRET', ''),
+            'key': '',
+        },
+        # user:email é obrigatorio: sem ele o GitHub nao devolve o e-mail
+        # quando o usuario deixa o e-mail privado no perfil.
+        'SCOPE': ['user:email'],
     }
 }
 

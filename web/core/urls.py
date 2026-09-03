@@ -34,6 +34,7 @@ urlpatterns = [
     path('accounts/logout/', LogoutView.as_view(), name='logout'),
     path('accounts/', include('allauth.socialaccount.urls')),
     path('accounts/', include('allauth.socialaccount.providers.google.urls')),
+    path('accounts/', include('allauth.socialaccount.providers.github.urls')),
     path('accounts/', include('accounts.urls')),
 
     path('activity/', include('activity.urls')),
