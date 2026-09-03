@@ -10,12 +10,12 @@ Após aceitar o convite de uma turma, o aluno acessa seu dashboard com as turmas
 |--------|----------|
 | models | [Submission](models/Submission.md), [ExerciseAnswer](models/ExerciseAnswer.md), [CodeExecution](models/CodeExecution.md) |
 | tasks | [execute_code_task](tasks/execute_code_task.md) |
-| views (aluno) | [StudentDashboardView](views/StudentDashboardView.md), [StudentGroupDetailView](views/StudentGroupDetailView.md), [StudentActivityView](views/StudentActivityView.md), [StudentSubmitView](views/StudentSubmitView.md), [StudentResultView](views/StudentResultView.md) |
+| views (aluno) | [StudentGroupDetailView](views/StudentGroupDetailView.md), [StudentActivityView](views/StudentActivityView.md), [StudentSubmitView](views/StudentSubmitView.md), [StudentResultView](views/StudentResultView.md) |
 | views (professor) | [TeacherSubmissionsView](views/TeacherSubmissionsView.md), [TeacherGradeView](views/TeacherGradeView.md) |
 
 ## Fluxo do aluno
 
-1. Acessa o dashboard (`StudentDashboardView`) e vê as turmas matriculadas.
+1. Acessa `/student/`, que redireciona pra `accounts:turmas` (app `accounts`), e vê as turmas matriculadas.
 2. Entra no detalhe da turma (`StudentGroupDetailView`): atividades divididas em **Pendentes** e **Concluídas**.
 3. Clica em **Iniciar** / **Continuar** → `StudentActivityView` (cria ou retoma a `Submission`).
 4. Navega entre exercícios via HTMX (POST salva a resposta e retorna o fragmento `_activity_main.html`).

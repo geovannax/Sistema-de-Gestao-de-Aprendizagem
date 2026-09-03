@@ -1,3 +1,0 @@
-# LandingPage
-
-::: common.views.LandingPage

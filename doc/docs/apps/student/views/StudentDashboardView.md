@@ -1,3 +1,0 @@
-# StudentDashboardView
-
-::: student.views.StudentDashboardView

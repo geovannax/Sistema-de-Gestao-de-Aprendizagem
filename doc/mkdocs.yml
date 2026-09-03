@@ -72,6 +72,12 @@ nav:
           - signals:
               - on_login: apps/accounts/signals/on_login.md
               - on_logout: apps/accounts/signals/on_logout.md
+          - adapters:
+              - SocialAccountAdapter: apps/accounts/adapters/SocialAccountAdapter.md
+          - forms:
+              - SocialSignupForm: apps/accounts/forms/SocialSignupForm.md
+          - templatetags:
+              - pop_login_view_mode: apps/accounts/templatetags/pop_login_view_mode.md
       - activity:
           - Visão Geral: apps/activity/index.md
           - Constantes: apps/activity/constants.md
@@ -151,7 +157,6 @@ nav:
               - SecondaryFormMixin: apps/common/mixins/SecondaryFormMixin.md
               - InlineFormsetMixin: apps/common/mixins/InlineFormsetMixin.md
           - views:
-              - LandingPage: apps/common/views/LandingPage.md
               - HomeView: apps/common/views/HomeView.md
               - permission_denied: apps/common/views/permission_denied.md
               - page_not_found: apps/common/views/page_not_found.md
@@ -207,7 +212,6 @@ nav:
               - ExerciseAnswer: apps/student/models/ExerciseAnswer.md
               - CodeExecution: apps/student/models/CodeExecution.md
           - views:
-              - StudentDashboardView: apps/student/views/StudentDashboardView.md
               - StudentGroupDetailView: apps/student/views/StudentGroupDetailView.md
               - StudentActivityView: apps/student/views/StudentActivityView.md
               - StudentActivityReviewView: apps/student/views/StudentActivityReviewView.md

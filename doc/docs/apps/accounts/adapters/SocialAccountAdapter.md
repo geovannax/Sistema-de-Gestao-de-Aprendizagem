@@ -1,0 +1,3 @@
+# SocialAccountAdapter
+
+::: accounts.adapters.SocialAccountAdapter

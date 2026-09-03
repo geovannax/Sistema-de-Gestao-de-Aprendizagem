@@ -14,16 +14,17 @@ O sistema é uma aplicação web **server-driven** construída com [Django](http
 | [uvicorn](https://www.uvicorn.org/) | 0.42 | Servidor ASGI (substitui Gunicorn) |
 | [Celery](https://docs.celeryq.dev/) | 5.4 | Execução assíncrona de código dos alunos |
 | [Django ORM](https://docs.djangoproject.com/en/stable/topics/db/) | — | Modelagem e acesso a dados |
+| [django-allauth](https://docs.allauth.org/) | 65.19 | Login social (Google) |
+| [PyJWT](https://pyjwt.readthedocs.io/) + [cryptography](https://cryptography.io/) | — | Decodificação/verificação do `id_token` (JWT) do Google |
 
 ### Banco de Dados e Cache
 
-| Tecnologia | Ambiente | Função |
-|---|---|---|
-| [SQLite](https://www.sqlite.org/) | Desenvolvimento | Banco embutido, sem configuração |
-| [PostgreSQL](https://www.postgresql.org/docs/) 18 | Produção | Banco relacional principal |
-| [Redis](https://redis.io/docs/latest/) 7 | Produção | Broker do Celery + cache de sessão |
+| Tecnologia | Função |
+|---|---|
+| [PostgreSQL](https://www.postgresql.org/docs/) 18 | Banco relacional principal |
+| [Redis](https://redis.io/docs/latest/) 7 | Broker do Celery + cache de sessão/select2 |
 
-Em desenvolvimento (`WEB_DEBUG=true`), o Django usa SQLite e cache em memória (`LocMemCache`). Em produção, PostgreSQL e Redis são obrigatórios.
+PostgreSQL e Redis são obrigatórios em **qualquer** ambiente, inclusive desenvolvimento local — não há mais fallback para SQLite ou cache em memória. `WEB_DEBUG` controla apenas o `DEBUG` do Django (erros detalhados, `--reload` no uvicorn), não troca de banco/cache.
 
 ### Frontend
 
@@ -54,11 +55,61 @@ O projeto segue a convenção Django de dividir responsabilidades em apps. Todo 
 | App | Responsabilidade |
 |---|---|
 | `core` | Settings, URL raiz, ASGI, configuração do Celery |
-| `accounts` | Preferências de usuário (`JSONField`), `CookieMiddleware`, signals de login/logout |
+| `accounts` | Preferências de usuário (`JSONField`), `CookieMiddleware`, signals de login/logout, login social (Google) |
 | `activity` | Listas de atividades e exercícios polimórficos (4 tipos) |
 | `group` | Turmas com soft delete, compartilhamento entre professores, convites por token |
 | `student` | Submissão de atividades, respostas, correção pelo professor, execução de código |
 | `common` | Mixins reutilizáveis, `EnhancedListView`, template tags, executor de código, comando `seed` |
+
+---
+
+## Autenticação
+
+Além do login tradicional (usuário/senha, via `django.contrib.auth`), o sistema aceita login social pelo Google (`django-allauth`).
+
+### Sem auto-cadastro aberto pra Professor
+
+O sistema não tem cadastro aberto no login tradicional — contas de professor/aluno são provisionadas via comando `seed` ou pelo Django Admin, e até a confirmação de convite de turma (`GroupInviteConfirmView`) exige login prévio.
+
+O login social **é** uma exceção deliberada a essa regra: qualquer pessoa com conta Google pode se cadastrar (sem convite, aprovação de admin ou restrição de domínio) e escolher o próprio papel — ver fluxo abaixo. Essa decisão foi tomada considerando que o vínculo por e-mail (não por auto-cadastro) já é o caso comum de uso: o e-mail institucional já existe cadastrado, e o login Google normalmente só *acelera* o acesso a uma conta que já existe.
+
+### Fluxo de login com Google
+
+```
+Usuário clica "Entrar com Google"
+      ↓
+/accounts/google/login/  →  redirect pra tela de consentimento do Google
+      ↓
+/accounts/google/login/callback/  →  SocialAccountAdapter.pre_social_login()
+      ↓
+   E-mail do Google bate com algum User existente?
+      │
+      ├─ Sim → sociallogin.connect(user)  →  login direto
+      │
+      └─ Não → formulário de cadastro (SocialSignupForm)
+                 ↓
+              Usuário escolhe usuário + papel (Professor/Aluno)
+                 ↓
+              SocialAccountAdapter.save_user()
+                 │  - User.email é sempre o e-mail VERIFICADO pelo Google
+                 │    (ignora o que foi digitado no form, mesmo com JS
+                 │    desabilitado — evita conta duplicada no próximo login)
+                 │  - UserPreferences.role grava o papel escolhido
+                 ↓
+              login direto, conta criada
+```
+
+O papel (`UserPreferences.role`, `ROLE_CHOICES = professor | aluno`) é só um dado — o sistema ainda **não** usa esse campo pra restringir permissões em lugar nenhum; checagem de acesso continua sendo por relacionamento (`created_by`, `GroupStudent`), como antes do login social existir.
+
+### Papel → modo de visualização (`viewMode`)
+
+O front tem um toggle client-side puro (`localStorage['viewMode_<pk>']`) que alterna a UI entre "ver como Professor" e "ver como Aluno" — qualquer usuário pode alternar livremente, não é um controle de permissão.
+
+Pra que o papel escolhido no cadastro social force esse valor já no primeiro carregamento após o login: `accounts.signals.on_login` grava `request.session['login_view_mode']`; a template tag [`pop_login_view_mode`](apps/accounts/templatetags/pop_login_view_mode.md) (usada em `base_template.html`) lê e remove essa chave da sessão, emitindo `window.setViewMode(...)` uma única vez. Precisa ser template tag — e não um context processor — porque o próprio allauth renderiza uma mensagem interna (`render_to_string`) *dentro da mesma resposta* do cadastro/login; um context processor rodaria (e consumiria a chave) nesse render interno, antes da página real chegar ao navegador.
+
+### Configuração
+
+Variáveis de ambiente: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` (sem default — vazio faz o redirect pro Google falhar). Ver [Ambiente de Produção](guia_de_início/prod.md) para o passo a passo de criação das credenciais no Google Cloud Console.
 
 ---
 
@@ -129,7 +180,7 @@ O Celery é configurado em `core/celery.py` com `autodiscover_tasks()`. As taref
 |---|---|---|
 | `student.execute_code` | `student.tasks.execute_code_task` | Executa código do aluno contra os casos de teste e salva `CodeExecution` |
 
-O broker e o backend de resultados usam Redis em produção. Em desenvolvimento, o Celery é opcional — a correção automática de `complete_code` ocorre de forma síncrona na própria view.
+O broker e o backend de resultados usam Redis em qualquer ambiente — não há mais modo *eager* em desenvolvimento. Um worker Celery real precisa estar rodando (`docker compose up` já sobe o serviço `celery`) mesmo localmente para exercícios do tipo `code`.
 
 ---
 

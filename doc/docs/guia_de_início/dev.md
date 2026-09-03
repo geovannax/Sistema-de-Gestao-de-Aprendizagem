@@ -16,7 +16,7 @@ Antes de iniciar, verifique se as seguintes ferramentas estão instaladas:
 - [Docker Compose](https://docs.docker.com/compose/)
 - editor de código, como [Visual Studio Code](https://code.visualstudio.com/docs)
 
-Para desenvolvimento local sem Docker, também é necessário criar e ativar um ambiente virtual Python.
+Para desenvolvimento local sem Docker, também é necessário criar e ativar um ambiente virtual Python, além de ter PostgreSQL e Redis acessíveis — não há mais fallback para SQLite/cache em memória em nenhum modo (ver "Observações Importantes" mais abaixo).
 
 ---
 
@@ -31,12 +31,12 @@ A estrutura principal do repositório é organizada da seguinte forma:
     ├── nginx/
     ├── web/
     │   ├── manage.py
-    │   ├── requirements.txt
     │   ├── core/
     │   ├── accounts/
-    │   ├── authentication/
     │   ├── activity/
+    │   ├── dataset/
     │   ├── group/
+    │   ├── student/
     │   └── common/
     └── doc/
         ├── mkdocs.yml
@@ -67,9 +67,14 @@ Exemplo de configuração usada em desenvolvimento:
     WEB_SECRET_KEY='django-insecure-nf8=t46$_%+0@1g_zn6gy8_q$ksyiwkt@3251_9ls-gl9wc6h@'
     WEB_DEBUG=true
 
+    # cria prof1-14, aluno1-5 e turmas de exemplo automaticamente no startup do container web
+    CREATE_SEED=true
+
 Em desenvolvimento, `WEB_DEBUG=true` facilita depuração e visualização de erros.
 
-Em produção, essa configuração deve ser desativada e os secrets devem ser protegidos.
+`WEB_ALLOWED_HOSTS` e `WEB_CSRF_TRUSTED_ORIGINS` não têm default no `core/settings.py` — sem elas o Django quebra no import com `AttributeError`. O `compose.yml` já fornece defaults próprios (`localhost,127.0.0.1` e `https://localhost,https://127.0.0.1`) para rodar via Docker sem configurar nada; só precisam ser definidas manualmente rodando fora do Docker (ver "Opção 2" abaixo).
+
+Em produção, essa configuração deve ser desativada e os secrets devem ser protegidos — ver [Ambiente de Produção](prod.md).
 
 ---
 
@@ -92,9 +97,13 @@ Durante a inicialização, o container `web` executa automaticamente algumas eta
 
     pip install -r requirements.txt
     python manage.py migrate
-    python manage.py seed
+    python manage.py seed        # só roda se CREATE_SEED=true no .env
     python manage.py collectstatic --noinput
     uvicorn core.asgi:application
+
+`docker compose up` sozinho **não** sobe o serviço `nginx` (ele fica atrás de um profile). Como `STATIC_URL`/`FORCE_SCRIPT_NAME` usam o prefixo fixo `/sistemadegestaodeaprendizagem/` sempre ativo, navegar pelo site direto na porta 8000 sem o Nginx removendo esse prefixo antes resulta em 404 em praticamente qualquer link. Pra testar navegação real, suba com:
+
+    docker compose --profile with_nginx up -d
 
 Após a inicialização, a aplicação deve ficar disponível em:
 
@@ -108,7 +117,7 @@ ou, dependendo da configuração de portas:
 
 ## Opção 2 — Executando Localmente com Ambiente Virtual
 
-Também é possível executar a aplicação diretamente pelo ambiente local, dentro do diretório `web/`.
+Também é possível executar a aplicação diretamente pelo ambiente local, dentro do diretório `web/`. Como não há mais fallback para SQLite/cache em memória, é preciso ter um PostgreSQL e um Redis acessíveis (local ou via `docker compose up postgres redis`) e exportar `WEB_ALLOWED_HOSTS`/`WEB_CSRF_TRUSTED_ORIGINS` manualmente — sem isso o settings quebra no import.
 
 Entre no diretório da aplicação:
 
@@ -125,6 +134,13 @@ Ative o ambiente virtual:
 Instale as dependências:
 
     pip install -r requirements.txt
+
+Exporte as variáveis obrigatórias (ajuste os hosts do Postgres/Redis se não forem `localhost`):
+
+    $env:WEB_ALLOWED_HOSTS = "localhost,127.0.0.1"
+    $env:WEB_CSRF_TRUSTED_ORIGINS = "http://localhost,http://127.0.0.1"
+    $env:POSTGRES_CONTAINER_NAME = "localhost"
+    $env:REDIS_CONTAINER_NAME = "localhost"
 
 Execute as migrações:
 
@@ -186,6 +202,10 @@ Tela de login.
     /accounts/logout/
 
 Logout do sistema.
+
+    /accounts/google/login/
+
+Inicia o login social pelo Google (requer `GOOGLE_OAUTH_CLIENT_ID`/`GOOGLE_OAUTH_CLIENT_SECRET` configurados — ver [Ambiente de Produção](prod.md)).
 
     /group/active/
 
@@ -280,11 +300,11 @@ Exemplo:
 
 ## Observações Importantes
 
-O ambiente local atualmente utiliza SQLite conforme a configuração ativa em `core/settings.py`. O arquivo `compose.yml`, por outro lado, já prevê serviços para PostgreSQL e Redis.
+Não há mais fallback para SQLite ou cache em memória em nenhum ambiente — `core/settings.py` sempre exige PostgreSQL e Redis reais, tanto localmente quanto em produção. `WEB_DEBUG` controla apenas o `DEBUG` do Django, não troca de banco/cache.
 
-Essa diferença é aceitável durante o desenvolvimento inicial, mas deve ser considerada ao testar funcionalidades que dependem de comportamento específico do banco de dados, como constraints, concorrência, locks e performance de consultas.
+Isso significa que o comportamento do banco (constraints, concorrência, locks, performance de consultas) já é o mesmo entre desenvolvimento e produção — não há mais divergência a considerar nesse ponto.
 
-Para cenários mais próximos de produção, prefira executar o projeto com Docker Compose e PostgreSQL.
+Da mesma forma, o Celery não tem mais modo *eager* em desenvolvimento: exercícios do tipo `code` exigem um worker Celery real (`docker compose up` já sobe o serviço `celery`) mesmo localmente.
 
 ---
 

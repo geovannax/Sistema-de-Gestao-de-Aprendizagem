@@ -1,0 +1,3 @@
+# SocialSignupForm
+
+::: accounts.forms.SocialSignupForm
