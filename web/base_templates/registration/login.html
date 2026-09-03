@@ -81,13 +81,6 @@
                                 <input type="text" name="username" class="form-control"
                                     placeholder="Seu nome de usuário" maxlength="320" id="id_username" required>
                                 <label for="{{ form.username.id_for_label }}" class="form-label">Usuário</label>
-                                <div class="form-text ps-2">
-                                    Credenciais de teste: <code class="copy-code" data-text="prof1">prof1</code>
-                                    <button type="button" class="btn-fill-input" data-target="id_username"
-                                        data-value="prof1" title="Preencher">
-                                        <i class="bi bi-arrow-up"></i>
-                                    </button>
-                                </div>
                             </div>
 
                             <!-- PASSWORD -->
@@ -100,14 +93,6 @@
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
-                                <div class="form-text ps-2">
-                                    Credenciais de teste: <code class="copy-code" data-text="123Abc!">123Abc!</code>
-                                    <button type="button" class="btn-fill-input" data-target="id_password"
-                                        data-value="123Abc!" title="Preencher">
-                                        <i class="bi bi-arrow-up"></i>
-                                    </button>
-                                </div>
-
 
                                 <!-- ALERT -->
                                 {% if form.errors %}
@@ -130,7 +115,6 @@
                                         Lembrar-me
                                     </label>
                                 </div>
-                                <a class="btn-link text-primary" onclick="showAlert()" href="#">Esqueceu a senha?</a>
                             </div>
 
                             <!-- SUBMIT BUTTON -->
@@ -146,7 +130,7 @@
                         <!-- SOCIAL LOGIN -->
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <a class="btn btn-sm btn-outline-primary w-100" onclick="showAlert()" href="#">
+                                <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'google_login' %}">
                                     <i class="bi bi-google me-1"></i>
                                     <span class="d-none d-sm-inline">Google</span>
                                 </a>
@@ -158,13 +142,6 @@
                                 </a>
                             </div>
                         </div>
-
-                        <!-- SIGNUP -->
-                        <p class="text-center text-muted small">
-                            Não tem conta? <a class="text-primary fw-semibold" onclick="showAlert()" href="#">Criar
-                                conta</a>
-                        </p>
-
                     </div>
                 </div>
             </div>
@@ -199,47 +176,6 @@
         if (loginType === 'aluno' || loginType === 'professor') {
             localStorage.setItem('viewMode', loginType);
         }
-
-        // Fill input with value
-        document.querySelectorAll('.btn-fill-input').forEach(button => {
-            button.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('data-target');
-                const value = this.getAttribute('data-value');
-                const inputField = document.getElementById(targetId);
-
-                if (inputField) {
-                    inputField.value = value;
-                    inputField.focus();
-
-                    // Show feedback
-                    const icon = this.querySelector('i');
-                    icon.className = 'bi bi-check-lg';
-                    this.classList.add('filled');
-
-                    // Store the expected value on the input field
-                    inputField.setAttribute('data-fill-value', value);
-                    inputField.setAttribute('data-fill-button', this);
-
-                    // Monitor input changes
-                    const monitorInput = () => {
-                        if (inputField.value === value) {
-                            icon.className = 'bi bi-check-lg';
-                            this.classList.add('filled');
-                        } else {
-                            icon.className = 'bi bi-arrow-up';
-                            this.classList.remove('filled');
-                        }
-                    };
-
-                    // Remove old listener if exists
-                    inputField.removeEventListener('input', inputField._monitorInput);
-                    inputField._monitorInput = monitorInput;
-                    inputField.addEventListener('input', monitorInput);
-                }
-            });
-        });
-
 
     </script>
 </body>

@@ -1,4 +1,5 @@
 {% load static %}
+{% load accounts_tags %}
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -33,6 +34,12 @@
                 window.setViewMode = function (mode) {
                     localStorage.setItem(storageKey, mode);
                 };
+                {% pop_login_view_mode as login_view_mode %}
+                {% if login_view_mode %}
+                // Papel salvo no cadastro (UserPreferences.role) — força o
+                // viewMode uma única vez, na primeira página após o login.
+                window.setViewMode('{{ login_view_mode }}');
+                {% endif %}
             })();
         </script>
 

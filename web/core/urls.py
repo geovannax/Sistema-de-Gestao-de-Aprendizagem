@@ -28,7 +28,12 @@ urlpatterns = [
     path('home/', HomeView.as_view(), name='home'),
 
     path('accounts/login/', LoginView.as_view(), name='login'),
+    # Alias: allauth referencia 'account_login' internamente (ex.: fallback
+    # do SignupView quando não há cadastro social pendente na sessão).
+    path('accounts/login/', LoginView.as_view(), name='account_login'),
     path('accounts/logout/', LogoutView.as_view(), name='logout'),
+    path('accounts/', include('allauth.socialaccount.urls')),
+    path('accounts/', include('allauth.socialaccount.providers.google.urls')),
     path('accounts/', include('accounts.urls')),
 
     path('activity/', include('activity.urls')),

@@ -64,18 +64,6 @@
                     </button>
 
                     <div class="dropdown-menu dropdown-menu-end mt-2 p-2 btn_header-dropdown-menu" >
-                        <button class="dropdown-item header-view-mode-toggle" type="button" id="viewModeToggle">
-                            <div class="d-flex align-items-center justify-content-between gap-3 w-100">
-                                <div>
-                                    <div>
-                                        <i class="bi bi-eye me-2"></i>
-                                        <span id="viewModeLabel">Visualizar como Professor</span>
-                                    </div>
-                                    <small class="text-muted ms-4">Alternar modo de visualizacao</small>
-                                </div>
-                            </div>
-                        </button>
-                        <hr class="dropdown-divider">                            
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button class="dropdown-item" type="submit">
@@ -91,11 +79,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const button = document.getElementById('viewModeToggle');
-            const label = document.getElementById('viewModeLabel');
             const badge = document.getElementById('viewModeBadge');
 
-            if (!button || !label || !badge) return;
+            if (!badge) return;
 
             const params = new URLSearchParams(window.location.search);
             const urlMode = params.get('tipo');
@@ -111,12 +97,8 @@
                 window.setViewMode(requestedMode);
             }
 
-            const updateViewModeLabel = function () {
+            const updateViewModeDisplay = function () {
                 const currentMode = window.getViewMode();
-
-                label.textContent = currentMode === 'aluno'
-                    ? 'Visualizar como Professor'
-                    : 'Visualizar como Aluno';
 
                 badge.dataset.mode = currentMode;
                 badge.querySelector('[data-view-mode-text]').textContent = currentMode === 'aluno'
@@ -132,15 +114,7 @@
                 });
             };
 
-            updateViewModeLabel();
-
-            button.addEventListener('click', function () {
-                const currentMode = window.getViewMode();
-                const nextMode = currentMode === 'aluno' ? 'professor' : 'aluno';
-
-                window.setViewMode(nextMode);
-                window.location.href = '{% url "home" %}';
-            });
+            updateViewModeDisplay();
         });
     </script>
 </header>

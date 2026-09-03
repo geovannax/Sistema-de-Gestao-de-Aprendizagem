@@ -38,9 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     # Third party
     'django_select2',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
     # Local apps
     'accounts',
@@ -60,11 +65,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 
     # Local apps
-    'accounts.middleware.CookieMiddleware', 
+    'accounts.middleware.CookieMiddleware',
 
 ]
+
+SITE_ID = 1
 
 ROOT_URLCONF = 'core.urls'
 
@@ -170,7 +178,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "base_static",
 ]
 
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = "/app/static"
 
 MEDIA_URL = "/sistemadegestaodeaprendizagem/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -181,6 +189,36 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# ---------------------------------------------------------------------------
+# Login social (allauth) — Google
+#
+# Login via Google vincula direto (por e-mail) a um User já existente
+# (ver SocialAccountAdapter.pre_social_login em accounts/adapters.py). Se
+# não existir, cai no formulário de cadastro (SocialSignupForm), onde o
+# usuário escolhe o papel (Professor/Aluno) — sem convite/aprovação/domínio
+# restrito. AUTO_SIGNUP=False é o que faz o allauth sempre mostrar esse
+# formulário em vez de criar a conta silenciosamente.
+# ---------------------------------------------------------------------------
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.SocialAccountAdapter'
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_FORMS = {'signup': 'accounts.forms.SocialSignupForm'}
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID', ''),
+            'secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET', ''),
+            'key': '',
+        },
+        'SCOPE': ['profile', 'email'],
+    }
+}
 
 # ---------------------------------------------------------------------------
 # Celery

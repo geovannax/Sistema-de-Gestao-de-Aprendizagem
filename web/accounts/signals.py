@@ -38,6 +38,13 @@ def on_login(sender: type, request: HttpRequest, user: User, **kwargs: Any) -> N
         for cookie_key, cookie_value in user_prefs.preferences.get('cookies', {}).items():
             request._set_cookies.update({cookie_key: cookie_value})
 
+        if user_prefs.role:
+            # Consumido uma única vez por accounts.templatetags.accounts_tags
+            # ::pop_login_view_mode, na primeira página renderizada após o
+            # login, para forçar o viewMode do localStorage a refletir o
+            # papel salvo no banco.
+            request.session['login_view_mode'] = user_prefs.role
+
 
 @receiver(user_logged_out)
 def on_logout(sender: type, request: HttpRequest, user: User, **kwargs: Any) -> None:

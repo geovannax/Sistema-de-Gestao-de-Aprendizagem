@@ -4,10 +4,12 @@ pygments==2.19.1
 click==8.3.1
 colorama==0.4.6
 Django==6.0.3
+django-allauth==65.19.2
 django-redis==5.4.0
 django-select2==8.1.2
 h11==0.16.0
 psycopg2==2.9.11
+PyJWT[crypto]==2.13.0
 pytest==9.1.1
 pytest-cov==7.1.0
 pytest-django==4.14.0

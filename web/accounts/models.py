@@ -6,6 +6,11 @@ eliminando a necessidade de migrações ao adicionar novas preferências.
 from django.db import models
 from django.contrib.auth.models import User
 
+ROLE_CHOICES = [
+    ('professor', 'Professor'),
+    ('aluno', 'Aluno'),
+]
+
 
 class UserPreferences(models.Model):
     """Preferências de usuário armazenadas em um único campo JSON.
@@ -20,9 +25,13 @@ class UserPreferences(models.Model):
 
     Attributes:
         user: Usuário Django ao qual as preferências pertencem.
+        role: Papel escolhido pelo usuário (``ROLE_CHOICES``). Em branco para
+            contas provisionadas antes da existência deste campo.
         preferences: Dicionário JSON com preferências arbitrárias.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, blank=True, default='')
 
     preferences = models.JSONField(default=dict, blank=True)
 

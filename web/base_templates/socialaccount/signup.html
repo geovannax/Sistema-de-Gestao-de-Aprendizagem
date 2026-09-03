@@ -1,0 +1,98 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar conta - ScireON</title>
+        <link href="{% static 'global/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'global/bootstrap/icons/bootstrap-icons.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/colors.css' %}" rel="stylesheet">
+        <link href="{% static 'global/css/login.css' %}" rel="stylesheet">
+</head>
+
+<body>
+    <!-- GLASS BACKGROUND -->
+    <div class="glass-container">
+        <div class="glass-shape shape-1"></div>
+        <div class="glass-shape shape-2"></div>
+        <div class="glass-shape shape-3"></div>
+    </div>
+
+    <!-- SIGNUP WRAPPER -->
+    <div class="login-wrapper">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5">
+                    <div class="login-card p-4">
+                        <h2 class="h3 fw-bold mb-0">Falta pouco</h2>
+                        <p class="mb-3">
+                            Confirme seus dados e escolha como vai usar o {{ account.get_provider.name }}
+                        </p>
+
+                        <form method="post" class="mb-0">
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                                <div class="text-danger small mb-3">
+                                    {% for error in form.non_field_errors %}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if form.username %}
+                                <div class="form-floating mb-3">
+                                    {{ form.username }}
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">Usuário</label>
+                                    {% for error in form.username.errors %}
+                                        <div class="text-danger small ps-2">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if form.email %}
+                                <div class="form-floating mb-3">
+                                    {{ form.email }}
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">E-mail</label>
+                                    {% for error in form.email.errors %}
+                                        <div class="text-danger small ps-2">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <!-- ROLE -->
+                            <div class="mb-3">
+                                <label class="form-label d-block">Eu sou</label>
+                                <div class="row g-2">
+                                    {% for radio in form.role %}
+                                        <div class="col-6">
+                                            <input type="radio" class="btn-check" name="{{ radio.data.name }}"
+                                                id="{{ radio.id_for_label }}" value="{{ radio.data.value }}"
+                                                {% if radio.data.selected %}checked{% endif %} required>
+                                            <label class="btn btn-outline-primary w-100" for="{{ radio.id_for_label }}">
+                                                {{ radio.choice_label }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% for error in form.role.errors %}
+                                    <div class="text-danger small ps-2">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary login-btn">
+                                <i class="bi bi-check-lg me-2"></i>
+                                Criar conta
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
