@@ -204,8 +204,9 @@ Tela de login.
 Logout do sistema.
 
     /accounts/google/login/
+    /accounts/github/login/
 
-Inicia o login social pelo Google (requer `GOOGLE_OAUTH_CLIENT_ID`/`GOOGLE_OAUTH_CLIENT_SECRET` configurados — ver [Ambiente de Produção](prod.md)).
+Inicia o login social pelo Google/GitHub (requer as credenciais do respectivo provedor configuradas — ver [Ambiente de Produção](prod.md)).
 
     /group/active/
 

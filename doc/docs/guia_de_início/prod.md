@@ -65,11 +65,11 @@ docker compose --profile with_nginx up -d
 
 ---
 
-## Login social (Google)
+## Login social (Google e GitHub)
 
-O sistema aceita login/cadastro via Google (`django-allauth`). Pra habilitar:
+O sistema aceita login/cadastro via Google e via GitHub (`django-allauth`). Cada provedor tem suas próprias credenciais; habilite um, os dois, ou nenhum — o botão de um provedor sem credenciais configuradas simplesmente redireciona pro provedor com `client_id` vazio, que rejeita o pedido.
 
-### 1. Criar credenciais no Google Cloud Console
+### Google
 
 Em [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials), crie um **OAuth client ID** do tipo *Web application*.
 
@@ -79,21 +79,36 @@ Em [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/
 https://<seu-dominio>/sistemadegestaodeaprendizagem/accounts/google/login/callback/
 ```
 
-Copie o **Client ID** e o **Client Secret** gerados.
-
-### 2. Configurar no `.env`
+Copie o **Client ID** e o **Client Secret** gerados, e configure no `.env`:
 
 ```
 GOOGLE_OAUTH_CLIENT_ID=<client id>
 GOOGLE_OAUTH_CLIENT_SECRET=<client secret>
 ```
 
-Sem essas variáveis (vazias), o redirect pro Google falha (client_id vazio na URL de autorização).
+### GitHub
 
-### 3. Comportamento
+Em [github.com/settings/developers](https://github.com/settings/developers) → **OAuth Apps** → **New OAuth App**.
 
-- Login com Google só autentica quem já tem `User` cadastrado com o mesmo e-mail (vínculo automático) **ou** permite criar uma conta nova escolhendo o papel (Professor/Aluno) — não há restrição de domínio nem aprovação de admin. Ver [Autenticação](../arquitetura.md) em Arquitetura e Tecnologias para o fluxo completo.
-- A dependência `PyJWT[crypto]` (em `requirements.txt`) é obrigatória — o allauth decodifica o `id_token` (JWT) do Google via `PyJWT` + `cryptography`. Sem ela, o callback quebra com `ModuleNotFoundError: No module named 'jwt'` só no momento do login real (nenhum teste/check acusa isso antes).
+**Authorization callback URL** (exato, com o prefixo da aplicação):
+
+```
+https://<seu-dominio>/sistemadegestaodeaprendizagem/accounts/github/login/callback/
+```
+
+Copie o **Client ID** e gere um **Client Secret**, e configure no `.env`:
+
+```
+GITHUB_OAUTH_CLIENT_ID=<client id>
+GITHUB_OAUTH_CLIENT_SECRET=<client secret>
+```
+
+Não é necessário marcar nenhum escopo especial na tela do GitHub — o allauth já pede `user:email` automaticamente (`SOCIALACCOUNT_PROVIDERS['github']['SCOPE']`), necessário pra obter o e-mail de usuários com "Keep my email address private" ativado no perfil.
+
+### Comportamento (comum aos dois provedores)
+
+- Login social só autentica quem já tem `User` cadastrado com o mesmo e-mail (vínculo automático) **ou** permite criar uma conta nova escolhendo o papel (Professor/Aluno) — não há restrição de domínio nem aprovação de admin. Ver [Autenticação](../arquitetura.md) em Arquitetura e Tecnologias para o fluxo completo.
+- A dependência `PyJWT[crypto]` (em `requirements.txt`) é obrigatória pro Google — o allauth decodifica o `id_token` (JWT) do Google via `PyJWT` + `cryptography`. Sem ela, o callback do Google quebra com `ModuleNotFoundError: No module named 'jwt'` só no momento do login real (nenhum teste/check acusa isso antes). O GitHub não usa JWT, não depende do `PyJWT`.
 
 ---
 
@@ -138,6 +153,18 @@ Falta o Nginx na frente (ver seção acima) — suba com `--profile with_nginx`,
 ### `ModuleNotFoundError: No module named 'jwt'` no callback do Google
 
 Falta `PyJWT[crypto]` instalado na imagem — confirme que está em `requirements.txt` e rode `docker compose build web`.
+
+### GitHub/Google recusa o login: "redirect_uri is not associated with this application"
+
+O `redirect_uri` que o Django manda pro provedor saiu com `http://` em vez de `https://` (o provedor recusa por não bater com a URL cadastrada, que é `https://...`). Acontece porque a conexão nginx→uvicorn é HTTP puro internamente — sem `SECURE_PROXY_SSL_HEADER` configurado, o Django não sabe que o cliente real chegou via HTTPS e monta a URL com o scheme errado.
+
+O `core/settings.py` já define `SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')`, confiando no header que o nginx (`nginx/nginx.conf.template`) sempre define (`proxy_set_header X-Forwarded-Proto $scheme;`, sobrescrevendo qualquer valor que o cliente tenha enviado — seguro confiar). Se isso ainda acontecer, confirme que está navegando através do Nginx (`--profile with_nginx`) e não direto na porta do `web`.
+
+### `500 Internal Server Error` no cadastro via GitHub — `NoReverseMatch: account_confirm_email`
+
+Acontece quando o GitHub não devolve nenhum e-mail verificado utilizável (ex.: perfil com "Keep my email address private" ativado e a API `/user/emails` não retornando nada aproveitável). Nesse caso o allauth tenta mandar um e-mail de confirmação local — mas `allauth.account.urls` não está incluído no roteamento (de propósito, pra não expor login/cadastro por senha do allauth), então a URL `account_confirm_email` não existe e a requisição quebra.
+
+`core/settings.py` já define `SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'`, desligando esse fluxo pro login social — já confiamos no e-mail verificado pelo próprio provedor (é a base do vínculo por e-mail em `pre_social_login`), então não faz sentido pedir confirmação de novo.
 
 ### `invalid username-password pair or user is disabled` (Redis)
 

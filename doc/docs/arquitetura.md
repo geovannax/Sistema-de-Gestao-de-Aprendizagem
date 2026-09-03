@@ -14,7 +14,7 @@ O sistema é uma aplicação web **server-driven** construída com [Django](http
 | [uvicorn](https://www.uvicorn.org/) | 0.42 | Servidor ASGI (substitui Gunicorn) |
 | [Celery](https://docs.celeryq.dev/) | 5.4 | Execução assíncrona de código dos alunos |
 | [Django ORM](https://docs.djangoproject.com/en/stable/topics/db/) | — | Modelagem e acesso a dados |
-| [django-allauth](https://docs.allauth.org/) | 65.19 | Login social (Google) |
+| [django-allauth](https://docs.allauth.org/) | 65.19 | Login social (Google, GitHub) |
 | [PyJWT](https://pyjwt.readthedocs.io/) + [cryptography](https://cryptography.io/) | — | Decodificação/verificação do `id_token` (JWT) do Google |
 
 ### Banco de Dados e Cache
@@ -55,7 +55,7 @@ O projeto segue a convenção Django de dividir responsabilidades em apps. Todo 
 | App | Responsabilidade |
 |---|---|
 | `core` | Settings, URL raiz, ASGI, configuração do Celery |
-| `accounts` | Preferências de usuário (`JSONField`), `CookieMiddleware`, signals de login/logout, login social (Google) |
+| `accounts` | Preferências de usuário (`JSONField`), `CookieMiddleware`, signals de login/logout, login social (Google, GitHub) |
 | `activity` | Listas de atividades e exercícios polimórficos (4 tipos) |
 | `group` | Turmas com soft delete, compartilhamento entre professores, convites por token |
 | `student` | Submissão de atividades, respostas, correção pelo professor, execução de código |
@@ -65,24 +65,26 @@ O projeto segue a convenção Django de dividir responsabilidades em apps. Todo 
 
 ## Autenticação
 
-Além do login tradicional (usuário/senha, via `django.contrib.auth`), o sistema aceita login social pelo Google (`django-allauth`).
+Além do login tradicional (usuário/senha, via `django.contrib.auth`), o sistema aceita login social pelo Google e pelo GitHub (`django-allauth`).
 
 ### Sem auto-cadastro aberto pra Professor
 
 O sistema não tem cadastro aberto no login tradicional — contas de professor/aluno são provisionadas via comando `seed` ou pelo Django Admin, e até a confirmação de convite de turma (`GroupInviteConfirmView`) exige login prévio.
 
-O login social **é** uma exceção deliberada a essa regra: qualquer pessoa com conta Google pode se cadastrar (sem convite, aprovação de admin ou restrição de domínio) e escolher o próprio papel — ver fluxo abaixo. Essa decisão foi tomada considerando que o vínculo por e-mail (não por auto-cadastro) já é o caso comum de uso: o e-mail institucional já existe cadastrado, e o login Google normalmente só *acelera* o acesso a uma conta que já existe.
+O login social **é** uma exceção deliberada a essa regra: qualquer pessoa com conta Google ou GitHub pode se cadastrar (sem convite, aprovação de admin ou restrição de domínio) e escolher o próprio papel — ver fluxo abaixo. Essa decisão foi tomada considerando que o vínculo por e-mail (não por auto-cadastro) já é o caso comum de uso: o e-mail institucional já existe cadastrado, e o login social normalmente só *acelera* o acesso a uma conta que já existe.
 
-### Fluxo de login com Google
+### Fluxo de login social
+
+O fluxo é o mesmo para os dois provedores (`accounts.adapters.SocialAccountAdapter` não é específico de nenhum):
 
 ```
-Usuário clica "Entrar com Google"
+Usuário clica "Entrar com Google" ou "Entrar com GitHub"
       ↓
-/accounts/google/login/  →  redirect pra tela de consentimento do Google
+/accounts/<provedor>/login/  →  redirect pra tela de consentimento do provedor
       ↓
-/accounts/google/login/callback/  →  SocialAccountAdapter.pre_social_login()
+/accounts/<provedor>/login/callback/  →  SocialAccountAdapter.pre_social_login()
       ↓
-   E-mail do Google bate com algum User existente?
+   E-mail do provedor bate com algum User existente?
       │
       ├─ Sim → sociallogin.connect(user)  →  login direto
       │
@@ -91,13 +93,15 @@ Usuário clica "Entrar com Google"
               Usuário escolhe usuário + papel (Professor/Aluno)
                  ↓
               SocialAccountAdapter.save_user()
-                 │  - User.email é sempre o e-mail VERIFICADO pelo Google
+                 │  - User.email é sempre o e-mail VERIFICADO pelo provedor
                  │    (ignora o que foi digitado no form, mesmo com JS
                  │    desabilitado — evita conta duplicada no próximo login)
                  │  - UserPreferences.role grava o papel escolhido
                  ↓
               login direto, conta criada
 ```
+
+No GitHub, o escopo `user:email` é obrigatório (`SOCIALACCOUNT_PROVIDERS['github']['SCOPE']`) — sem ele, usuários com "Keep my email address private" ativado no perfil não têm e-mail nenhum retornado pela API, e `pre_social_login`/`save_user` não teriam como vincular ou persistir o e-mail.
 
 O papel (`UserPreferences.role`, `ROLE_CHOICES = professor | aluno`) é só um dado — o sistema ainda **não** usa esse campo pra restringir permissões em lugar nenhum; checagem de acesso continua sendo por relacionamento (`created_by`, `GroupStudent`), como antes do login social existir.
 
@@ -109,7 +113,14 @@ Pra que o papel escolhido no cadastro social force esse valor já no primeiro ca
 
 ### Configuração
 
-Variáveis de ambiente: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` (sem default — vazio faz o redirect pro Google falhar). Ver [Ambiente de Produção](guia_de_início/prod.md) para o passo a passo de criação das credenciais no Google Cloud Console.
+Variáveis de ambiente (sem default — vazio faz o redirect falhar):
+
+| Provedor | Variáveis |
+|---|---|
+| Google | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` |
+| GitHub | `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET` |
+
+Ver [Ambiente de Produção](guia_de_início/prod.md) para o passo a passo de criação das credenciais em cada provedor.
 
 ---
 
